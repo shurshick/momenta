@@ -72,11 +72,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK Platform 35
-        run: |
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" || \
-          yes | sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
-
       - name: Build Dev APK (debug)
         run: |
           chmod +x gradlew
@@ -98,17 +93,8 @@ jobs:
           exit $RC
         working-directory: android
 
-      - name: Build Prod APK (release)
-        run: ./gradlew assembleProdRelease
-        working-directory: android
-        continue-on-error: true
-
-      - name: Upload APKs to release
+      - name: Upload APK to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            android/app/build/outputs/apk/dev/debug/*.apk
-            android/app/build/outputs/apk/prod/release/*.apk
-          draft: false
-          prerelease: false
+          files: android/app/build/outputs/apk/dev/debug/*.apk
