@@ -3,7 +3,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -111,7 +110,7 @@ dependencies {
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-compiler:2.50")
+    ksp("com.google.dagger:hilt-compiler:2.50")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Room
@@ -140,8 +139,8 @@ dependencies {
 
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation("androidx.hilt:hilt-work:1.1.0")
-    kapt("androidx.hilt:hilt-compiler:1.1.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
 
     // Accompanist
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
