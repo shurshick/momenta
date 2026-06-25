@@ -278,13 +278,13 @@ http://<trueNAS-IP>:8000/admin
 ### 5.4. MinIO Console
 
 ```
-http://<trueNAS-IP>:9002
+http://<trueNAS-IP>:9011
 ```
 
 Логин/пароль: `MINIO_ROOT_USER` / `MINIO_ROOT_SECRET`.
 
-> Если порт `9002` тоже занят, измените его в YAML (секция `momenta-minio`):
-> `--console-address ":9003"` и `ports: - "9003:9003"`.
+> Если порт `9011` тоже занят, измените его в YAML (секция `momenta-minio`):
+> `--console-address ":9012"` и `ports: - "9012:9012"`.
 
 ### 5.5. Инициализация S3 Bucket
 
@@ -442,7 +442,7 @@ RATE_LIMIT_UPLOAD_PER_HOUR=20
 | momenta-postgres | 5432 | — | Нет (internal only) |
 | momenta-redis | 6379 | — | Нет (internal only) |
 | momenta-minio | 9000 | 9000 | Да (может быть закрыт за NPM) |
-| momenta-minio | 9002 | 9002 | Да (Admin Console, может быть закрыт) |
+| momenta-minio | 9011 | 9011 | Да (Admin Console, может быть закрыт) |
 
 **Важно:** PostgreSQL и Redis не публикуются наружу — к ним подключаются только контейнеры API и Worker через внутреннюю Docker-сеть.
 
