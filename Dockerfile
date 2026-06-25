@@ -6,12 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc libpq-dev curl && \
     rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
-
-RUN pip install --no-cache-dir -e ".[dev]" && \
-    pip install --no-cache-dir uvicorn[standard] gunicorn
-
 COPY . .
+
+RUN pip install --no-cache-dir . && \
+    pip install --no-cache-dir uvicorn[standard] gunicorn
 
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
