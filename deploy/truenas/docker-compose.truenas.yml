@@ -101,13 +101,13 @@ services:
     image: minio/minio:latest
     container_name: momenta-minio
     restart: unless-stopped
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":9002"
     environment:
       MINIO_ROOT_USER: CHANGE_ME_MINIO_ACCESS
       MINIO_ROOT_PASSWORD: CHANGE_ME_MINIO_SECRET
     ports:
       - "9000:9000"
-      - "9001:9001"
+      - "9002:9002"
     volumes:
       - /mnt/pool/app/momenta/minio:/data
     healthcheck:

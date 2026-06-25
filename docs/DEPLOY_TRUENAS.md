@@ -278,10 +278,13 @@ http://<trueNAS-IP>:8000/admin
 ### 5.4. MinIO Console
 
 ```
-http://<trueNAS-IP>:9001
+http://<trueNAS-IP>:9002
 ```
 
 Логин/пароль: `MINIO_ROOT_USER` / `MINIO_ROOT_SECRET`.
+
+> Если порт `9002` тоже занят, измените его в YAML (секция `momenta-minio`):
+> `--console-address ":9003"` и `ports: - "9003:9003"`.
 
 ### 5.5. Инициализация S3 Bucket
 
@@ -439,6 +442,10 @@ RATE_LIMIT_UPLOAD_PER_HOUR=20
 | momenta-postgres | 5432 | — | Нет (internal only) |
 | momenta-redis | 6379 | — | Нет (internal only) |
 | momenta-minio | 9000 | 9000 | Да (может быть закрыт за NPM) |
-| momenta-minio | 9001 | 9001 | Да (Admin Console, может быть закрыт) |
+| momenta-minio | 9002 | 9002 | Да (Admin Console, может быть закрыт) |
 
 **Важно:** PostgreSQL и Redis не публикуются наружу — к ним подключаются только контейнеры API и Worker через внутреннюю Docker-сеть.
+
+> Если какой-либо порт уже занят (ошибка `port is already allocated`), измените
+> внешний порт в секции `ports` YAML-конфигурации. Например, для MinIO Console:
+> `"9002:9002"` → `"9003:9002"` (меняется только левая часть — внешний порт).
