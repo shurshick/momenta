@@ -55,7 +55,7 @@ fun RecentPostDto.toDomain(): Post = Post(
     id = id,
     user = User(id = "", username = "", displayName = null, avatarUrl = null, email = null),
     mediaType = "image",
-    previewUrl = previewUrl,
+    previewUrl = previewUrl ?: "",
     thumbUrl = thumbUrl,
     caption = null,
     country = null,
