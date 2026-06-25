@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.core.media.ImageCompressor
 import com.bghitech.momenta.data.local.dao.UploadQueueDao
 import com.bghitech.momenta.data.remote.MomentaApi
 import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -24,6 +24,11 @@ class UploadPostWorker @AssistedInject constructor(
     private val api: MomentaApi,
     private val imageCompressor: ImageCompressor
 ) : CoroutineWorker(appContext, workerParams) {
+
+    @AssistedFactory
+    interface Factory {
+        fun create(appContext: Context, workerParams: WorkerParameters): UploadPostWorker
+    }
 
     override suspend fun doWork(): Result {
         val localId = inputData.getString("local_id") ?: return Result.failure()
