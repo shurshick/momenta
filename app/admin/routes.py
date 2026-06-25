@@ -1,4 +1,5 @@
 import uuid
+from pathlib import Path
 from datetime import date, datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, Form, Query
@@ -20,7 +21,7 @@ from app.services.auth_service import get_user_by_id
 from app.services.s3_service import ensure_bucket
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-templates = Jinja2Templates(directory="app/admin/templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 
 async def get_admin_user(request: Request, db: AsyncSession = Depends(get_db)) -> Optional[User]:
