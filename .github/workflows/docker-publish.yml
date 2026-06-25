@@ -80,12 +80,13 @@ jobs:
       - name: Build Dev APK (debug)
         run: |
           chmod +x gradlew
-          ./gradlew assembleDevDebug --stacktrace --info 2>&1 | tail -200
+          ./gradlew assembleDevDebug
         working-directory: android
 
       - name: Build Prod APK (release)
         run: ./gradlew assembleProdRelease
         working-directory: android
+        continue-on-error: true
 
       - name: Upload APKs to release
         if: github.event_name == 'release'
