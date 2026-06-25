@@ -84,7 +84,7 @@ jobs:
           RC=1
           for i in 1 2 3; do
             echo "=== Attempt $i ==="
-            ./gradlew assembleDevDebug
+            ./gradlew assembleDevDebug --stacktrace
             RC=$?
             if [ $RC -eq 0 ]; then
               echo "Build succeeded on attempt $i"

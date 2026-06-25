@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.bghitech.momenta"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.bghitech.momenta"
