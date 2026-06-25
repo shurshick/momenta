@@ -80,7 +80,12 @@ jobs:
       - name: Build Dev APK (debug)
         run: |
           chmod +x gradlew
-          ./gradlew assembleDevDebug
+          for i in 1 2 3; do
+            echo "Attempt $i..."
+            ./gradlew assembleDevDebug && break
+            echo "Attempt $i failed, retrying..."
+            sleep 10
+          done
         working-directory: android
 
       - name: Build Prod APK (release)
