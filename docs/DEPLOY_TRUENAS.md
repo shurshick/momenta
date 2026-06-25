@@ -1,13 +1,32 @@
-# Deploy on TrueNAS SCALE
+# Deploy Momenta on TrueNAS SCALE
 
-## Prerequisites
+## 1. Требования
 
-- TrueNAS SCALE with Apps enabled
-- Custom App support
+- TrueNAS SCALE 24.04+ (Electric Eel) или новее
+- Включён сервис **Apps**
+- Минимум 4 GB RAM, 20 GB свободного места на pool
+- Загруженный образ `ghcr.io/shurshick/momenta:latest`
 
-## Steps
+---
 
-1. Create datasets:
+## 2. Создание Dataset'ов
+
+Создайте dataset'ы для хранения данных приложения. Это обязательно, потому что контейнеры используют bind mounts.
+
+### Через веб-интерфейс
+
+**Storage → Create Dataset** для каждого:
+
+| Dataset | Путь | Назначение |
+|---|---|---|
+| `momenta/postgres` | `/mnt/pool/app/momenta/postgres` | PostgreSQL данные |
+| `momenta/redis` | `/mnt/pool/app/momenta/redis` | Redis RDB/append-only |
+| `momenta/minio` | `/mnt/pool/app/momenta/minio` | MinIO объекты |
+| `momenta/api` | `/mnt/pool/app/momenta/api` | API temp/logs |
+
+Где `pool` — имя вашего storage pool (например, `tank`, `storage`).
+
+### Через CLI (Shell)
 
 ```bash
 zfs create pool/app/momenta
@@ -17,19 +36,366 @@ zfs create pool/app/momenta/minio
 zfs create pool/app/momenta/api
 ```
 
-2. In TrueNAS SCALE UI, go to **Apps > Launch Docker Image**.
+---
 
-3. Use the YAML from `deploy/truenas/docker-compose.truenas.yml`.
+## 3. Развёртывание через TrueNAS Custom App
 
-4. Replace all `CHANGE_ME_*` values with your secrets.
+### 3.1. Откройте Apps
 
-5. Set environment variables.
+**Apps → Discover Apps → Custom App**
 
-6. Click **Install**.
+### 3.2. Настройка Application Name
 
-## Post-Deploy
+| Поле | Значение |
+|---|---|
+| Application Name | `momenta` |
+| Version | `0.1.0` |
 
-- Check `/health` and `/ready`
-- Create MinIO bucket automatically or via admin panel
-- Set up reverse proxy (Nginx Proxy Manager) for HTTPS
-- Configure `PUBLIC_BASE_URL` and `S3_PUBLIC_ENDPOINT`
+### 3.3. Вставьте YAML конфигурацию
+
+Переключитесь на **Custom YAML** и вставьте содержимое файла [`deploy/truenas/docker-compose.truenas.yml`](../deploy/truenas/docker-compose.truenas.yml).
+
+Полный YAML:
+
+```yaml
+services:
+  momenta-api:
+    image: ghcr.io/shurshick/momenta:latest
+    container_name: momenta-api
+    restart: unless-stopped
+    depends_on:
+      momenta-postgres:
+        condition: service_healthy
+      momenta-redis:
+        condition: service_healthy
+      momenta-minio:
+        condition: service_healthy
+    environment:
+      APP_NAME: Momenta
+      APP_ENV: production
+      APP_VERSION: 0.1.0
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      PUBLIC_BASE_URL: https://momenta.example.com
+      DATABASE_URL: postgresql+psycopg://momenta:CHANGE_ME_DB_PASSWORD@momenta-postgres:5432/momenta
+      REDIS_URL: redis://momenta-redis:6379/0
+      JWT_SECRET: CHANGE_ME_JWT_SECRET
+      JWT_ACCESS_TTL_MINUTES: 30
+      JWT_REFRESH_TTL_DAYS: 30
+      CORS_ORIGINS: https://momenta.example.com
+      S3_ENDPOINT: http://momenta-minio:9000
+      S3_PUBLIC_ENDPOINT: https://momenta-media.example.com
+      S3_ACCESS_KEY: CHANGE_ME_MINIO_ACCESS
+      S3_SECRET_KEY: CHANGE_ME_MINIO_SECRET
+      S3_BUCKET: momenta-media
+      S3_REGION: us-east-1
+      S3_SECURE: "false"
+      MEDIA_MAX_IMAGE_MB: 15
+      MEDIA_MAX_VIDEO_MB: 80
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: CHANGE_ME_ADMIN_PASSWORD
+    ports:
+      - "8000:8000"
+    volumes:
+      - /mnt/pool/app/momenta/api:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  momenta-worker:
+    image: ghcr.io/shurshick/momenta:latest
+    container_name: momenta-worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      momenta-postgres:
+        condition: service_healthy
+      momenta-redis:
+        condition: service_healthy
+      momenta-minio:
+        condition: service_healthy
+    environment:
+      APP_NAME: Momenta
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://momenta:CHANGE_ME_DB_PASSWORD@momenta-postgres:5432/momenta
+      REDIS_URL: redis://momenta-redis:6379/0
+      S3_ENDPOINT: http://momenta-minio:9000
+      S3_ACCESS_KEY: CHANGE_ME_MINIO_ACCESS
+      S3_SECRET_KEY: CHANGE_ME_MINIO_SECRET
+      S3_BUCKET: momenta-media
+    volumes:
+      - /mnt/pool/app/momenta/api:/app/data
+
+  momenta-postgres:
+    image: postgres:16-alpine
+    container_name: momenta-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: momenta
+      POSTGRES_USER: momenta
+      POSTGRES_PASSWORD: CHANGE_ME_DB_PASSWORD
+    volumes:
+      - /mnt/pool/app/momenta/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U momenta -d momenta"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  momenta-redis:
+    image: redis:7-alpine
+    container_name: momenta-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - /mnt/pool/app/momenta/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  momenta-minio:
+    image: minio/minio:latest
+    container_name: momenta-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: CHANGE_ME_MINIO_ACCESS
+      MINIO_ROOT_PASSWORD: CHANGE_ME_MINIO_SECRET
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - /mnt/pool/app/momenta/minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+```
+
+### 3.4. Обязательные замены
+
+Перед запуском замените все `CHANGE_ME_*` на реальные значения:
+
+| Переменная | Где используется | Рекомендация |
+|---|---|---|
+| `CHANGE_ME_DB_PASSWORD` | postgres, api, worker | 32+ символа, буквы+цифры |
+| `CHANGE_ME_JWT_SECRET` | api | 64+ символа, рандом |
+| `CHANGE_ME_MINIO_ACCESS` | minio, api, worker | логин для S3 |
+| `CHANGE_ME_MINIO_SECRET` | minio, api, worker | 32+ символа |
+| `CHANGE_ME_ADMIN_PASSWORD` | api | 16+ символов |
+
+Сгенерировать пароли можно командой в TrueNAS Shell:
+
+```bash
+openssl rand -base64 32
+```
+
+### 3.5. Настройка доменов
+
+Замените `momenta.example.com` и `momenta-media.example.com` на ваши реальные домены.
+
+| Переменная | Значение |
+|---|---|
+| `PUBLIC_BASE_URL` | `https://momenta.example.com` |
+| `CORS_ORIGINS` | `https://momenta.example.com` |
+| `S3_PUBLIC_ENDPOINT` | `https://momenta-media.example.com` |
+
+### 3.6. Запуск
+
+Нажмите **Install**. TrueNAS запустит все 5 контейнеров в порядке зависимостей.
+
+Проверка статуса:
+
+```
+Apps → Installed → momenta → показан статус 5/5 контейнеров (green)
+```
+
+### 3.7. Если YAML не подходит
+
+Если в вашей версии TrueNAS Custom App использует другой формат (не Docker Compose), разверните каждый сервис по отдельности через **Launch Docker Image**, используя параметры из YAML как руководство.
+
+---
+
+## 4. Пост-деплой проверка
+
+### 4.1. Health Check API
+
+```bash
+curl http://<trueNAS-IP>:8000/health
+# → {"status": "ok"}
+```
+
+### 4.2. Ready Check
+
+```bash
+curl http://<trueNAS-IP>:8000/ready
+# → {"status":"ok","postgres":true,"redis":true,"s3":true}
+```
+
+### 4.3. Админ-панель
+
+```
+http://<trueNAS-IP>:8000/admin
+```
+
+Логин: `admin`, пароль: тот, что указали в `ADMIN_PASSWORD`.
+
+### 4.4. MinIO Console
+
+```
+http://<trueNAS-IP>:9001
+```
+
+Логин/пароль: `MINIO_ROOT_USER` / `MINIO_ROOT_SECRET`.
+
+### 4.5. Инициализация S3 Bucket
+
+В админ-панели: **System → Init S3 Bucket** (однократно).
+
+Либо через MinIO Console: создайте bucket `momenta-media` руками.
+
+---
+
+## 5. Reverse Proxy (Nginx Proxy Manager)
+
+### 5.1. Установка NPM
+
+Установите **Nginx Proxy Manager** из каталога Apps TrueNAS.
+
+### 5.2. Прокси для API
+
+| Поле | Значение |
+|---|---|
+| Domain | `momenta.example.com` |
+| Scheme | `http` |
+| Forward IP | IP вашей TrueNAS |
+| Forward Port | `8000` |
+| Cache Assets | `No` |
+| Block Common Exploits | `Yes` |
+| Websockets Support | `No` |
+| SSL | Let's Encrypt |
+
+### 5.3. Прокси для MinIO Media
+
+| Поле | Значение |
+|---|---|
+| Domain | `momenta-media.example.com` |
+| Scheme | `http` |
+| Forward IP | IP вашей TrueNAS |
+| Forward Port | `9000` |
+| Cache Assets | `Yes` |
+| SSL | Let's Encrypt |
+
+После настройки NPM обновите в API:
+
+| Переменная | Новое значение |
+|---|---|
+| `PUBLIC_BASE_URL` | `https://momenta.example.com` |
+| `S3_PUBLIC_ENDPOINT` | `https://momenta-media.example.com` |
+
+Для этого остановите app, отредактируйте переменные окружения и запустите снова.
+
+---
+
+## 6. Обновление
+
+### 6.1. Остановите приложение
+
+**Apps → Installed → momenta → Stop**
+
+### 6.2. Обновите образ
+
+Замените `image: ghcr.io/shurshick/momenta:latest` на конкретную версию:
+
+```yaml
+image: ghcr.io/shurshick/momenta:v0.2.0
+```
+
+### 6.3. Запустите
+
+**Start**. TrueNAS перезапустит контейнеры с новым образом.
+
+---
+
+## 7. Бэкап
+
+### 7.1. PostgreSQL
+
+Через TrueNAS Shell:
+
+```bash
+docker exec momenta-postgres pg_dump -U momenta momenta > /mnt/pool/backups/momenta-$(date +%F).sql
+```
+
+### 7.2. Данные
+
+Достаточно бекапить dataset'ы:
+
+```bash
+zfs snapshot pool/app/momenta@$(date +%F)
+```
+
+### 7.3. Redis и MinIO
+
+Redis — AOF файл в `/mnt/pool/app/momenta/redis/`.
+MinIO — все объекты в `/mnt/pool/app/momenta/minio/`.
+
+Бекап через ZFS snapshot покрывает всё.
+
+---
+
+## 8. Устранение проблем
+
+### 8.1. Контейнеры не стартуют
+
+Проверьте логи:
+
+```
+Apps → Installed → momenta → Logs (выберите контейнер)
+```
+
+### 8.2. PostgreSQL не отвечает
+
+```bash
+docker exec momenta-postgres pg_isready -U momenta
+```
+
+Если нет — проверьте, нет ли другого Postgres на порту 5432.
+
+### 8.3. Ошибка S3 bucket not found
+
+Перейдите в админ-панель `/admin/system` и нажмите **Init S3 Bucket**, либо создайте bucket `momenta-media` в MinIO Console.
+
+### 8.4. Медиа не грузятся
+
+Проверьте `S3_ENDPOINT` в API — должен указывать на `http://momenta-minio:9000` (внутренний), а `S3_PUBLIC_ENDPOINT` — на внешний URL.
+
+### 8.5. Rate limit срабатывает
+
+Настройки в API:
+
+```
+RATE_LIMIT_LOGIN_PER_MINUTE=10
+RATE_LIMIT_UPLOAD_PER_HOUR=20
+```
+
+Увеличьте при необходимости, затем перезапустите app.
+
+---
+
+## 9. Порты (сводка)
+
+| Контейнер | Внутренний порт | Внешний порт | Доступ |
+|---|---|---|---|
+| momenta-api | 8000 | 8000 | Да |
+| momenta-postgres | 5432 | — | Нет (internal only) |
+| momenta-redis | 6379 | — | Нет (internal only) |
+| momenta-minio | 9000 | 9000 | Да (может быть закрыт за NPM) |
+| momenta-minio | 9001 | 9001 | Да (Admin Console, может быть закрыт) |
+
+**Важно:** PostgreSQL и Redis не публикуются наружу — к ним подключаются только контейнеры API и Worker через внутреннюю Docker-сеть.
