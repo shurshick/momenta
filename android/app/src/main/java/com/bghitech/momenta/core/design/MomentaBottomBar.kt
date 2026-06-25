@@ -6,11 +6,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -29,8 +33,8 @@ enum class BottomNavItem(
 ) {
     HOME("today", Icons.Filled.Home, Icons.Outlined.Home, "Главная"),
     SEARCH("search", Icons.Filled.Search, Icons.Outlined.Search, "Поиск"),
-    CREATE("camera", Icons.Filled.Home, Icons.Outlined.Home, "Создать"),
-    FEED("feed", Icons.Filled.Home, Icons.Outlined.Home, "Моменты"),
+    CREATE("camera", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt, "Создать"),
+    FEED("feed", Icons.Filled.People, Icons.Outlined.People, "Моменты"),
     PROFILE("profile", Icons.Filled.Person, Icons.Outlined.Person, "Профиль")
 }
 

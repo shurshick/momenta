@@ -96,7 +96,7 @@ fun TodayScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Твоя дна",
+            text = "Твой день",
             color = MomentaGreen,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium
