@@ -35,7 +35,7 @@ services:
       ADMIN_EMAIL: admin@example.com
       ADMIN_PASSWORD: CHANGE_ME_ADMIN_PASSWORD
     ports:
-      - "8000:8000"
+      - "8010:8000"
     volumes:
       - /mnt/pool/app/momenta/api:/app/data
     healthcheck:
@@ -101,13 +101,13 @@ services:
     image: minio/minio:latest
     container_name: momenta-minio
     restart: unless-stopped
-    command: server /data --console-address ":9011"
+    command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: CHANGE_ME_MINIO_ACCESS
       MINIO_ROOT_PASSWORD: CHANGE_ME_MINIO_SECRET
     ports:
-      - "9000:9000"
-      - "9011:9011"
+      - "9010:9000"
+      - "9011:9001"
     volumes:
       - /mnt/pool/app/momenta/minio:/data
     healthcheck:
