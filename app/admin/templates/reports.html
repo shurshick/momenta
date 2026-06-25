@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="search-box">
+        <form method="get">
+            <select name="status_filter" onchange="this.form.submit()">
+                <option value="">All</option>
+                <option value="new" {% if status_filter == 'new' %}selected{% endif %}>New</option>
+                <option value="reviewed" {% if status_filter == 'reviewed' %}selected{% endif %}>Reviewed</option>
+                <option value="action_taken" {% if status_filter == 'action_taken' %}selected{% endif %}>Action Taken</option>
+                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+        </form>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Post ID</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reports %}
+            <tr>
+                <td class="truncate">{{ r.post_id }}</td>
+                <td>{{ r.reason }}</td>
+                <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+                <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '-' }}</td>
+                <td>
+                    {% if r.status == 'new' %}
+                    <form method="post" action="/admin/reports/{{ r.id }}/resolve" style="display:inline">
+                        <input type="hidden" name="action" value="rejected">
+                        <button type="submit" class="btn btn-sm btn-success">Reject</button>
+                    </form>
+                    <form method="post" action="/admin/reports/{{ r.id }}/resolve" style="display:inline">
+                        <input type="hidden" name="action" value="hide_post">
+                        <button type="submit" class="btn btn-sm btn-warning">Hide Post</button>
+                    </form>
+                    <form method="post" action="/admin/reports/{{ r.id }}/resolve" style="display:inline">
+                        <input type="hidden" name="action" value="disable_user">
+                        <button type="submit" class="btn btn-sm btn-danger">Disable User</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="empty">No reports</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

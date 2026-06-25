@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="search-box">
+    <form method="get">
+        <input type="text" name="search" placeholder="Search by username or email..." value="{{ search or '' }}">
+        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    </form>
+</div>
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Country</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td class="truncate">{{ u.email or '-' }}</td>
+                <td><span class="badge badge-active">{{ u.role }}</span></td>
+                <td><span class="badge {% if u.status == 'active' %}badge-active{% else %}badge-disabled{% endif %}">{{ u.status }}</span></td>
+                <td>{{ u.country or '-' }}</td>
+                <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '-' }}</td>
+                <td>
+                    <form method="post" action="/admin/users/{{ u.id }}/toggle-status" style="display:inline">
+                        <button type="submit" class="btn btn-sm {% if u.status == 'active' %}btn-warning{% else %}btn-success{% endif %}">
+                            {% if u.status == 'active' %}Disable{% else %}Enable{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="/admin/users/{{ u.id }}/set-role" style="display:inline">
+                        <select name="role" onchange="this.form.submit()" style="padding:4px;font-size:12px;border-radius:4px;">
+                            <option value="user" {% if u.role == 'user' %}selected{% endif %}>user</option>
+                            <option value="moderator" {% if u.role == 'moderator' %}selected{% endif %}>mod</option>
+                            <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>admin</option>
+                        </select>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="empty">No users found</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

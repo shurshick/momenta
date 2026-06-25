@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Challenges{% endblock %}
+{% block content %}
+<div class="card">
+    <h3 style="margin-bottom:12px;">Create Challenge</h3>
+    <form method="post" action="/admin/challenges/create">
+        <div class="form-group">
+            <label>Date</label>
+            <input type="date" name="challenge_date" required>
+        </div>
+        <div class="form-group">
+            <label>Title (RU)</label>
+            <input type="text" name="title_ru" required>
+        </div>
+        <div class="form-group">
+            <label>Description (RU)</label>
+            <textarea name="description_ru"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            <select name="status">
+                <option value="draft">Draft</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="active">Active</option>
+                <option value="archived">Archived</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Challenge</button>
+    </form>
+</div>
+<div class="card">
+    <form method="post" action="/admin/challenges/create-fallback" style="margin-bottom:16px;">
+        <button type="submit" class="btn btn-success">Create Fallback Challenge for Today</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Title (RU)</th>
+                <th>Status</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in challenges %}
+            <tr>
+                <td>{{ c.challenge_date }}</td>
+                <td class="truncate">{{ c.title_ru }}</td>
+                <td><span class="badge badge-{{ c.status }}">{{ c.status }}</span></td>
+                <td>{{ c.created_at.strftime('%Y-%m-%d') if c.created_at else '-' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="empty">No challenges</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

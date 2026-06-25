@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="card">
+        <h3>Total Users</h3>
+        <div class="value">{{ total_users }}</div>
+    </div>
+    <div class="card">
+        <h3>Posts Today</h3>
+        <div class="value">{{ posts_today }}</div>
+    </div>
+    <div class="card">
+        <h3>New Reports</h3>
+        <div class="value">{{ new_reports }}</div>
+    </div>
+    <div class="card">
+        <h3>Challenge Today</h3>
+        <div class="value" style="font-size:16px;">{{ challenge_today }}</div>
+    </div>
+</div>
+{% endblock %}

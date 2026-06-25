@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Posts{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="search-box">
+        <form method="get">
+            <select name="status_filter" onchange="this.form.submit()">
+                <option value="">All statuses</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>Processing</option>
+                <option value="hidden" {% if status_filter == 'hidden' %}selected{% endif %}>Hidden</option>
+                <option value="deleted" {% if status_filter == 'deleted' %}selected{% endif %}>Deleted</option>
+            </select>
+            <input type="date" name="date_filter" value="{{ request.query_params.get('date_filter', '') }}">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        </form>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Likes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in posts %}
+            <tr>
+                <td class="truncate">{{ p.id }}</td>
+                <td class="truncate">{{ p.user_id }}</td>
+                <td>{{ p.challenge_date }}</td>
+                <td>{{ p.media_type }}</td>
+                <td><span class="badge badge-{{ p.status }}">{{ p.status }}</span></td>
+                <td>{{ p.likes_count }}</td>
+                <td>
+                    {% if p.status == 'active' %}
+                    <form method="post" action="/admin/posts/{{ p.id }}/hide" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-warning">Hide</button>
+                    </form>
+                    {% elif p.status == 'hidden' %}
+                    <form method="post" action="/admin/posts/{{ p.id }}/restore" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-success">Restore</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="empty">No posts found</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

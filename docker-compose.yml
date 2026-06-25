@@ -1,0 +1,116 @@
+version: "3.9"
+
+services:
+  momenta-api:
+    build: .
+    container_name: momenta-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      momenta-postgres:
+        condition: service_healthy
+      momenta-redis:
+        condition: service_healthy
+      momenta-minio:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://momenta:momenta_password@momenta-postgres:5432/momenta
+      REDIS_URL: redis://momenta-redis:6379/0
+      S3_ENDPOINT: http://momenta-minio:9000
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: momenta-media
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8000
+    volumes:
+      - momenta_api_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  momenta-worker:
+    build: .
+    container_name: momenta-worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      momenta-postgres:
+        condition: service_healthy
+      momenta-redis:
+        condition: service_healthy
+      momenta-minio:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://momenta:momenta_password@momenta-postgres:5432/momenta
+      REDIS_URL: redis://momenta-redis:6379/0
+      S3_ENDPOINT: http://momenta-minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: momenta-media
+    volumes:
+      - momenta_api_data:/app/data
+
+  momenta-postgres:
+    image: postgres:16-alpine
+    container_name: momenta-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: momenta
+      POSTGRES_USER: momenta
+      POSTGRES_PASSWORD: momenta_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - momenta_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U momenta -d momenta"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  momenta-redis:
+    image: redis:7-alpine
+    container_name: momenta-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - momenta_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  momenta-minio:
+    image: minio/minio:latest
+    container_name: momenta-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - momenta_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  momenta_postgres_data:
+  momenta_redis_data:
+  momenta_minio_data:
+  momenta_api_data:

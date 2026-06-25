@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momenta Admin - {% block title %}Dashboard{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; display: flex; min-height: 100vh; }
+        .sidebar { width: 240px; background: #1a1a2e; color: #fff; padding: 20px 0; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; }
+        .sidebar h2 { padding: 0 20px 20px; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar nav a { display: block; padding: 12px 20px; color: #a0a0b8; text-decoration: none; font-size: 14px; transition: all 0.2s; }
+        .sidebar nav a:hover, .sidebar nav a.active { background: rgba(255,255,255,0.05); color: #fff; }
+        .main { margin-left: 240px; flex: 1; padding: 24px; max-width: calc(100vw - 240px); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0; }
+        .header h1 { font-size: 24px; }
+        .header .user-info { font-size: 14px; color: #666; }
+        .header .user-info a { color: #e74c3c; text-decoration: none; margin-left: 12px; }
+        .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .card h3 { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .card .value { font-size: 28px; font-weight: 700; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:hover { background: #f8f9fa; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .badge-active { background: #d4edda; color: #155724; }
+        .badge-disabled { background: #f8d7da; color: #721c24; }
+        .badge-new { background: #cce5ff; color: #004085; }
+        .badge-draft { background: #fff3cd; color: #856404; }
+        .badge-processing { background: #cce5ff; color: #004085; }
+        .btn { display: inline-block; padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; text-decoration: none; transition: all 0.2s; }
+        .btn-primary { background: #1a1a2e; color: #fff; }
+        .btn-primary:hover { background: #2d2d4a; }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .btn-success { background: #28a745; color: #fff; }
+        .btn-warning { background: #ffc107; color: #1a1a2e; }
+        form { display: inline; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; max-width: 500px; }
+        .form-group textarea { min-height: 80px; }
+        .search-box { display: flex; gap: 8px; margin-bottom: 16px; }
+        .search-box input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; max-width: 300px; }
+        .truncate { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .empty { text-align: center; padding: 40px; color: #999; }
+        @media (max-width: 768px) { .sidebar { width: 60px; } .sidebar nav a span { display: none; } .sidebar h2 { font-size: 0; } .main { margin-left: 60px; max-width: calc(100vw - 60px); } }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Momenta Admin</h2>
+        <nav>
+            <a href="/admin" class="{% if request.url.path == '/admin' or request.url.path == '/admin/' %}active{% endif %}">Dashboard</a>
+            <a href="/admin/users" class="{% if 'users' in request.url.path %}active{% endif %}">Users</a>
+            <a href="/admin/challenges" class="{% if 'challenges' in request.url.path %}active{% endif %}">Challenges</a>
+            <a href="/admin/posts" class="{% if 'posts' in request.url.path %}active{% endif %}">Posts</a>
+            <a href="/admin/reports" class="{% if 'reports' in request.url.path %}active{% endif %}">Reports</a>
+            <a href="/admin/media" class="{% if 'media' in request.url.path %}active{% endif %}">Media</a>
+            <a href="/admin/audit-log" class="{% if 'audit' in request.url.path %}active{% endif %}">Audit Log</a>
+            <a href="/admin/system" class="{% if 'system' in request.url.path %}active{% endif %}">System</a>
+        </nav>
+    </div>
+    <div class="main">
+        <div class="header">
+            <h1>{% block title %}{% endblock %}</h1>
+            <div class="user-info">
+                {{ admin.username }} ({{ admin.role }})
+                <a href="/admin/logout">Logout</a>
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
