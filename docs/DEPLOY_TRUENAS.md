@@ -38,20 +38,50 @@ zfs create pool/app/momenta/api
 
 ---
 
-## 3. Развёртывание через TrueNAS Custom App
+## 3. Настройка доступа к ghcr.io
 
-### 3.1. Откройте Apps
+Образ приложения хранится в GitHub Container Registry (`ghcr.io/shurshick/momenta`).
+Перед развёртыванием нужно сделать его публичным, иначе TrueNAS не сможет его загрузить.
+
+### 3.1. Сделать образ публичным (обязательно)
+
+1. Откройте страницу пакетов GitHub:
+   https://github.com/users/shurshick/packages/container/momenta
+
+   Если ссылка не открывается — зайдите в **GitHub → Profile → Packages** и выберите `momenta`.
+
+2. Нажмите **Package settings** (шестерёнка справа).
+
+3. В разделе **Danger Zone** нажмите **Change visibility** → выберите **Public**.
+
+4. Подтвердите изменение.
+
+После этого образ можно будет скачать без аутентификации:
+
+```bash
+docker pull ghcr.io/shurshick/momenta:latest
+```
+
+> Если по каким-то причинам вы не хотите делать образ публичным, настройте в TrueNAS
+> **Apps → Settings → Registry Credentials**, добавьте `ghcr.io` с вашим GitHub
+> username и PAT-токеном (scope: `read:packages`).
+
+---
+
+## 4. Развёртывание через TrueNAS Custom App
+
+### 4.1. Откройте Apps
 
 **Apps → Discover Apps → Custom App**
 
-### 3.2. Настройка Application Name
+### 4.2. Настройка Application Name
 
 | Поле | Значение |
 |---|---|
 | Application Name | `momenta` |
 | Version | `0.1.0` |
 
-### 3.3. Вставьте YAML конфигурацию
+### 4.3. Вставьте YAML конфигурацию
 
 Переключитесь на **Custom YAML** и вставьте содержимое файла [`deploy/truenas/docker-compose.truenas.yml`](../deploy/truenas/docker-compose.truenas.yml).
 
@@ -177,7 +207,7 @@ services:
       retries: 5
 ```
 
-### 3.4. Обязательные замены
+### 4.4. Обязательные замены
 
 Перед запуском замените все `CHANGE_ME_*` на реальные значения:
 
@@ -195,7 +225,7 @@ services:
 openssl rand -base64 32
 ```
 
-### 3.5. Настройка доменов
+### 4.5. Настройка доменов
 
 Замените `momenta.example.com` и `momenta-media.example.com` на ваши реальные домены.
 
@@ -205,7 +235,7 @@ openssl rand -base64 32
 | `CORS_ORIGINS` | `https://momenta.example.com` |
 | `S3_PUBLIC_ENDPOINT` | `https://momenta-media.example.com` |
 
-### 3.6. Запуск
+### 4.6. Запуск
 
 Нажмите **Install**. TrueNAS запустит все 5 контейнеров в порядке зависимостей.
 
@@ -215,29 +245,29 @@ openssl rand -base64 32
 Apps → Installed → momenta → показан статус 5/5 контейнеров (green)
 ```
 
-### 3.7. Если YAML не подходит
+### 4.7. Если YAML не подходит
 
 Если в вашей версии TrueNAS Custom App использует другой формат (не Docker Compose), разверните каждый сервис по отдельности через **Launch Docker Image**, используя параметры из YAML как руководство.
 
 ---
 
-## 4. Пост-деплой проверка
+## 5. Пост-деплой проверка
 
-### 4.1. Health Check API
+### 5.1. Health Check API
 
 ```bash
 curl http://<trueNAS-IP>:8000/health
 # → {"status": "ok"}
 ```
 
-### 4.2. Ready Check
+### 5.2. Ready Check
 
 ```bash
 curl http://<trueNAS-IP>:8000/ready
 # → {"status":"ok","postgres":true,"redis":true,"s3":true}
 ```
 
-### 4.3. Админ-панель
+### 5.3. Админ-панель
 
 ```
 http://<trueNAS-IP>:8000/admin
@@ -245,7 +275,7 @@ http://<trueNAS-IP>:8000/admin
 
 Логин: `admin`, пароль: тот, что указали в `ADMIN_PASSWORD`.
 
-### 4.4. MinIO Console
+### 5.4. MinIO Console
 
 ```
 http://<trueNAS-IP>:9001
@@ -253,7 +283,7 @@ http://<trueNAS-IP>:9001
 
 Логин/пароль: `MINIO_ROOT_USER` / `MINIO_ROOT_SECRET`.
 
-### 4.5. Инициализация S3 Bucket
+### 5.5. Инициализация S3 Bucket
 
 В админ-панели: **System → Init S3 Bucket** (однократно).
 
@@ -261,13 +291,13 @@ http://<trueNAS-IP>:9001
 
 ---
 
-## 5. Reverse Proxy (Nginx Proxy Manager)
+## 6. Reverse Proxy (Nginx Proxy Manager)
 
-### 5.1. Установка NPM
+### 6.1. Установка NPM
 
 Установите **Nginx Proxy Manager** из каталога Apps TrueNAS.
 
-### 5.2. Прокси для API
+### 6.2. Прокси для API
 
 | Поле | Значение |
 |---|---|
@@ -280,7 +310,7 @@ http://<trueNAS-IP>:9001
 | Websockets Support | `No` |
 | SSL | Let's Encrypt |
 
-### 5.3. Прокси для MinIO Media
+### 6.3. Прокси для MinIO Media
 
 | Поле | Значение |
 |---|---|
@@ -302,13 +332,13 @@ http://<trueNAS-IP>:9001
 
 ---
 
-## 6. Обновление
+## 7. Обновление
 
-### 6.1. Остановите приложение
+### 7.1. Остановите приложение
 
 **Apps → Installed → momenta → Stop**
 
-### 6.2. Обновите образ
+### 7.2. Обновите образ
 
 Замените `image: ghcr.io/shurshick/momenta:latest` на конкретную версию:
 
@@ -316,15 +346,15 @@ http://<trueNAS-IP>:9001
 image: ghcr.io/shurshick/momenta:v0.2.0
 ```
 
-### 6.3. Запустите
+### 7.3. Запустите
 
 **Start**. TrueNAS перезапустит контейнеры с новым образом.
 
 ---
 
-## 7. Бэкап
+## 8. Бэкап
 
-### 7.1. PostgreSQL
+### 8.1. PostgreSQL
 
 Через TrueNAS Shell:
 
@@ -332,7 +362,7 @@ image: ghcr.io/shurshick/momenta:v0.2.0
 docker exec momenta-postgres pg_dump -U momenta momenta > /mnt/pool/backups/momenta-$(date +%F).sql
 ```
 
-### 7.2. Данные
+### 8.2. Данные
 
 Достаточно бекапить dataset'ы:
 
@@ -340,7 +370,7 @@ docker exec momenta-postgres pg_dump -U momenta momenta > /mnt/pool/backups/mome
 zfs snapshot pool/app/momenta@$(date +%F)
 ```
 
-### 7.3. Redis и MinIO
+### 8.3. Redis и MinIO
 
 Redis — AOF файл в `/mnt/pool/app/momenta/redis/`.
 MinIO — все объекты в `/mnt/pool/app/momenta/minio/`.
@@ -349,9 +379,22 @@ MinIO — все объекты в `/mnt/pool/app/momenta/minio/`.
 
 ---
 
-## 8. Устранение проблем
+## 9. Устранение проблем
 
-### 8.1. Контейнеры не стартуют
+### 9.1. Ошибка unauthorized при запуске
+
+**Ошибка:** `Failed 'up' action for 'momenta' app ... unauthorized`
+
+**Причина:** образ на `ghcr.io` приватный, TrueNAS не может его скачать.
+
+**Решение:** 
+1. Сделайте образ публичным (см. раздел 3.1).
+2. В TrueNAS: **Apps → Installed → нажмите на момент → Stop → Start** для повторной попытки.
+
+Если не хотите делать образ публичным — настройте Registry Credentials в TrueNAS:
+**Apps → Settings → Registry Credentials → Add**, укажите `ghcr.io`, ваш GitHub username и PAT-токен (scope: `read:packages`).
+
+### 9.2. Контейнеры не стартуют
 
 Проверьте логи:
 
@@ -359,7 +402,7 @@ MinIO — все объекты в `/mnt/pool/app/momenta/minio/`.
 Apps → Installed → momenta → Logs (выберите контейнер)
 ```
 
-### 8.2. PostgreSQL не отвечает
+### 9.3. PostgreSQL не отвечает
 
 ```bash
 docker exec momenta-postgres pg_isready -U momenta
@@ -367,15 +410,15 @@ docker exec momenta-postgres pg_isready -U momenta
 
 Если нет — проверьте, нет ли другого Postgres на порту 5432.
 
-### 8.3. Ошибка S3 bucket not found
+### 9.4. Ошибка S3 bucket not found
 
 Перейдите в админ-панель `/admin/system` и нажмите **Init S3 Bucket**, либо создайте bucket `momenta-media` в MinIO Console.
 
-### 8.4. Медиа не грузятся
+### 9.5. Медиа не грузятся
 
 Проверьте `S3_ENDPOINT` в API — должен указывать на `http://momenta-minio:9000` (внутренний), а `S3_PUBLIC_ENDPOINT` — на внешний URL.
 
-### 8.5. Rate limit срабатывает
+### 9.6. Rate limit срабатывает
 
 Настройки в API:
 
@@ -388,7 +431,7 @@ RATE_LIMIT_UPLOAD_PER_HOUR=20
 
 ---
 
-## 9. Порты (сводка)
+## 10. Порты (сводка)
 
 | Контейнер | Внутренний порт | Внешний порт | Доступ |
 |---|---|---|---|

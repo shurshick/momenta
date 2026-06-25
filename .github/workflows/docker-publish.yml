@@ -45,3 +45,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Make package public
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method PATCH /users/shurshick/packages/container/momenta \
+            -f visibility="public" \
+            --jq '.visibility' 2>/dev/null || \
+          echo "::warning::Could not auto-set package visibility. Set it manually at:"
+          echo "::warning::https://github.com/users/shurshick/packages/container/momenta/settings"
