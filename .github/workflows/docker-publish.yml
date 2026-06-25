@@ -80,9 +80,13 @@ jobs:
       - name: Build Dev APK (debug)
         run: |
           chmod +x gradlew
+          set +e
+          RC=1
           for i in 1 2 3; do
             echo "=== Attempt $i ==="
-            if ./gradlew assembleDevDebug; then
+            ./gradlew assembleDevDebug
+            RC=$?
+            if [ $RC -eq 0 ]; then
               echo "Build succeeded on attempt $i"
               break
             fi
@@ -90,6 +94,8 @@ jobs:
             ./gradlew clean 2>/dev/null || true
             sleep 10
           done
+          set -e
+          exit $RC
         working-directory: android
 
       - name: Build Prod APK (release)
