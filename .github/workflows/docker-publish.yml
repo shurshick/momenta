@@ -71,12 +71,14 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Make gradlew executable
-        run: chmod +x gradlew
+        with:
+          accept-android-sdk-licenses: true
+          log-cat: false
 
       - name: Build Dev APK (debug)
-        run: ./gradlew assembleDevDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDevDebug
         working-directory: android
 
       - name: Build Prod APK (release)
