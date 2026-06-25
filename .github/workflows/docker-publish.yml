@@ -71,14 +71,16 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          accept-android-sdk-licenses: true
-          packages: "platforms;android-35 build-tools;35.0.0"
+
+      - name: Install Android SDK Platform 35
+        run: |
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" || \
+          yes | sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build Dev APK (debug)
         run: |
           chmod +x gradlew
-          ./gradlew assembleDevDebug
+          ./gradlew assembleDevDebug --stacktrace --info 2>&1 | tail -200
         working-directory: android
 
       - name: Build Prod APK (release)
