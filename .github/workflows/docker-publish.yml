@@ -81,9 +81,13 @@ jobs:
         run: |
           chmod +x gradlew
           for i in 1 2 3; do
-            echo "Attempt $i..."
-            ./gradlew assembleDevDebug && break
-            echo "Attempt $i failed, retrying..."
+            echo "=== Attempt $i ==="
+            if ./gradlew assembleDevDebug; then
+              echo "Build succeeded on attempt $i"
+              break
+            fi
+            echo "Attempt $i failed, cleaning and retrying..."
+            ./gradlew clean 2>/dev/null || true
             sleep 10
           done
         working-directory: android
