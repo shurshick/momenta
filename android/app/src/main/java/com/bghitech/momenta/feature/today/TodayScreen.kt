@@ -131,7 +131,7 @@ fun TodayScreen(
                 color = MomentaTextSecondary,
                 fontSize = 13.sp
             )
-            val timeLeft = rememberCountdownTime(challenge.endsAt)
+            val timeLeft = if (challenge.endsAt != null) rememberCountdownTime(challenge.endsAt) else ""
             Text(
                 text = timeLeft,
                 color = MomentaWarm,

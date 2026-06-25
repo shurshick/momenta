@@ -5,7 +5,7 @@ data class Challenge(
     val date: String,
     val title: String,
     val description: String?,
-    val endsAt: String,
+    val endsAt: String?,
     val userPosted: Boolean,
     val participantsCount: Int
 )

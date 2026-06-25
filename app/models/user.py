@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, DateTime, func
+from sqlalchemy import String, DateTime, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base, TimestampMixin, pk_uuid
 
@@ -19,6 +19,7 @@ class User(Base, TimestampMixin):
     country: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     locale: Mapped[str] = mapped_column(String(10), default="ru", nullable=False)
+    bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)
     last_seen_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)

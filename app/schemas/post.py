@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class PostOut(BaseModel):
     id: str
-    user_id: str
+    user: dict
     media_type: str
     preview_url: str | None = None
     thumb_url: str | None = None
@@ -15,6 +15,7 @@ class PostOut(BaseModel):
     comments_count: int = 0
     views_count: int = 0
     created_at: datetime | None = None
+    is_liked: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -32,6 +33,7 @@ class PostFeedItem(BaseModel):
     comments_count: int = 0
     views_count: int = 0
     created_at: datetime | None = None
+    is_liked: bool = False
 
 
 class FeedResponse(BaseModel):

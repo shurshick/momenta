@@ -7,9 +7,14 @@ class UserProfile(BaseModel):
     username: str
     display_name: str
     avatar_url: str | None = None
+    bio: str | None = None
     country: str | None = None
     city: str | None = None
     locale: str = "ru"
+    moments_count: int = 0
+    streak_count: int = 0
+    likes_count: int = 0
+    recent_posts: list[dict] = []
     created_at: datetime | None = None
     last_seen_at: datetime | None = None
 
@@ -18,6 +23,7 @@ class UserProfile(BaseModel):
 
 class UpdateProfileRequest(BaseModel):
     display_name: str | None = Field(None, min_length=1, max_length=100)
+    bio: str | None = Field(None, max_length=500)
     avatar_url: str | None = None
     country: str | None = Field(None, max_length=2)
     city: str | None = Field(None, max_length=100)

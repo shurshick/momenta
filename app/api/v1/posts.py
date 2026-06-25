@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.schemas.post import CreatePostResponse
@@ -8,6 +9,8 @@ from app.services.challenge_service import get_challenge_by_id
 from app.services.s3_service import upload_fileobj, make_object_key
 from app.api.v1.auth import get_current_user_id
 from app.config import settings
+from app.models.user import User
+from app.models.reaction import Reaction
 import mimetypes
 import os
 
@@ -55,14 +58,31 @@ async def upload_post(
 
 
 @router.get("/{post_id}")
-async def get_post(post_id: str, db: AsyncSession = Depends(get_db)):
+async def get_post(post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
     post = await get_post_by_id(db, uuid.UUID(post_id))
     if not post or post.status == "deleted":
         raise HTTPException(status_code=404)
     await increment_views(db, post.id)
+    user_result = await db.execute(select(User).where(User.id == post.user_id))
+    user = user_result.scalar_one_or_none()
+    is_liked = False
+    if user_id:
+        likes_result = await db.execute(
+            select(Reaction).where(
+                Reaction.post_id == post.id,
+                Reaction.user_id == uuid.UUID(user_id),
+                Reaction.type == "like",
+            )
+        )
+        is_liked = likes_result.scalar_one_or_none() is not None
     return {
         "id": str(post.id),
-        "user_id": str(post.user_id),
+        "user": {
+            "id": str(post.user_id),
+            "username": user.username if user else "unknown",
+            "display_name": user.display_name if user else "Unknown",
+            "avatar_url": user.avatar_url if user else None,
+        },
         "media_type": post.media_type,
         "preview_url": post.preview_url,
         "thumb_url": post.thumb_url,
@@ -70,8 +90,10 @@ async def get_post(post_id: str, db: AsyncSession = Depends(get_db)):
         "country": post.country,
         "city": post.city,
         "likes_count": post.likes_count,
+        "comments_count": post.comments_count,
         "views_count": post.views_count,
         "created_at": post.created_at,
+        "is_liked": is_liked,
     }
 
 
