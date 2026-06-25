@@ -73,7 +73,7 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           accept-android-sdk-licenses: true
-          log-cat: false
+          packages: "platforms;android-35 build-tools;35.0.0"
 
       - name: Build Dev APK (debug)
         run: |
