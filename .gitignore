@@ -8,3 +8,31 @@ build/
 .mypy_cache/
 .ruff_cache/
 data/
+
+# Android
+android/.gradle/
+android/local.properties
+android/.idea/
+android/.DS_Store
+android/build/
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/local.properties
+android/app/build/
+android/app/release/
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# Kotlin
+*.class
+
+# Android
+gen/
+
+# Misc
+*.log
+*.tmp
+Thumbs.db

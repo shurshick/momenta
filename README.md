@@ -1,33 +1,70 @@
-# Momenta Server
+# Momenta
 
-Один момент. Все вместе.
+**Момента** — социальное camera-приложение для ежедневных фото-моментов.
 
-Backend for the Momenta social daily challenge app.
+> Один момент. Один день. Весь мир.
 
-## Quick Start
+## Репозиторий
+
+Монорепозиторий содержит:
+
+- **`/`** — Python бэкенд (FastAPI)
+- **`android/`** — Android-приложение (Kotlin, Jetpack Compose)
+
+## Бэкенд
 
 ```bash
 cp .env.example .env
 docker compose up -d --build
 ```
 
-Check:
-
 - API: http://localhost:8000
 - Docs: http://localhost:8000/docs
 - Admin: http://localhost:8000/admin
-- MinIO Console: http://localhost:9001
+- MinIO: http://localhost:9011
 
-## Services
+### Tech Stack
 
-| Service | Port | Description |
-|---|---|---|
-| momenta-api | 8000 | FastAPI backend |
-| momenta-worker | - | Background tasks |
-| momenta-postgres | 5432 | PostgreSQL 16 |
-| momenta-redis | 6379 | Redis 7 |
-| momenta-minio | 9000/9001 | S3-compatible storage |
+Python 3.12+, FastAPI, SQLAlchemy 2.x, Alembic, PostgreSQL 16, Redis, MinIO
 
-## Tech Stack
+## Android
 
-Python 3.12+, FastAPI, SQLAlchemy 2.x, Alembic, PostgreSQL 16, Redis, MinIO, Celery/RQ
+```bash
+cd android
+./gradlew assembleDevDebug
+```
+
+APK: `android/app/build/outputs/apk/dev/debug/`
+
+### Tech Stack
+
+Kotlin, Jetpack Compose, Hilt, Room, Retrofit, CameraX, WorkManager
+
+### Flavor-ы
+
+| Flavor | App ID | app_name | Cleartext |
+|--------|--------|----------|-----------|
+| dev | com.bghitech.momenta.dev | Момента Dev | Да |
+| staging | com.bghitech.momenta.staging | Момента Staging | Нет |
+| prod | com.bghitech.momenta | Момента | Нет |
+
+## CI/CD
+
+При создании GitHub Release автоматически:
+
+1. **Docker image** → `ghcr.io/shurshick/momenta:latest`
+2. **Android APK** → attached к релизу
+
+## Документация
+
+- [API](docs/API.md)
+- [Admin Panel](docs/ADMIN.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [TrueNAS Deploy](docs/DEPLOY_TRUENAS.md)
+- [Security](docs/SECURITY.md)
+- [Media Storage](docs/MEDIA_STORAGE.md)
+- [Android Architecture](android/docs/ANDROID_ARCHITECTURE.md)
+- [API Integration](android/docs/API_INTEGRATION.md)
+- [Build & Install](android/docs/BUILD_AND_INSTALL.md)
+- [Design System](android/docs/DESIGN_SYSTEM.md)
+- [Offline Upload](android/docs/OFFLINE_UPLOAD.md)
