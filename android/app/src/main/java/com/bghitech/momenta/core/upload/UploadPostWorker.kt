@@ -1,24 +1,20 @@
 package com.bghitech.momenta.core.upload
 
 import android.content.Context
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.bghitech.momenta.core.media.ImageCompressor
 import com.bghitech.momenta.data.local.dao.UploadQueueDao
 import com.bghitech.momenta.data.remote.MomentaApi
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-@HiltWorker
-class UploadPostWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
+class UploadPostWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
     private val uploadQueueDao: UploadQueueDao,
     private val api: MomentaApi,
     private val imageCompressor: ImageCompressor

@@ -1,8 +1,8 @@
 package com.bghitech.momenta
 
 import android.app.Application
-import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.bghitech.momenta.core.upload.UploadWorkerFactory
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -10,7 +10,7 @@ import javax.inject.Inject
 class MomentaApp : Application(), Configuration.Provider {
 
     @Inject
-    lateinit var workerFactory: HiltWorkerFactory
+    lateinit var workerFactory: UploadWorkerFactory
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
