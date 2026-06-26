@@ -10,6 +10,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bghitech.momenta.core.design.*
 import kotlinx.coroutines.delay
 
@@ -17,8 +19,10 @@ import kotlinx.coroutines.delay
 fun SplashScreen(
     onNavigateToAuth: () -> Unit,
     onNavigateToMain: () -> Unit,
-    onNavigateToOnboarding: () -> Unit
+    onNavigateToOnboarding: () -> Unit,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
     var startAnimation by remember { mutableStateOf(false) }
 
     val alphaAnim = animateFloatAsState(
@@ -30,8 +34,16 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         startAnimation = true
         delay(2500)
-        // For MVP, navigate directly to onboarding
-        onNavigateToOnboarding()
+    }
+
+    LaunchedEffect(state.isLoading) {
+        if (!state.isLoading) {
+            if (state.isLoggedIn) {
+                onNavigateToMain()
+            } else {
+                onNavigateToOnboarding()
+            }
+        }
     }
 
     Box(
