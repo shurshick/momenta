@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,6 +7,13 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.kapt")
     id("com.google.devtools.ksp")
+}
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().also { props ->
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { props.load(it) }
+    }
 }
 
 android {
@@ -15,13 +24,22 @@ android {
         applicationId = "com.bghitech.momenta"
         minSdk = 24
         targetSdk = 34
-        versionCode = 10
+        versionCode = 11
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(keystoreProperties.getProperty("storeFile", "../keystore/momenta.jks"))
+            storePassword = keystoreProperties.getProperty("storePassword", "momenta123")
+            keyAlias = keystoreProperties.getProperty("keyAlias", "momenta")
+            keyPassword = keystoreProperties.getProperty("keyPassword", "momenta123")
         }
     }
 
@@ -53,10 +71,12 @@ android {
 
     buildTypes {
         debug {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             buildConfigField("Boolean", "LOGGING_ENABLED", "true")
         }
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             buildConfigField("Boolean", "LOGGING_ENABLED", "false")
