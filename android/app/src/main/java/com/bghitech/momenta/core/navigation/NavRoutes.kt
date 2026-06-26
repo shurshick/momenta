@@ -1,5 +1,7 @@
 package com.bghitech.momenta.core.navigation
 
+import android.net.Uri
+
 object NavRoutes {
     const val SPLASH = "splash"
     const val ONBOARDING = "onboarding"
@@ -15,5 +17,5 @@ object NavRoutes {
     const val PREVIEW = "preview/{imagePath}"
     const val UPLOAD_SUCCESS = "upload_success"
 
-    fun preview(imagePath: String) = "preview/$imagePath"
+    fun preview(imagePath: String) = "preview/${Uri.encode(imagePath)}"
 }
