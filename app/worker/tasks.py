@@ -22,6 +22,7 @@ async def _worker_loop():
     while True:
         try:
             await process_pending_media()
+            await reprocess_broken_posts()
             await flush_counters()
             await clean_stuck_posts()
         except Exception as e:
@@ -43,6 +44,23 @@ async def process_pending_media():
                 post.status = "active"
 
 
+async def reprocess_broken_posts():
+    async with async_session_factory() as db:
+        result = await db.execute(
+            select(Post).where(
+                Post.status == "active",
+                Post.media_type == "photo",
+                Post.preview_url.is_(None)
+            ).limit(5)
+        )
+        posts = result.scalars().all()
+        for post in posts:
+            try:
+                await _process_post_media(db, post)
+            except Exception as e:
+                print(f"Reprocess error for post {post.id}: {e}")
+
+
 async def _process_post_media(db, post):
     if post.media_type != "photo":
         post.status = "active"
@@ -52,10 +70,17 @@ async def _process_post_media(db, post):
         from app.services.s3_service import get_s3
         from app.config import settings
         s3 = get_s3()
-        prefix = f"{settings.s3_public_endpoint}/{settings.s3_bucket}/"
-        object_key = post.original_url.replace(prefix, "") if post.original_url.startswith(prefix) else post.original_url.split("/", 3)[-1]
-        obj = s3.get_object(Bucket=settings.s3_bucket, Key=object_key)
+        bucket = settings.s3_bucket
+        key_marker = f"/{bucket}/"
+        if key_marker in post.original_url:
+            object_key = post.original_url.split(key_marker, 1)[1]
+        else:
+            parts = post.original_url.split("/")
+            object_key = "/".join(parts[3:])
+        print(f"[worker] Downloading s3://{bucket}/{object_key}")
+        obj = s3.get_object(Bucket=bucket, Key=object_key)
         img_data = obj["Body"].read()
+        print(f"[worker] Downloaded {len(img_data)} bytes")
     except Exception as e:
         print(f"Failed to download from S3: {e}")
         post.status = "active"
