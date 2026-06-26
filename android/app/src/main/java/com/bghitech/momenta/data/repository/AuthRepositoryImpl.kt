@@ -13,6 +13,9 @@ import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -79,8 +82,8 @@ class AuthRepositoryImpl @Inject constructor(
             is HttpException -> {
                 val serverMessage = try {
                     e.response()?.errorBody()?.string()?.let { body ->
-                        kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
-                            .decodeFromString<Map<String, String>>(body)["detail"]
+                        val element = Json.parseToJsonElement(body)
+                        element.jsonObject["detail"]?.jsonPrimitive?.content
                     }
                 } catch (_: Exception) { null }
 
