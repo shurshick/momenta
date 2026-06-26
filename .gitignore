@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
+*.pyo
 .env
 *.egg-info/
 dist/
@@ -8,6 +9,7 @@ build/
 .mypy_cache/
 .ruff_cache/
 /data/
+test.db
 
 # Android
 android/.gradle/
@@ -18,22 +20,15 @@ android/build/
 android/captures/
 android/.externalNativeBuild/
 android/.cxx/
-android/local.properties
 android/app/build/
 android/app/release/
 *.apk
 *.aab
 *.jks
 *.keystore
-
-# Kotlin
 *.class
-
-# Android
-gen/
 
 # Misc
 *.log
 *.tmp
 Thumbs.db
-test.db

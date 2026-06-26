@@ -6,7 +6,7 @@
 
 Каждый день — новый вызов. Пользователи делают один снимок, отражающий их день, и делятся им с миром. Никаких лент алгоритмов, никакого бесконечного скроллинга — только сегодня, только сейчас.
 
-## Возможности (MVP v0.1.0)
+## Возможности (v0.2.4)
 
 - **Момента дня** — ежедневное задание для вдохновения
 - **Камера** — съёмка фото с переключением камеры и вспышкой
@@ -32,14 +32,20 @@
 
 APK будет в `app/build/outputs/apk/`.
 
+Для установки на телефон:
+1. Скопируй APK на устройство через USB или файловый менеджер
+2. Открой APK файл и нажми "Установить"
+
+> **Примечание:** На Android 12+ может потребоваться разрешение на установку из неизвестных источников.
+
 ## Настройка API URL
 
 В debug-режиме можно указать URL сервера в настройках приложения.
 
 По-умолчанию:
 - Dev: `http://10.0.2.2:8000` (localhost эмулятора)
-- Staging: `https://staging-momenta.example.com`
-- Prod: `https://momenta.example.com`
+- Staging: `https://momenta.bghitech.ru`
+- Prod: `https://momenta.bghitech.ru`
 
 ## Технический стек
 
@@ -66,11 +72,11 @@ app/
 
 ## Flavor-ы
 
-| Flavor   | App ID suffix | app_name          | Cleartext |
-|----------|---------------|-------------------|-----------|
-| dev      | `.dev`        | Момента Dev       | Да        |
-| staging  | `.staging`    | Момента Staging   | Нет       |
-| prod     | (none)        | Момента           | Нет       |
+| Flavor   | App ID suffix | app_name          | Cleartext | Server |
+|----------|---------------|-------------------|-----------|--------|
+| dev      | `.dev`        | Момента Dev       | Да        | localhost:8000 |
+| staging  | `.staging`    | Момента Staging   | Нет       | momenta.bghitech.ru |
+| prod     | (none)        | Момента           | Нет       | momenta.bghitech.ru |
 
 ## API Endpoints
 
@@ -91,6 +97,8 @@ Base: `/api/v1`
 ## Roadmap
 
 - **v0.1.0** — MVP: auth, today, camera, publish, feed, profile, settings
-- **v0.2.0** — WorkManager retry, лайки, стрик, пуши, пагинация
-- **v0.3.0** — видео 3-5 сек, VerticalPager, шаринг, инвайты
-- **v1.0.0** — production: refresh токенов, модерация, приватность, аналитика, Google Play
+- **v0.2.0** — Android APK + Backend integration
+- **v0.2.3** — Critical fixes: APK install, admin auth, worker startup
+- **v0.2.4** — testOnly fix, admin panel Jinja2 fix, adaptive icon crash fix
+- **v0.3.0** — Видео 3-5 сек, VerticalPager, шаринг, инвайты
+- **v1.0.0** — Production: refresh токенов, модерация, приватность, аналитика, Google Play
