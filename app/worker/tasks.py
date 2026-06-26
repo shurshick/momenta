@@ -21,44 +21,57 @@ async def _worker_loop():
     print("[worker] Event loop running, entering main loop", flush=True)
     while True:
         try:
-            await process_pending_media()
-            await reprocess_broken_posts()
-            await flush_counters()
-            await clean_stuck_posts()
+            processing = await process_pending_media()
+            reprocessed = await reprocess_broken_posts()
+            print(f"[worker] cycle done: processing={processing} reprocessed={reprocessed}", flush=True)
         except Exception as e:
             print(f"[worker] Error: {e}", flush=True)
         await asyncio.sleep(10)
 
 
 async def process_pending_media():
-    async with async_session_factory() as db:
-        result = await db.execute(
-            select(Post).where(Post.status == "processing").limit(10)
-        )
-        posts = result.scalars().all()
-        for post in posts:
-            try:
-                await _process_post_media(db, post)
-            except Exception as e:
-                print(f"Media processing error for post {post.id}: {e}")
-                post.status = "active"
+    try:
+        async with async_session_factory() as db:
+            result = await db.execute(
+                select(Post).where(Post.status == "processing").limit(10)
+            )
+            posts = result.scalars().all()
+            if posts:
+                print(f"[worker] Found {len(posts)} processing posts", flush=True)
+            for post in posts:
+                try:
+                    await _process_post_media(db, post)
+                except Exception as e:
+                    print(f"Media processing error for post {post.id}: {e}")
+                    post.status = "active"
+            return len(posts)
+    except Exception as e:
+        print(f"[worker] process_pending_media DB error: {e}", flush=True)
+        return 0
 
 
 async def reprocess_broken_posts():
-    async with async_session_factory() as db:
-        result = await db.execute(
-            select(Post).where(
-                Post.status == "active",
-                Post.media_type == "photo",
-                Post.preview_url.is_(None)
-            ).limit(5)
-        )
-        posts = result.scalars().all()
-        for post in posts:
-            try:
-                await _process_post_media(db, post)
-            except Exception as e:
-                print(f"Reprocess error for post {post.id}: {e}")
+    try:
+        async with async_session_factory() as db:
+            result = await db.execute(
+                select(Post).where(
+                    Post.status == "active",
+                    Post.media_type == "photo",
+                    Post.preview_url.is_(None)
+                ).limit(5)
+            )
+            posts = result.scalars().all()
+            if posts:
+                print(f"[worker] Found {len(posts)} broken posts to reprocess", flush=True)
+            for post in posts:
+                try:
+                    await _process_post_media(db, post)
+                except Exception as e:
+                    print(f"Reprocess error for post {post.id}: {e}")
+            return len(posts)
+    except Exception as e:
+        print(f"[worker] reprocess_broken_posts DB error: {e}", flush=True)
+        return 0
 
 
 async def _process_post_media(db, post):
