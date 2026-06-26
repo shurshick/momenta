@@ -53,11 +53,17 @@ async def process_pending_media():
 async def reprocess_broken_posts():
     try:
         async with async_session_factory() as db:
+            all_posts = await db.execute(
+                select(Post.id, Post.status, Post.media_type, Post.preview_url).order_by(Post.created_at.desc()).limit(10)
+            )
+            for row in all_posts.all():
+                print(f"[worker] post {row[0]}: status={row[1]} media_type={row[2]} preview_url={row[3]!r}", flush=True)
+            from sqlalchemy import or_
             result = await db.execute(
                 select(Post).where(
                     Post.status == "active",
                     Post.media_type == "photo",
-                    Post.preview_url.is_(None)
+                    or_(Post.preview_url.is_(None), Post.preview_url == "")
                 ).limit(5)
             )
             posts = result.scalars().all()
