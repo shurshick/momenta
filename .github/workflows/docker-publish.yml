@@ -72,6 +72,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Generate keystore for signing
+        run: |
+          mkdir -p android/keystore
+          keytool -genkeypair -v \
+            -keystore android/keystore/momenta.jks \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias momenta \
+            -storepass momenta123 -keypass momenta123 \
+            -dname "CN=Momenta, OU=Dev, O=Bghitech, L=Unknown, ST=Unknown, C=RU"
+
       - name: Build Dev APK (debug)
         run: |
           chmod +x gradlew
