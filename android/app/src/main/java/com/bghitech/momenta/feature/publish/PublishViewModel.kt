@@ -64,6 +64,9 @@ class PublishViewModel @Inject constructor(
                         isUploading = false,
                         error = when (result.error) {
                             is com.bghitech.momenta.core.common.AppError.Validation -> result.error.message
+                            is com.bghitech.momenta.core.common.AppError.Unknown -> result.error.message ?: "Ошибка публикации"
+                            com.bghitech.momenta.core.common.AppError.Server -> "Ошибка сервера, попробуйте позже"
+                            com.bghitech.momenta.core.common.AppError.Network -> "Нет подключения к серверу"
                             else -> "Ошибка публикации"
                         }
                     )

@@ -1,11 +1,12 @@
 import uuid
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.schemas.post import CreatePostResponse
 from app.services.post_service import create_post, get_post_by_id, soft_delete_post, increment_views
-from app.services.challenge_service import get_challenge_by_id
+from app.services.challenge_service import get_challenge_by_id, get_challenge_by_date
 from app.services.s3_service import upload_fileobj, make_object_key
 from app.api.v1.auth import get_current_user_id
 from app.config import settings
@@ -39,7 +40,13 @@ async def upload_post(
     if len(contents) > max_size:
         raise HTTPException(status_code=400, detail="File too large")
     await media.seek(0)
-    challenge = await get_challenge_by_id(db, uuid.UUID(challenge_id))
+    if challenge_id == "today":
+        challenge = await get_challenge_by_date(db, date.today())
+        if not challenge:
+            from app.services.challenge_service import _create_fallback_challenge
+            challenge = await _create_fallback_challenge(db, date.today())
+    else:
+        challenge = await get_challenge_by_id(db, uuid.UUID(challenge_id))
     if not challenge:
         raise HTTPException(status_code=404, detail="Challenge not found")
     media_type = "photo" if media.content_type.startswith("image/") else "video"

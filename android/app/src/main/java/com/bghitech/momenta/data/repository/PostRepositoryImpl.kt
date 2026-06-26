@@ -40,8 +40,22 @@ class PostRepositoryImpl @Inject constructor(
             val post = api.uploadPost(challengeIdPart, captionPart, countryPart, cityPart, mediaPart)
             AppResult.Success(post.toDomain())
         } catch (e: Exception) {
-            when {
-                e.message?.contains("409") == true -> AppResult.Error(AppError.Validation("Вы уже опубликовали момент сегодня"))
+            when (e) {
+                is retrofit2.HttpException -> {
+                    val serverMessage = try {
+                        e.response()?.errorBody()?.string()?.let { body ->
+                            kotlinx.serialization.json.Json.parseToJsonElement(body)
+                                .let { it as? kotlinx.serialization.json.JsonObject }
+                                ?.get("detail")?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }
+                        }
+                    } catch (_: Exception) { null }
+                    when (e.code()) {
+                        409 -> AppResult.Error(AppError.Validation(serverMessage ?: "Вы уже опубликовали момент сегодня"))
+                        in 400..499 -> AppResult.Error(AppError.Validation(serverMessage ?: "Ошибка публикации"))
+                        in 500..599 -> AppResult.Error(AppError.Server)
+                        else -> AppResult.Error(AppError.Unknown(serverMessage ?: e.message()))
+                    }
+                }
                 else -> AppResult.Error(AppError.Unknown(e.message))
             }
         }
