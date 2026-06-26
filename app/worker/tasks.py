@@ -13,17 +13,19 @@ from app.config import settings
 
 
 def run_worker():
+    print("[worker] Starting worker...", flush=True)
     asyncio.run(_worker_loop())
 
 
 async def _worker_loop():
+    print("[worker] Event loop running, entering main loop", flush=True)
     while True:
         try:
             await process_pending_media()
             await flush_counters()
             await clean_stuck_posts()
         except Exception as e:
-            print(f"Worker error: {e}")
+            print(f"[worker] Error: {e}", flush=True)
         await asyncio.sleep(10)
 
 

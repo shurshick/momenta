@@ -11,7 +11,15 @@ def get_async_database_url() -> str:
     return url
 
 
-engine = create_async_engine(get_async_database_url(), echo=False, pool_size=20, max_overflow=10)
+engine = create_async_engine(
+    get_async_database_url(),
+    echo=False,
+    pool_size=20,
+    max_overflow=10,
+    pool_timeout=10,
+    pool_pre_ping=True,
+    connect_args={"timeout": 10} if "asyncpg" in get_async_database_url() else {},
+)
 async_session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
