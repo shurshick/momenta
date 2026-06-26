@@ -126,6 +126,13 @@ jobs:
           echo "=== aapt dump xmltree (testOnly) ==="
           aapt dump xmltree "$APK" AndroidManifest.xml 2>&1 | grep -i testonly || echo "(no testOnly found — OK)"
 
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dev-debug
+          path: android/app/build/outputs/apk/dev/debug/*.apk
+          retention-days: 30
+
       - name: Upload APK to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
