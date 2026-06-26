@@ -66,7 +66,7 @@ async def log_audit(db: AsyncSession, actor_user_id: Optional[uuid.UUID], action
 
 @router.get("/login", response_class=HTMLResponse)
 async def admin_login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse(request, "login.html", {"error": None})
 
 
 @router.post("/login")
@@ -74,9 +74,9 @@ async def admin_login(request: Request, username: str = Form(...), password: str
     result = await db.execute(select(User).where(User.username == username, User.role.in_(["admin", "moderator"])))
     user = result.scalar_one_or_none()
     if not user or not verify_password(password, user.password_hash):
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"}, status_code=401)
+        return templates.TemplateResponse(request, "login.html", {"error": "Invalid credentials"}, status_code=401)
     if user.status != "active":
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Account is disabled"}, status_code=403)
+        return templates.TemplateResponse(request, "login.html", {"error": "Account is disabled"}, status_code=403)
     token = create_access_token({"sub": str(user.id), "role": user.role, "type": "admin"}, expires_delta=None)
     await log_audit(db, user.id, "admin_login", "user", user.id, request.client.host if request.client else None, request.headers.get("user-agent"))
     response = RedirectResponse(url="/admin", status_code=303)
@@ -100,8 +100,7 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db), 
     new_reports = (await db.execute(select(func.count(Report.id)).where(Report.status == "new"))).scalar() or 0
     challenge = await db.execute(select(Challenge).where(Challenge.challenge_date == today, Challenge.status == "active"))
     challenge_obj = challenge.scalar_one_or_none()
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "dashboard.html", {
         "admin": admin,
         "total_users": total_users,
         "posts_today": posts_today,
@@ -117,7 +116,7 @@ async def admin_users(request: Request, search: Optional[str] = Query(None), db:
         query = select(User).where((User.username.ilike(f"%{search}%")) | (User.email.ilike(f"%{search}%"))).order_by(desc(User.created_at))
     result = await db.execute(query)
     users = result.scalars().all()
-    return templates.TemplateResponse("users.html", {"request": request, "admin": admin, "users": users, "search": search})
+    return templates.TemplateResponse(request, "users.html", {"admin": admin, "users": users, "search": search})
 
 
 @router.post("/users/{user_id}/toggle-status")
@@ -148,7 +147,7 @@ async def admin_set_user_role(user_id: str, role: str = Form(...), request: Requ
 async def admin_challenges(request: Request, db: AsyncSession = Depends(get_db), admin: User = Depends(require_admin)):
     result = await db.execute(select(Challenge).order_by(desc(Challenge.challenge_date)).limit(100))
     challenges = result.scalars().all()
-    return templates.TemplateResponse("challenges.html", {"request": request, "admin": admin, "challenges": challenges})
+    return templates.TemplateResponse(request, "challenges.html", {"admin": admin, "challenges": challenges})
 
 
 @router.post("/challenges/create")
@@ -189,7 +188,7 @@ async def admin_posts(request: Request, status_filter: Optional[str] = Query(Non
             pass
     result = await db.execute(query)
     posts = result.scalars().all()
-    return templates.TemplateResponse("posts.html", {"request": request, "admin": admin, "posts": posts, "status_filter": status_filter})
+    return templates.TemplateResponse(request, "posts.html", {"admin": admin, "posts": posts, "status_filter": status_filter})
 
 
 @router.post("/posts/{post_id}/hide")
@@ -223,7 +222,7 @@ async def admin_reports(request: Request, status_filter: Optional[str] = Query(N
         query = query.where(Report.status == status_filter)
     result = await db.execute(query)
     reports = result.scalars().all()
-    return templates.TemplateResponse("reports.html", {"request": request, "admin": admin, "reports": reports})
+    return templates.TemplateResponse(request, "reports.html", {"admin": admin, "reports": reports})
 
 
 @router.post("/reports/{report_id}/resolve")
@@ -258,20 +257,20 @@ async def admin_resolve_report(report_id: str, action: str = Form(...), request:
 async def admin_media(request: Request, db: AsyncSession = Depends(get_db), admin: User = Depends(require_admin)):
     result = await db.execute(select(MediaAsset).order_by(desc(MediaAsset.created_at)).limit(100))
     assets = result.scalars().all()
-    return templates.TemplateResponse("media.html", {"request": request, "admin": admin, "assets": assets})
+    return templates.TemplateResponse(request, "media.html", {"admin": admin, "assets": assets})
 
 
 @router.get("/audit-log", response_class=HTMLResponse)
 async def admin_audit_log(request: Request, db: AsyncSession = Depends(get_db), admin: User = Depends(require_admin)):
     result = await db.execute(select(AuditLog).order_by(desc(AuditLog.created_at)).limit(200))
     logs = result.scalars().all()
-    return templates.TemplateResponse("audit_log.html", {"request": request, "admin": admin, "logs": logs})
+    return templates.TemplateResponse(request, "audit_log.html", {"admin": admin, "logs": logs})
 
 
 @router.get("/system", response_class=HTMLResponse)
 async def admin_system(request: Request, admin: User = Depends(require_admin)):
     env_summary = {k: v for k, v in sorted(settings.model_dump().items()) if "secret" not in k.lower() and "password" not in k.lower() and "key" not in k.lower() and "jwt" not in k.lower()}
-    return templates.TemplateResponse("system.html", {"request": request, "admin": admin, "settings": env_summary})
+    return templates.TemplateResponse(request, "system.html", {"admin": admin, "settings": env_summary})
 
 
 @router.post("/system/flush-feed")
