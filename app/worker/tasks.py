@@ -117,6 +117,7 @@ async def _process_post_media(db, post):
         d = post.challenge_date
         preview_key = make_object_key(d, str(post.id), "preview", "webp")
         thumb_key = make_object_key(d, str(post.id), "thumb", "webp")
+        preview_size = preview_buf.tell()
         post.preview_url = upload_fileobj(preview_buf, preview_key, "image/webp")
         post.thumb_url = upload_fileobj(thumb_buf, thumb_key, "image/webp")
         asset = MediaAsset(
@@ -128,7 +129,7 @@ async def _process_post_media(db, post):
             public_url=post.preview_url,
             media_type="photo",
             mime_type="image/webp",
-            size_bytes=preview_buf.tell(),
+            size_bytes=preview_size,
             width=1440,
             height=int(1440 * height / width) if width else None,
             status="ready",
