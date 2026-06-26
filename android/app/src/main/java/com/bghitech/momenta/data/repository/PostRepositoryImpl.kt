@@ -2,10 +2,10 @@ package com.bghitech.momenta.data.repository
 
 import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
-import com.bghitech.momenta.data.mapper.toDomain
 import com.bghitech.momenta.data.remote.MomentaApi
 import com.bghitech.momenta.data.remote.dto.ReportRequestDto
 import com.bghitech.momenta.domain.model.Post
+import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.PostRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -37,8 +37,21 @@ class PostRepositoryImpl @Inject constructor(
                 mediaFile.name,
                 mediaFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
             )
-            val post = api.uploadPost(challengeIdPart, captionPart, countryPart, cityPart, mediaPart)
-            AppResult.Success(post.toDomain())
+            val response = api.uploadPost(challengeIdPart, captionPart, countryPart, cityPart, mediaPart)
+            AppResult.Success(Post(
+                id = response.id,
+                user = User("", "", null, null, null),
+                mediaType = "image",
+                previewUrl = "",
+                thumbUrl = null,
+                caption = caption,
+                country = country,
+                city = city,
+                likesCount = 0,
+                commentsCount = 0,
+                viewsCount = 0,
+                createdAt = ""
+            ))
         } catch (e: Exception) {
             when (e) {
                 is retrofit2.HttpException -> {

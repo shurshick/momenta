@@ -25,9 +25,9 @@ fun ChallengeDto.toDomain(): Challenge = Challenge(
 
 fun PostDto.toDomain(): Post = Post(
     id = id,
-    user = user.toDomain(),
+    user = user?.toDomain() ?: User(id = "", username = "", displayName = null, avatarUrl = null, email = null),
     mediaType = mediaType,
-    previewUrl = previewUrl,
+    previewUrl = previewUrl ?: "",
     thumbUrl = thumbUrl,
     caption = caption,
     country = country,
@@ -35,7 +35,7 @@ fun PostDto.toDomain(): Post = Post(
     likesCount = likesCount,
     commentsCount = commentsCount,
     viewsCount = viewsCount,
-    createdAt = createdAt,
+    createdAt = createdAt ?: "",
     isLiked = isLiked
 )
 

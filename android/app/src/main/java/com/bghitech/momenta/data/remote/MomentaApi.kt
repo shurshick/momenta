@@ -44,7 +44,7 @@ interface MomentaApi {
         @Part("country") country: RequestBody?,
         @Part("city") city: RequestBody?,
         @Part media: MultipartBody.Part
-    ): PostDto
+    ): CreatePostResponseDto
 
     @POST("/api/v1/posts/{id}/like")
     suspend fun likePost(@Path("id") postId: String): ApiMessageDto
