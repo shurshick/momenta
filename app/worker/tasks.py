@@ -48,13 +48,16 @@ async def _process_post_media(db, post):
         post.status = "active"
         await db.commit()
         return
-    import httpx
     try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(post.original_url)
-            resp.raise_for_status()
-            img_data = resp.content
-    except Exception:
+        from app.services.s3_service import get_s3
+        from app.config import settings
+        s3 = get_s3()
+        prefix = f"{settings.s3_public_endpoint}/{settings.s3_bucket}/"
+        object_key = post.original_url.replace(prefix, "") if post.original_url.startswith(prefix) else post.original_url.split("/", 3)[-1]
+        obj = s3.get_object(Bucket=settings.s3_bucket, Key=object_key)
+        img_data = obj["Body"].read()
+    except Exception as e:
+        print(f"Failed to download from S3: {e}")
         post.status = "active"
         await db.commit()
         return
