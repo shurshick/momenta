@@ -19,9 +19,7 @@ async def create_post(db: AsyncSession, user_id: uuid.UUID, challenge_id: uuid.U
     except (ValueError, TypeError):
         daily_limit = 1
 
-    if daily_limit <= 0:
-        pass
-    else:
+    if daily_limit > 0:
         today_count = (await db.execute(
             select(func.count(Post.id)).where(
                 Post.user_id == user_id,
@@ -31,6 +29,7 @@ async def create_post(db: AsyncSession, user_id: uuid.UUID, challenge_id: uuid.U
         )).scalar() or 0
         if today_count >= daily_limit:
             raise ValueError(f"Лимит {daily_limit} моментов в день исчерпан")
+
     post = Post(
         id=uuid.uuid4(),
         user_id=user_id,
@@ -46,7 +45,11 @@ async def create_post(db: AsyncSession, user_id: uuid.UUID, challenge_id: uuid.U
         status="processing",
     )
     db.add(post)
-    await db.commit()
+    try:
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise ValueError("Вы уже опубликовали момент сегодня")
     await db.refresh(post)
     await mark_user_posted(str(user_id), challenge_date)
     return post

@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 from typing import Optional
-from sqlalchemy import String, Text, Integer, Date, DateTime, func, UniqueConstraint
+from sqlalchemy import String, Text, Integer, Date, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import Base, TimestampMixin, pk_uuid
@@ -31,6 +31,5 @@ class Post(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(20), default="uploading", nullable=False, index=True)
 
     __table_args__ = (
-        UniqueConstraint("user_id", "challenge_date", name="uq_user_post_per_day"),
         {"extend_existing": True},
     )
