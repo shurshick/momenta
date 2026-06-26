@@ -43,8 +43,9 @@ class AuthViewModel @Inject constructor(
                         error = when (result.error) {
                             AppError.Network -> "Нет подключения к серверу"
                             AppError.Unauthorized -> "Неверный логин или пароль"
+                            AppError.Server -> "Ошибка сервера, попробуйте позже"
                             is AppError.Validation -> result.error.message
-                            else -> "Произошла ошибка"
+                            is AppError.Unknown -> result.error.message ?: "Произошла ошибка"
                         }
                     )
                 }
@@ -62,8 +63,11 @@ class AuthViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         isLoading = false,
                         error = when (result.error) {
+                            AppError.Network -> "Нет подключения к серверу"
+                            AppError.Unauthorized -> "Неверный логин или пароль"
+                            AppError.Server -> "Ошибка сервера, попробуйте позже"
                             is AppError.Validation -> result.error.message
-                            else -> "Произошла ошибка при регистрации"
+                            is AppError.Unknown -> result.error.message ?: "Произошла ошибка"
                         }
                     )
                 }

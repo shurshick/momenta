@@ -13,6 +13,8 @@ import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -73,10 +75,30 @@ class AuthRepositoryImpl @Inject constructor(
     override fun observeAuthState(): Flow<Boolean> = tokenStore.observeToken().map { it != null }
 
     private fun mapError(e: Exception): AppError {
-        return when {
-            e.message?.contains("401") == true || e.message?.contains("Unauthorized") == true -> AppError.Unauthorized
-            e.message?.contains("timeout") == true || e.message?.contains("Unable to resolve host") == true -> AppError.Network
-            e.message?.contains("409") == true -> AppError.Validation("Вы уже опубликовали момент сегодня")
+        return when (e) {
+            is HttpException -> {
+                val serverMessage = try {
+                    e.response()?.errorBody()?.string()?.let { body ->
+                        kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                            .decodeFromString<Map<String, String>>(body)["detail"]
+                    }
+                } catch (_: Exception) { null }
+
+                when (e.code()) {
+                    401 -> AppError.Unauthorized
+                    409 -> AppError.Validation(serverMessage ?: "Данные уже заняты")
+                    in 400..499 -> AppError.Validation(serverMessage ?: "Ошибка запроса")
+                    in 500..599 -> AppError.Server
+                    else -> AppError.Unknown(serverMessage ?: e.message())
+                }
+            }
+            is IOException -> {
+                if (e.message?.contains("timeout") == true || e.message?.contains("Unable to resolve host") == true) {
+                    AppError.Network
+                } else {
+                    AppError.Unknown(e.message)
+                }
+            }
             else -> AppError.Unknown(e.message)
         }
     }
