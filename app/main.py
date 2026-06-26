@@ -10,6 +10,7 @@ from app.db import engine, async_session_factory
 from app.models.base import Base
 from app.models.user import User
 from app.models.challenge import Challenge
+from app.models.setting import Setting
 from app.security import get_password_hash
 from app.services.s3_service import ensure_bucket
 from app.services.redis_service import close_redis
@@ -53,6 +54,13 @@ async def lifespan(app: FastAPI):
                     status="active",
                 )
                 db.add(admin)
+                await db.commit()
+        except Exception:
+            pass
+        try:
+            result = await db.execute(select(Setting).where(Setting.key == "daily_post_limit"))
+            if not result.scalar_one_or_none():
+                db.add(Setting(key="daily_post_limit", value="1"))
                 await db.commit()
         except Exception:
             pass

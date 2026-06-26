@@ -19,6 +19,7 @@ from app.config import settings
 from app.services.challenge_service import create_challenge, get_challenge_by_date
 from app.services.auth_service import get_user_by_id
 from app.services.s3_service import ensure_bucket
+from app.services.setting_service import get_all_settings, set_setting, invalidate_cache
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -285,3 +286,26 @@ async def admin_flush_feed(request: Request, db: AsyncSession = Depends(get_db),
 async def admin_init_bucket(request: Request, admin: User = Depends(require_admin)):
     ensure_bucket()
     return RedirectResponse(url="/admin/system", status_code=303)
+
+
+@router.get("/settings", response_class=HTMLResponse)
+async def admin_settings_page(request: Request, db: AsyncSession = Depends(get_db), admin: User = Depends(require_admin)):
+    all_settings = await get_all_settings(db)
+    return templates.TemplateResponse(request, "settings.html", {"admin": admin, "settings": all_settings, "saved": False})
+
+
+@router.post("/settings")
+async def admin_save_settings(request: Request, db: AsyncSession = Depends(get_db), admin: User = Depends(require_admin)):
+    form = await request.form()
+    daily_post_limit = form.get("daily_post_limit", "1")
+    try:
+        val = int(daily_post_limit)
+        if val < 0:
+            val = 1
+    except (ValueError, TypeError):
+        val = 1
+    await set_setting(db, "daily_post_limit", str(val))
+    invalidate_cache("daily_post_limit")
+    await log_audit(db, admin.id, "update_settings", "system", ip_address=request.client.host if request.client else None, user_agent=request.headers.get("user-agent"), payload={"daily_post_limit": val})
+    all_settings = await get_all_settings(db)
+    return templates.TemplateResponse(request, "settings.html", {"admin": admin, "settings": all_settings, "saved": True})

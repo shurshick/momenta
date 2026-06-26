@@ -1,22 +1,36 @@
 import uuid
 from datetime import date, datetime, timezone
 from typing import Optional
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.post import Post
 from app.models.reaction import Reaction
 from app.services.redis_service import add_to_feed, increment_counter, mark_user_posted
+from app.services.setting_service import get_setting
 
 
 async def create_post(db: AsyncSession, user_id: uuid.UUID, challenge_id: uuid.UUID, challenge_date: date,
                       media_type: str, original_url: str, preview_url: Optional[str] = None,
                       thumb_url: Optional[str] = None, caption: Optional[str] = None,
                       country: Optional[str] = None, city: Optional[str] = None) -> Post:
-    existing = await db.execute(
-        select(Post).where(Post.user_id == user_id, Post.challenge_date == challenge_date, Post.status.in_(["active", "processing", "uploading"]))
-    )
-    if existing.scalar_one_or_none():
-        raise ValueError("Вы уже опубликовали момент сегодня")
+    limit_str = await get_setting(db, "daily_post_limit", "1")
+    try:
+        daily_limit = int(limit_str)
+    except (ValueError, TypeError):
+        daily_limit = 1
+
+    if daily_limit <= 0:
+        pass
+    else:
+        today_count = (await db.execute(
+            select(func.count(Post.id)).where(
+                Post.user_id == user_id,
+                Post.challenge_date == challenge_date,
+                Post.status.in_(["active", "processing", "uploading"])
+            )
+        )).scalar() or 0
+        if today_count >= daily_limit:
+            raise ValueError(f"Лимит {daily_limit} моментов в день исчерпан")
     post = Post(
         id=uuid.uuid4(),
         user_id=user_id,

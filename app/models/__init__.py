@@ -6,6 +6,7 @@ from app.models.report import Report
 from app.models.user_streak import UserStreak
 from app.models.media_asset import MediaAsset
 from app.models.audit_log import AuditLog
+from app.models.setting import Setting
 from app.models.base import Base
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "UserStreak",
     "MediaAsset",
     "AuditLog",
+    "Setting",
 ]

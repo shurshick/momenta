@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+{% if saved %}
+<div class="card" style="background:#d4edda;border:1px solid #c3e6cb;margin-bottom:16px;">
+    <p style="color:#155724;font-weight:600;">Настройки сохранены</p>
+</div>
+{% endif %}
+<form method="post" action="/admin/settings">
+    <div class="card">
+        <h3 style="margin-bottom:16px;">Лимиты публикаций</h3>
+        <div class="form-group">
+            <label for="daily_post_limit">Максимум моментов в день (на пользователя)</label>
+            <input type="number" id="daily_post_limit" name="daily_post_limit"
+                   value="{{ settings.get('daily_post_limit', '1') }}"
+                   min="0" max="100" style="max-width:120px;">
+            <p style="font-size:12px;color:#888;margin-top:4px;">0 = безлимит</p>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}
