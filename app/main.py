@@ -20,6 +20,8 @@ from app.services.redis_service import close_redis
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        from sqlalchemy import text
+        await conn.execute(text("INSERT INTO alembic_version (version_num) VALUES ('002') ON CONFLICT DO NOTHING"))
     async with async_session_factory() as db:
         try:
             ensure_bucket()

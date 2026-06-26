@@ -14,14 +14,8 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "settings",
-        sa.Column("key", sa.String(100), primary_key=True),
-        sa.Column("value", sa.Text(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-    )
-    op.execute("INSERT INTO settings (key, value) VALUES ('daily_post_limit', '1')")
+    op.execute("CREATE TABLE IF NOT EXISTS settings (key VARCHAR(100) NOT NULL, value TEXT NOT NULL, created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, PRIMARY KEY (key))")
+    op.execute("INSERT INTO settings (key, value) VALUES ('daily_post_limit', '1') ON CONFLICT (key) DO NOTHING")
 
 
 def downgrade() -> None:

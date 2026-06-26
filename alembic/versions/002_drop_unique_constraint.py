@@ -13,7 +13,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.drop_constraint("uq_user_post_per_day", "posts", type_="unique")
+    op.execute("ALTER TABLE posts DROP CONSTRAINT IF EXISTS uq_user_post_per_day")
 
 
 def downgrade() -> None:
