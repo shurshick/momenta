@@ -79,19 +79,52 @@ jobs:
           RC=1
           for i in 1 2 3; do
             echo "=== Attempt $i ==="
-            ./gradlew assembleDevDebug --stacktrace
+            ./gradlew clean assembleDevDebug --stacktrace
             RC=$?
             if [ $RC -eq 0 ]; then
               echo "Build succeeded on attempt $i"
               break
             fi
             echo "Attempt $i failed, cleaning and retrying..."
-            ./gradlew clean 2>/dev/null || true
             sleep 10
           done
           set -e
           exit $RC
         working-directory: android
+
+      - name: Verify merged manifest (testOnly check)
+        working-directory: android
+        run: |
+          MANIFEST="app/build/intermediates/merged_manifests/devDebug/AndroidManifest.xml"
+          if [ ! -f "$MANIFEST" ]; then
+            echo "::error::Merged manifest not found at $MANIFEST"
+            exit 1
+          fi
+          echo "=== Merged manifest contents ==="
+          cat "$MANIFEST"
+          echo ""
+          echo "=== Checking for testOnly=true ==="
+          if grep -q 'android:testOnly="true"' "$MANIFEST"; then
+            echo "::error::FAIL: merged manifest contains android:testOnly=true — APK will not install via Package Installer"
+            grep 'android:testOnly' "$MANIFEST"
+            exit 1
+          fi
+          echo "OK: no android:testOnly=true found in merged manifest"
+
+      - name: Verify APK (testOnly check)
+        working-directory: android
+        run: |
+          APK=$(find app/build/outputs/apk -name '*.apk' | head -1)
+          if [ -z "$APK" ]; then
+            echo "::error::No APK found"
+            exit 1
+          fi
+          echo "APK: $APK"
+          echo "=== aapt dump badging (testOnly) ==="
+          aapt dump badging "$APK" 2>&1 | grep -i testonly || echo "(no testOnly found — OK)"
+          echo ""
+          echo "=== aapt dump xmltree (testOnly) ==="
+          aapt dump xmltree "$APK" AndroidManifest.xml 2>&1 | grep -i testonly || echo "(no testOnly found — OK)"
 
       - name: Upload APK to release
         if: github.event_name == 'release'
