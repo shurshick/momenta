@@ -23,6 +23,8 @@ from app.services.setting_service import get_all_settings, set_setting, invalida
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+templates.env.globals["app_version"] = settings.app_version
+templates.env.globals["app_env"] = settings.app_env
 
 
 async def get_admin_user(request: Request, db: AsyncSession = Depends(get_db)) -> Optional[User]:

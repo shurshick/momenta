@@ -64,6 +64,10 @@
             <a href="/admin/settings" class="{% if 'settings' in request.url.path %}active{% endif %}">Settings</a>
             <a href="/admin/system" class="{% if 'system' in request.url.path %}active{% endif %}">System</a>
         </nav>
+        <div style="padding: 12px 20px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #666;">
+            v{{ app_version }}<br>
+            {{ app_env }}
+        </div>
     </div>
     <div class="main">
         <div class="header">
