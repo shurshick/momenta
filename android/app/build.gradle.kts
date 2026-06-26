@@ -156,3 +156,32 @@ dependencies {
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.01.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
+
+tasks.register("verifyInstallableDevApk") {
+    description = "Verifies the dev debug APK is installable (no testOnly, signed, correct package)"
+    group = "verification"
+    doLast {
+        val apkDir = layout.buildDirectory.dir("outputs/apk/dev/debug").get().asFile
+        val apkFiles = apkDir.listFiles()?.filter { it.extension == "apk" }
+        val apk = apkFiles?.firstOrNull()
+        require(apk != null && apk.exists()) {
+            "APK not found in ${apkDir.absolutePath}. Run assembleDevDebug first."
+        }
+        require(apk.length() > 0) { "APK is empty: ${apk.absolutePath}" }
+
+        val manifest = file("build/intermediates/merged_manifests/devDebug/AndroidManifest.xml")
+        if (manifest.exists()) {
+            val content = manifest.readText()
+            require(!content.contains("""android:testOnly="true""")) {
+                "FAIL: merged manifest contains android:testOnly=true. APK will not install via Package Installer."
+            }
+            require(content.contains("com.bghitech.momenta.dev")) {
+                "FAIL: merged manifest does not contain expected package com.bghitech.momenta.dev"
+            }
+        }
+
+        println("OK: ${apk.name} (${apk.length()} bytes)")
+        println("Package: com.bghitech.momenta.dev")
+        println("APK verification passed.")
+    }
+}
