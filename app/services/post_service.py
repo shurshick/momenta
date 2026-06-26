@@ -1,12 +1,16 @@
 import uuid
+import logging
 from datetime import date, datetime, timezone
 from typing import Optional
 from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from app.models.post import Post
 from app.models.reaction import Reaction
 from app.services.redis_service import add_to_feed, increment_counter, mark_user_posted
 from app.services.setting_service import get_setting
+
+logger = logging.getLogger(__name__)
 
 
 async def create_post(db: AsyncSession, user_id: uuid.UUID, challenge_id: uuid.UUID, challenge_date: date,
@@ -27,8 +31,11 @@ async def create_post(db: AsyncSession, user_id: uuid.UUID, challenge_id: uuid.U
                 Post.status.in_(["active", "processing", "uploading"])
             )
         )).scalar() or 0
+        logger.info(f"Daily limit check: user={user_id}, date={challenge_date}, count={today_count}, limit={daily_limit}")
         if today_count >= daily_limit:
             raise ValueError(f"Лимит {daily_limit} моментов в день исчерпан")
+    else:
+        logger.info(f"Daily limit disabled (0) for user={user_id}")
 
     post = Post(
         id=uuid.uuid4(),
@@ -47,9 +54,13 @@ async def create_post(db: AsyncSession, user_id: uuid.UUID, challenge_id: uuid.U
     db.add(post)
     try:
         await db.commit()
-    except Exception:
+    except IntegrityError:
         await db.rollback()
         raise ValueError("Вы уже опубликовали момент сегодня")
+    except Exception as e:
+        await db.rollback()
+        logger.exception("Failed to commit post")
+        raise ValueError(f"Ошибка сохранения: {e}")
     await db.refresh(post)
     await mark_user_posted(str(user_id), challenge_date)
     return post

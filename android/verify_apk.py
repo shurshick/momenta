@@ -4,7 +4,7 @@ import os
 import sys
 from androguard.misc import AnalyzeAPK
 
-apk_path = sys.argv[1] if len(sys.argv) > 1 else r'C:\Users\odmin4eg\Downloads\momenta-apk\app-dev-debug.apk'
+apk_path = sys.argv[1] if len(sys.argv) > 1 else r'C:\Users\odmin4eg\Downloads\momenta-apk\app-prod-debug.apk'
 
 a, d, dx = AnalyzeAPK(apk_path)
 
@@ -19,7 +19,7 @@ print(f"Min SDK: {a.get_min_sdk_version()}")
 print(f"Target SDK: {a.get_target_sdk_version()}")
 print(f"Max SDK: {a.get_max_sdk_version()}")
 
-if a.get_package() != "com.bghitech.momenta.dev":
+if a.get_package() != "com.bghitech.momenta":
     errors.append(f"WRONG PACKAGE: {a.get_package()}")
 
 if a.get_min_sdk_version() != "24":

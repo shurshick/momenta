@@ -20,14 +20,14 @@
 ## Сборка APK
 
 ```bash
-# debug (dev-флейвор)
-./gradlew assembleDevDebug
+# production debug (основной вариант для установки)
+./gradlew assembleProdDebug
 
 # staging
 ./gradlew assembleStagingDebug
 
-# production release
-./gradlew assembleProdRelease
+# dev
+./gradlew assembleDevDebug
 ```
 
 APK будет в `app/build/outputs/apk/`.

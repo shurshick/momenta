@@ -82,14 +82,14 @@ jobs:
             -storepass momenta123 -keypass momenta123 \
             -dname "CN=Momenta, OU=Dev, O=Bghitech, L=Unknown, ST=Unknown, C=RU"
 
-      - name: Build Dev APK (debug)
+      - name: Build Prod APK (debug)
         run: |
           chmod +x gradlew
           set +e
           RC=1
           for i in 1 2 3; do
             echo "=== Attempt $i ==="
-            ./gradlew clean assembleDevDebug --stacktrace
+            ./gradlew clean assembleProdDebug --stacktrace
             RC=$?
             if [ $RC -eq 0 ]; then
               echo "Build succeeded on attempt $i"
@@ -105,7 +105,7 @@ jobs:
       - name: Verify merged manifest (testOnly check)
         working-directory: android
         run: |
-          MANIFEST="app/build/intermediates/merged_manifests/devDebug/AndroidManifest.xml"
+          MANIFEST="app/build/intermediates/merged_manifests/prodDebug/AndroidManifest.xml"
           if [ ! -f "$MANIFEST" ]; then
             echo "::error::Merged manifest not found at $MANIFEST"
             exit 1
@@ -139,12 +139,12 @@ jobs:
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-dev-debug
-          path: android/app/build/outputs/apk/dev/debug/*.apk
+          name: app-prod-debug
+          path: android/app/build/outputs/apk/prod/debug/*.apk
           retention-days: 30
 
       - name: Upload APK to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: android/app/build/outputs/apk/dev/debug/*.apk
+          files: android/app/build/outputs/apk/prod/debug/*.apk

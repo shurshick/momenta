@@ -9,19 +9,20 @@
 ## Build
 
 ```bash
-# Clean build dev debug
-./gradlew clean assembleDevDebug
+# Clean build prod debug (основной вариант для установки)
+./gradlew clean assembleProdDebug
 
 # Install on device/emulator
-./gradlew installDevDebug
+./gradlew installProdDebug
 ```
 
 ## Build Variants
 
 | Variant | Command |
 |---------|---------|
-| Dev Debug | `./gradlew assembleDevDebug` |
+| Prod Debug | `./gradlew assembleProdDebug` |
 | Staging Debug | `./gradlew assembleStagingDebug` |
+| Dev Debug | `./gradlew assembleDevDebug` |
 | Prod Release | `./gradlew assembleProdRelease` |
 
 ## APK Location
