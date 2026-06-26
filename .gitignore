@@ -36,3 +36,4 @@ gen/
 *.log
 *.tmp
 Thumbs.db
+test.db

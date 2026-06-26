@@ -35,6 +35,7 @@ async def test_admin_can_create_challenge(client, test_admin, db_session):
 @pytest.mark.asyncio
 async def test_admin_can_hide_post(client, test_admin, test_user, test_challenge, db_session):
     import uuid
+    from datetime import date
     from app.models.post import Post
     from app.security import create_access_token
     post = Post(

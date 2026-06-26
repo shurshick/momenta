@@ -4,6 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.main import app
 from app.db import get_db
+from sqlalchemy import select, text
 from app.models.base import Base
 from app.models.user import User
 from app.models.challenge import Challenge
@@ -37,6 +38,17 @@ async def engine():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+async def cleanup_db(engine):
+    yield
+    async with engine.begin() as conn:
+        for table in (
+            "audit_logs", "media_assets", "reactions", "reports",
+            "posts", "user_streaks", "challenges", "users",
+        ):
+            await conn.execute(text(f"DELETE FROM {table}"))
 
 
 @pytest.fixture

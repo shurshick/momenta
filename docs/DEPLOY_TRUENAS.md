@@ -138,7 +138,7 @@ services:
     image: ghcr.io/shurshick/momenta:latest
     container_name: momenta-worker
     restart: unless-stopped
-    command: ["python", "-m", "app.worker"]
+    command: ["python", "-c", "from app.worker.tasks import run_worker; run_worker()"]
     depends_on:
       momenta-postgres:
         condition: service_healthy
