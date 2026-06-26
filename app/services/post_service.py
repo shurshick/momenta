@@ -16,7 +16,7 @@ async def create_post(db: AsyncSession, user_id: uuid.UUID, challenge_id: uuid.U
         select(Post).where(Post.user_id == user_id, Post.challenge_date == challenge_date, Post.status.in_(["active", "processing", "uploading"]))
     )
     if existing.scalar_one_or_none():
-        raise ValueError("You already posted for this challenge today")
+        raise ValueError("Вы уже опубликовали момент сегодня")
     post = Post(
         id=uuid.uuid4(),
         user_id=user_id,

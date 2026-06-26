@@ -9,7 +9,7 @@ from app.security import get_password_hash, verify_password, create_access_token
 async def register_user(db: AsyncSession, username: str, email: str, password: str) -> dict:
     existing = await db.execute(select(User).where((User.username == username) | (User.email == email)))
     if existing.scalar_one_or_none():
-        raise ValueError("Username or email already exists")
+        raise ValueError("Имя пользователя или email уже заняты")
     user = User(
         id=uuid.uuid4(),
         username=username,
@@ -29,23 +29,23 @@ async def login_user(db: AsyncSession, username_or_email: str, password: str) ->
     )
     user = result.scalar_one_or_none()
     if not user or not verify_password(password, user.password_hash):
-        raise ValueError("Invalid credentials")
+        raise ValueError("Неверные учётные данные")
     if user.status != "active":
-        raise ValueError("Account is disabled")
+        raise ValueError("Аккаунт заблокирован")
     return _auth_response(user)
 
 
 async def refresh_token(db: AsyncSession, token: str) -> dict:
     payload = decode_token(token)
     if not payload or payload.get("type") != "refresh":
-        raise ValueError("Invalid refresh token")
+        raise ValueError("Недействительный токен обновления")
     user_id = payload.get("sub")
     if not user_id:
-        raise ValueError("Invalid token payload")
+        raise ValueError("Неверный формат токена")
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
     if not user or user.status != "active":
-        raise ValueError("User not found or disabled")
+        raise ValueError("Пользователь не найден или заблокирован")
     return _auth_response(user)
 
 
