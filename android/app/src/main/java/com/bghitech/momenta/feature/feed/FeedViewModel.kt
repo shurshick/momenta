@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.domain.model.Post
+import com.bghitech.momenta.domain.repository.FeedRepository
 import com.bghitech.momenta.domain.usecase.GetTodayFeedUseCase
 import com.bghitech.momenta.domain.usecase.LikePostUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,13 +24,12 @@ data class FeedUiState(
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val getTodayFeedUseCase: GetTodayFeedUseCase,
-    private val likePostUseCase: LikePostUseCase
+    private val likePostUseCase: LikePostUseCase,
+    private val feedRepository: FeedRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FeedUiState())
     val state = _state.asStateFlow()
-
-    private var nextCursor: String? = null
 
     init {
         loadFeed()
@@ -66,12 +66,15 @@ class FeedViewModel @Inject constructor(
     fun loadMore() {
         if (_state.value.isLoadingMore) return
         viewModelScope.launch {
+            val cursor = feedRepository.getNextCursor() ?: return@launch
             _state.value = _state.value.copy(isLoadingMore = true)
-            when (val result = getTodayFeedUseCase(cursor = nextCursor)) {
+            when (val result = getTodayFeedUseCase(cursor = cursor)) {
                 is AppResult.Success -> {
+                    val existingIds = _state.value.items.map { it.id }.toSet()
+                    val newItems = result.data.filter { it.id !in existingIds }
                     _state.value = _state.value.copy(
                         isLoadingMore = false,
-                        items = _state.value.items + result.data
+                        items = _state.value.items + newItems
                     )
                 }
                 is AppResult.Error -> {
