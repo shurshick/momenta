@@ -79,7 +79,7 @@ docker pull ghcr.io/shurshick/momenta:latest
 | Поле | Значение |
 |---|---|
 | Application Name | `momenta` |
-| Version | `0.1.0` |
+| Version | `0.2.15` |
 
 ### 4.3. Вставьте YAML конфигурацию
 
@@ -103,7 +103,7 @@ services:
     environment:
       APP_NAME: Momenta
       APP_ENV: production
-      APP_VERSION: 0.1.0
+      APP_VERSION: 0.2.15
       API_HOST: 0.0.0.0
       API_PORT: 8000
       PUBLIC_BASE_URL: https://momenta.example.com
@@ -125,7 +125,7 @@ services:
       ADMIN_EMAIL: admin@example.com
       ADMIN_PASSWORD: CHANGE_ME_ADMIN_PASSWORD
     ports:
-      - "8000:8000"
+      - "8010:8000"
     volumes:
       - /mnt/pool/app/momenta/api:/app/data
     healthcheck:
@@ -340,10 +340,10 @@ http://<trueNAS-IP>:9011
 
 ### 7.2. Обновите образ
 
-Замените `image: ghcr.io/shurshick/momenta:latest` на конкретную версию:
+Для тестового стенда можно оставить `latest`. Для production лучше заменить `latest` на конкретную версию:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.0
+image: ghcr.io/shurshick/momenta:v0.2.15
 ```
 
 ### 7.3. Запустите
@@ -434,12 +434,12 @@ RATE_LIMIT_UPLOAD_PER_HOUR=20
 ## 10. Порты (сводка)
 
 | Контейнер | Внутренний порт | Внешний порт | Доступ |
-|---|---|---|---|---|
+|---|---:|---:|---|
 | momenta-api | 8000 | 8010 | Да |
-| momenta-postgres | 5432 | — | Нет (internal only) |
-| momenta-redis | 6379 | — | Нет (internal only) |
-| momenta-minio | 9000 | 9010 | Да (S3 API, может быть закрыт за NPM) |
-| momenta-minio | 9001 | 9011 | Да (Admin Console, может быть закрыт) |
+| momenta-postgres | 5432 | — | Нет, только внутри compose-сети |
+| momenta-redis | 6379 | — | Нет, только внутри compose-сети |
+| momenta-minio | 9000 | 9010 | Да, S3 API |
+| momenta-minio | 9001 | 9011 | Да, MinIO Console |
 
 **Важно:** PostgreSQL и Redis не публикуются наружу — к ним подключаются только контейнеры API и Worker через внутреннюю Docker-сеть.
 
