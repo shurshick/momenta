@@ -23,7 +23,7 @@ data class ProfileUiState(
     val streakCount: Int = 0,
     val likesCount: Int = 0,
     val recentPosts: List<Post> = emptyList(),
-    val avatarOptions: List<String> = (1..20).map { index -> "avatar_%02d".format(index) },
+    val avatarOptions: List<String> = (1..25).map { index -> "avatar_%02d".format(index) },
     val isSaving: Boolean = false,
     val error: String? = null
 )
@@ -41,12 +41,12 @@ class ProfileViewModel @Inject constructor(
         loadProfile()
     }
 
-    fun loadProfile() {
-        if (_state.value.isLoading && _state.value.username.isNotBlank()) return
+    fun loadProfile(force: Boolean = false) {
+        if (_state.value.isLoading && _state.value.username.isNotBlank() && !force) return
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
 
-            val cached = getMyProfileUseCase.getCached()
+            val cached = if (force) null else getMyProfileUseCase.getCached()
             if (cached != null) {
                 mapProfile(cached)
             }

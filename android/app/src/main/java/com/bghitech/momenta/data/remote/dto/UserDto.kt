@@ -15,3 +15,8 @@ data class UserDto(
     val avatarKey: String? = null,
     val email: String? = null
 )
+
+@Serializable
+data class UserListResponseDto(
+    val items: List<UserDto> = emptyList()
+)

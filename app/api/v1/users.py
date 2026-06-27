@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
-from app.schemas.user import AvatarListResponse, UpdateAvatarRequest, UserProfile, UpdateProfileRequest
+from app.schemas.user import AvatarListResponse, UpdateAvatarRequest, UserProfile, UpdateProfileRequest, UserSummaryListResponse
 from app.services.auth_service import get_user_by_id
 from app.api.v1.auth import get_current_user_id
 from app.models.post import Post
@@ -12,7 +12,7 @@ from app.models.reaction import Reaction
 
 router = APIRouter(prefix="/api/v1", tags=["users"])
 
-AVATAR_KEYS = [f"avatar_{index:02d}" for index in range(1, 21)]
+AVATAR_KEYS = [f"avatar_{index:02d}" for index in range(1, 26)]
 
 
 async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -> UserProfile:
@@ -77,6 +77,34 @@ async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -
         created_at=user.created_at,
         last_seen_at=user.last_seen_at,
     )
+
+
+@router.get("/users/suggestions", response_model=UserSummaryListResponse)
+async def list_user_suggestions(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.models.user import User
+
+    result = await db.execute(
+        select(User)
+        .where(User.status == "active")
+        .order_by(User.last_seen_at.desc().nullslast(), User.created_at.desc())
+        .limit(20)
+    )
+    users = result.scalars().all()
+    return {
+        "items": [
+            {
+                "id": str(user.id),
+                "username": user.username,
+                "display_name": user.display_name,
+                "avatar_key": user.avatar_key,
+                "avatar_url": user.avatar_url,
+            }
+            for user in users
+        ]
+    }
 
 
 @router.get("/users/{user_id}", response_model=UserProfile)

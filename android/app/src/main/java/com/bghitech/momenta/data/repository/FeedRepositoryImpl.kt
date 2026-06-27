@@ -6,6 +6,7 @@ import com.bghitech.momenta.data.local.dao.PostDao
 import com.bghitech.momenta.data.mapper.*
 import com.bghitech.momenta.data.remote.MomentaApi
 import com.bghitech.momenta.domain.model.Post
+import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.FeedRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -56,5 +57,13 @@ class FeedRepositoryImpl @Inject constructor(
     override suspend fun replaceCachedFeed(posts: List<Post>) {
         postDao.clearAll()
         postDao.insertPosts(posts.map { it.toCachedEntity() })
+    }
+
+    override suspend fun getUserSuggestions(): AppResult<List<User>> {
+        return try {
+            AppResult.Success(api.getUserSuggestions().items.map { it.toDomain() })
+        } catch (e: Exception) {
+            AppResult.Success(getCachedFeed().map { it.user }.distinctBy { it.username }.take(20))
+        }
     }
 }

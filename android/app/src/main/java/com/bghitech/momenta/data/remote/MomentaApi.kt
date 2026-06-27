@@ -27,6 +27,9 @@ interface MomentaApi {
     @GET("/api/v1/me")
     suspend fun getMe(): UserDto
 
+    @GET("/api/v1/users/suggestions")
+    suspend fun getUserSuggestions(): UserListResponseDto
+
     @GET("/api/v1/challenges/today")
     suspend fun getTodayChallenge(): ChallengeDto
 

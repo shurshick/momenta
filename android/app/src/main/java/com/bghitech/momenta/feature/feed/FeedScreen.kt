@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -184,24 +185,24 @@ fun FeedScreen(
                 }
             }
 
-            items(5) { index ->
+            items(state.suggestedUsers, key = { it.id.ifBlank { it.username } }) { user ->
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.width(64.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(MomentaSurfaceAlt),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("•", color = MomentaGreen, fontSize = 16.sp)
-                    }
+                    MomentaAvatar(
+                        avatarUrl = user.avatarUrl,
+                        avatarKey = user.avatarKey,
+                        username = user.username,
+                        size = 52.dp
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = listOf("Аня", "Макс", "Лера", "Кирилл", "Даша")[index],
+                        text = user.displayName ?: user.username,
                         color = MomentaTextSecondary,
-                        fontSize = 10.sp
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

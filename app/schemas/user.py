@@ -41,3 +41,15 @@ class AvatarListResponse(BaseModel):
 
 class UpdateAvatarRequest(BaseModel):
     avatar_key: str
+
+
+class UserSummary(BaseModel):
+    id: str
+    username: str
+    display_name: str
+    avatar_key: str | None = None
+    avatar_url: str | None = None
+
+
+class UserSummaryListResponse(BaseModel):
+    items: list[UserSummary]

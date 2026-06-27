@@ -81,20 +81,29 @@ class TodayViewModel @Inject constructor(
         when (val result = feedRepository.getBestMoment()) {
             is AppResult.Success -> {
                 val currentBestPost = _state.value.bestPost
+                val fallbackPost = result.data ?: currentBestPost ?: firstFeedPost() ?: cached.bestMoment()
                 _state.value = _state.value.copy(
-                    bestPost = result.data ?: currentBestPost ?: cached.bestMoment(),
+                    bestPost = fallbackPost,
                     feedLoaded = true,
                     isBestMomentLoading = false
                 )
             }
             is AppResult.Error -> {
+                val fallbackPost = _state.value.bestPost ?: firstFeedPost() ?: cached.bestMoment()
                 _state.value = _state.value.copy(
-                    feedLoaded = cached.isNotEmpty(),
+                    bestPost = fallbackPost,
+                    feedLoaded = fallbackPost != null || cached.isNotEmpty(),
                     isBestMomentLoading = false
                 )
             }
         }
     }
+
+    private suspend fun firstFeedPost(): Post? =
+        when (val result = feedRepository.getTodayFeed(cursor = null, limit = 10)) {
+            is AppResult.Success -> result.data.bestMoment() ?: result.data.firstOrNull()
+            is AppResult.Error -> null
+        }
 
     private fun List<Post>.bestMoment(): Post? =
         filter { it.previewUrl.isNotBlank() || !it.thumbUrl.isNullOrBlank() }

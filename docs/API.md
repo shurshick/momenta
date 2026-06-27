@@ -72,6 +72,7 @@ Only one active/processing/uploading post per user per challenge date is allowed
 ## Users
 
 - `GET /api/v1/users/{id}` — User profile
+- `GET /api/v1/users/suggestions` — Active users for feed header suggestions
 - `GET /api/v1/me/profile` — Own profile
 - `PATCH /api/v1/me/profile` — Update profile
 - `GET /api/v1/avatars` — List predefined avatars
