@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Момента</string>
     <string name="slogan">Один момент. Все вместе.</string>
-    <string name="today_title">Момента дня</string>
+    <string name="today_title">Момент дня</string>
     <string name="world_now">Мир сейчас</string>
     <string name="join_today">Принять участие</string>
     <string name="capture_moment">Лови момент</string>

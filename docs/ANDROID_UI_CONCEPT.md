@@ -20,7 +20,7 @@ The app should look like a camera-first social product:
 
 ## Main Flow
 
-Open app → see "Момента дня" → capture photo/video → preview → publish → watch "Мир сейчас".
+Open app → see "Момент дня" → capture photo/video → preview → publish → watch "Мир сейчас".
 
 ## Current MVP Scope
 

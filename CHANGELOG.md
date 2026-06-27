@@ -4,10 +4,23 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 
+## [v0.2.20] - 2026-06-27
+
+### Added
+- **Android**: добавлен набор из 20 мультяшных PNG-аватарок.
+
+### Changed
+- **Android**: главный экран и нижняя навигация теперь используют подписи "Момент дня" и "Момент".
+- **Android**: выбор аватара открывается по тапу на аватар, редактирование профиля вынесено в компактную иконку рядом с именем.
+- **Backend**: лучший момент дня берет случайный пост из топа за сегодня, а для живой тестовой базы fallback-ом использует недавние активные посты.
+
+### Fixed
+- **Android**: лента делает повторные догрузки после открытия, чтобы новый пост появлялся после серверной обработки без перезапуска приложения.
+
 ## [v0.2.17] - 2026-06-27
 
 ### Added
-- **Android**: "Момента дня" now shows the best moment of the day by likes instead of an empty screen.
+- **Android**: "Момент дня" now shows the best moment of the day by likes instead of an empty screen.
 - **Android**: camera gallery button opens the system image picker and imports an existing photo.
 - **Android**: camera effects panel applies Natural, Warm, Vivid, and Mono effects before publishing.
 - **Android**: profile editing dialog saves display name and bio through the existing profile API.

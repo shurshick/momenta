@@ -77,7 +77,7 @@ The primary visual flow is:
 
 1. Splash: logo, app name, slogan.
 2. Onboarding/Auth: dark background, logo, card forms, large green CTA.
-3. Today: "Момента дня", daily topic card, timer, examples, CTA.
+3. Today: "Момент дня", daily topic card, timer, examples, CTA.
 4. Camera: full-screen camera, dark overlay controls, large capture button.
 5. Publish: full photo preview, bottom/card controls, green publish CTA.
 6. Success: glowing brand mark/check and "Смотреть мир сейчас".

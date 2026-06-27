@@ -19,8 +19,8 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,7 +55,6 @@ import com.bghitech.momenta.core.design.MomentaLoading
 import com.bghitech.momenta.core.design.MomentaMediumShape
 import com.bghitech.momenta.core.design.MomentaRoundShape
 import com.bghitech.momenta.core.design.MomentaScreen
-import com.bghitech.momenta.core.design.MomentaSecondaryButton
 import com.bghitech.momenta.core.design.MomentaSurface
 import com.bghitech.momenta.core.design.MomentaSurfaceAlt
 import com.bghitech.momenta.core.design.MomentaText
@@ -157,40 +156,31 @@ private fun ProfileContent(
         size = 80.dp,
         modifier = Modifier.clickable(onClick = onAvatarClick)
     )
-    Box(
-        modifier = Modifier
-            .size(0.dp)
-            .clip(MomentaRoundShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MomentaSurfaceAlt,
-            shape = MomentaRoundShape
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                if (state.avatarUrl.isNullOrBlank()) {
-                    Text("•", color = MomentaGreen, fontSize = 32.sp)
-                } else {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = state.avatarUrl),
-                        contentDescription = state.displayName,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-        }
-    }
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    Text(
-        text = state.displayName,
-        color = MomentaText,
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold
-    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = state.displayName,
+            color = MomentaText,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+        IconButton(
+            onClick = onEditClick,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Редактировать профиль",
+                tint = MomentaGreen,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
 
     Text(
         text = state.username,
@@ -218,20 +208,6 @@ private fun ProfileContent(
         StatItem(value = "${state.streakCount}", label = "Дней подряд", modifier = Modifier.weight(1f))
         StatItem(value = "${state.likesCount}", label = "Лайков", modifier = Modifier.weight(1f))
     }
-
-    Spacer(modifier = Modifier.height(24.dp))
-
-    MomentaSecondaryButton(
-        text = "Редактировать",
-        onClick = onEditClick
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    MomentaSecondaryButton(
-        text = "Выбрать аватар",
-        onClick = onAvatarClick
-    )
 
     Spacer(modifier = Modifier.height(16.dp))
 

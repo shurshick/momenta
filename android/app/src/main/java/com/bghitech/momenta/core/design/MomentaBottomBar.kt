@@ -39,7 +39,7 @@ enum class BottomNavItem(
     val unselectedIcon: ImageVector,
     val label: String
 ) {
-    TODAY("today", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt, "Момента"),
+    TODAY("today", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt, "Момент"),
     FEED("feed", Icons.Filled.Language, Icons.Outlined.Language, "Мир сейчас"),
     CREATE("camera", Icons.Filled.Add, Icons.Filled.Add, "Создать"),
     PROFILE("profile", Icons.Filled.Person, Icons.Outlined.Person, "Профиль")

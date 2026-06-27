@@ -5,7 +5,7 @@ from typing import List
 class Settings(BaseSettings):
     app_name: str = "Momenta"
     app_env: str = "development"
-    app_version: str = "0.2.19"
+    app_version: str = "0.2.20"
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000
