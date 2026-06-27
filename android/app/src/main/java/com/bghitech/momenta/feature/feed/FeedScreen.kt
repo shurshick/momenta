@@ -75,6 +75,7 @@ fun FeedScreen(
         }
     }
 
+    MomentaScreen {
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
             text = "Мир сейчас",
@@ -201,6 +202,25 @@ fun FeedScreen(
                         }
                     }
                 }
+                state.items.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MomentaCard(modifier = Modifier.padding(24.dp)) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                MomentaLogoMark(size = 64)
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Text(
+                                    text = "Пока никто не поделился моментом. Стань первым.",
+                                    color = MomentaText,
+                                    fontSize = 15.sp,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
                 else -> {
                     LazyColumn(
                         state = listState,
@@ -265,6 +285,7 @@ fun FeedScreen(
             }
         }
     }
+    }
 }
 
 @Composable
@@ -290,7 +311,7 @@ private fun FeedPostCard(
         )
     }
 
-    MomentaCard {
+    MomentaCard(contentPadding = PaddingValues(0.dp)) {
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(12.dp),

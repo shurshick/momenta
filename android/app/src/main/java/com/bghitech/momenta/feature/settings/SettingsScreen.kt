@@ -4,7 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.BuildConfig
+import com.bghitech.momenta.R
 
 @Composable
 fun SettingsScreen(
@@ -43,6 +45,7 @@ fun SettingsScreen(
         )
     }
 
+    MomentaScreen {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -56,7 +59,7 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Назад", tint = MomentaText)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = MomentaText)
             }
             Spacer(modifier = Modifier.weight(1f))
             Text(
@@ -71,35 +74,29 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "URL сервера",
-            color = MomentaTextSecondary,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        OutlinedTextField(
-            value = serverUrl,
-            onValueChange = { serverUrl = it },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MomentaText,
-                unfocusedTextColor = MomentaText,
-                cursorColor = MomentaGreen,
-                focusedBorderColor = MomentaGreen,
-                unfocusedBorderColor = MomentaDivider,
-                focusedLabelColor = MomentaGreen,
-                unfocusedLabelColor = MomentaTextSecondary
+        SettingsSection(title = "Сервер") {
+            OutlinedTextField(
+                value = serverUrl,
+                onValueChange = { serverUrl = it },
+                label = { Text("API URL") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MomentaText,
+                    unfocusedTextColor = MomentaText,
+                    cursorColor = MomentaGreen,
+                    focusedBorderColor = MomentaGreen,
+                    unfocusedBorderColor = MomentaDivider,
+                    focusedLabelColor = MomentaGreen,
+                    unfocusedLabelColor = MomentaTextSecondary
+                )
             )
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        MomentaSecondaryButton(
-            text = "Проверить соединение",
-            onClick = { showConnectionResult = "Проверка... (реализовано в v0.2.0)" }
-        )
+            Spacer(modifier = Modifier.height(12.dp))
+            MomentaSecondaryButton(
+                text = "Проверить соединение",
+                onClick = { showConnectionResult = "Проверка... (реализовано в v0.2.0)" }
+            )
+        }
 
         if (showConnectionResult != null) {
             Spacer(modifier = Modifier.height(8.dp))
@@ -112,31 +109,21 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Приватность",
-            color = MomentaTextSecondary,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        SettingsToggleRow("Видимость профиля", "Ваш профиль виден всем")
-        SettingsToggleRow("Геолокация на фото", "Добавлять страну и город")
-        SettingsToggleRow("Push-уведомления", "О лайках и новых моментах")
+        SettingsSection(title = "Аккаунт") {
+            SettingsToggleRow("Видимость профиля", "Ваш профиль виден всем")
+            SettingsToggleRow("Геолокация на фото", "Добавлять страну и город")
+            SettingsToggleRow("Push-уведомления", "О лайках и новых моментах")
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Text(
-            text = "Информация для отладки",
-            color = MomentaTextSecondary,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        SettingsInfoRow("Версия", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-        SettingsInfoRow("Flavor", BuildConfig.FLAVOR)
-        SettingsInfoRow("API URL", BuildConfig.DEFAULT_SERVER_URL)
-        SettingsInfoRow("Media URL", BuildConfig.MEDIA_BASE_URL)
-        SettingsInfoRow("Логирование", if (BuildConfig.LOGGING_ENABLED) "Включено" else "Отключено")
+        SettingsSection(title = "Приложение") {
+            SettingsInfoRow("Версия", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+            SettingsInfoRow("Flavor", BuildConfig.FLAVOR)
+            SettingsInfoRow("API URL", BuildConfig.DEFAULT_SERVER_URL)
+            SettingsInfoRow("Media URL", BuildConfig.MEDIA_BASE_URL)
+            SettingsInfoRow("Логирование", if (BuildConfig.LOGGING_ENABLED) "Включено" else "Отключено")
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -146,6 +133,20 @@ fun SettingsScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+    }
+    }
+}
+
+@Composable
+private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Text(
+        text = title,
+        color = MomentaTextSecondary,
+        fontSize = 12.sp,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+    MomentaCard {
+        Column(content = content)
     }
 }
 

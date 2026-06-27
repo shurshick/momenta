@@ -1,27 +1,35 @@
 package com.bghitech.momenta.core.design
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.People
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -31,10 +39,9 @@ enum class BottomNavItem(
     val unselectedIcon: ImageVector,
     val label: String
 ) {
-    HOME("today", Icons.Filled.Home, Icons.Outlined.Home, "Главная"),
-    SEARCH("search", Icons.Filled.Search, Icons.Outlined.Search, "Поиск"),
-    CREATE("camera", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt, "Создать"),
-    FEED("feed", Icons.Filled.People, Icons.Outlined.People, "Моменты"),
+    TODAY("today", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt, "Момента"),
+    FEED("feed", Icons.Filled.Language, Icons.Outlined.Language, "Мир сейчас"),
+    CREATE("camera", Icons.Filled.Add, Icons.Filled.Add, "Создать"),
     PROFILE("profile", Icons.Filled.Person, Icons.Outlined.Person, "Профиль")
 }
 
@@ -44,54 +51,65 @@ fun MomentaBottomBar(
     onNavigate: (String) -> Unit
 ) {
     Surface(
-        color = MomentaSurface,
+        color = MomentaBackground.copy(alpha = 0.98f),
         tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
                 .navigationBarsPadding(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             BottomNavItem.entries.forEach { item ->
                 if (item == BottomNavItem.CREATE) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(MomentaGreen)
-                            .clickable { onNavigate(item.route) },
-                        contentAlignment = Alignment.Center
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable { onNavigate(item.route) }
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .size(58.dp)
+                                .clip(CircleShape)
+                                .background(MomentaGreen),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = item.selectedIcon,
+                                contentDescription = item.label,
+                                tint = MomentaBackground,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "+",
-                            color = MomentaBackground,
-                            fontSize = 28.sp,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            text = item.label,
+                            color = MomentaGreen,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 } else {
                     val selected = currentRoute == item.route
-                    val icon = if (selected) item.selectedIcon else item.unselectedIcon
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .clickable { onNavigate(item.route) }
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 4.dp, vertical = 4.dp)
                     ) {
                         Icon(
-                            imageVector = icon,
+                            imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
                             contentDescription = item.label,
                             tint = if (selected) MomentaGreen else MomentaTextSecondary,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(23.dp)
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = item.label,
                             color = if (selected) MomentaGreen else MomentaTextSecondary,
-                            fontSize = 10.sp
+                            fontSize = 10.sp,
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                         )
                     }
                 }

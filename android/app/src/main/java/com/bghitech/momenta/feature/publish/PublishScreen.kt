@@ -1,19 +1,23 @@
 package com.bghitech.momenta.feature.publish
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bghitech.momenta.R
 import coil.compose.rememberAsyncImagePainter
 import com.bghitech.momenta.core.design.*
 
@@ -35,11 +39,12 @@ fun PublishScreen(
         if (state.uploaded) onUploadSuccess()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
+    MomentaScreen {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
         // Top bar
         Row(
             modifier = Modifier
@@ -48,7 +53,7 @@ fun PublishScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Назад", tint = MomentaText)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = MomentaText)
             }
             Spacer(modifier = Modifier.weight(1f))
             Text(
@@ -69,43 +74,52 @@ fun PublishScreen(
                 contentDescription = "Preview",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(350.dp),
+                    .height(390.dp)
+                    .clip(RoundedCornerShape(28.dp)),
                 contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = caption,
-                onValueChange = { caption = it },
-                label = { Text("Подпись") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MomentaText,
-                    unfocusedTextColor = MomentaText,
-                    cursorColor = MomentaGreen,
-                    focusedBorderColor = MomentaGreen,
-                    unfocusedBorderColor = MomentaDivider,
-                    focusedLabelColor = MomentaGreen,
-                    unfocusedLabelColor = MomentaTextSecondary
-                ),
-                minLines = 3,
-                maxLines = 5
-            )
+            MomentaCard {
+                Column {
+                    OutlinedTextField(
+                        value = caption,
+                        onValueChange = { caption = it },
+                        label = { Text(stringResource(R.string.caption)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = MomentaText,
+                            unfocusedTextColor = MomentaText,
+                            cursorColor = MomentaGreen,
+                            focusedBorderColor = MomentaGreen,
+                            unfocusedBorderColor = MomentaDivider,
+                            focusedLabelColor = MomentaGreen,
+                            unfocusedLabelColor = MomentaTextSecondary
+                        ),
+                        minLines = 2,
+                        maxLines = 4
+                    )
 
-            if (state.error != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = state.error!!,
-                    color = MomentaError,
-                    fontSize = 13.sp
-                )
+                    if (state.error != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.upload_retry_later),
+                            color = MomentaError,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
             MomentaPrimaryButton(
-                text = if (state.isUploading) "Публикация…" else "Опубликовать",
+                text = if (state.isUploading) {
+                    stringResource(R.string.publishing_moment)
+                } else {
+                    stringResource(R.string.publish)
+                },
                 onClick = {
                     viewModel.publish("today", caption.ifBlank { null }, null, null)
                 },
@@ -114,5 +128,6 @@ fun PublishScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
         }
+    }
     }
 }

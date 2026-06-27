@@ -10,6 +10,10 @@
 
 Текущая стабильная версия: **v0.2.15**.
 
+Текущий визуальный стандарт Android: **Momenta Design Concept v1**.
+
+Reference: [docs/design/momenta_visual_concept.png](docs/design/momenta_visual_concept.png)
+
 Что уже работает:
 
 - FastAPI backend с auth, posts, feed, challenges, reactions, reports и профилями.
@@ -140,6 +144,8 @@ GitHub Actions:
 - [Security](docs/SECURITY.md)
 - [TrueNAS Deploy](docs/DEPLOY_TRUENAS.md)
 - [Release Checklist](docs/RELEASE_CHECKLIST.md)
+- [Design System](docs/DESIGN_SYSTEM.md)
+- [Android UI Concept](docs/ANDROID_UI_CONCEPT.md)
 - [Android Build & Install](android/docs/BUILD_AND_INSTALL.md)
 - [Android Architecture](android/docs/ANDROID_ARCHITECTURE.md)
 - [Android API Integration](android/docs/API_INTEGRATION.md)

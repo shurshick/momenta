@@ -7,17 +7,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bghitech.momenta.R
 import com.bghitech.momenta.core.design.*
 
 @Composable
 fun UploadSuccessScreen(
     onGoToToday: () -> Unit
 ) {
-    Box(
+    MomentaScreen {
+        Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
@@ -28,14 +31,14 @@ fun UploadSuccessScreen(
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
-                tint = MomentaGreen,
-                modifier = Modifier.size(80.dp)
+                tint = MomentaWarm,
+                modifier = Modifier.size(90.dp)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Готово!",
+                text = stringResource(R.string.upload_success_title),
                 color = MomentaText,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
@@ -44,7 +47,7 @@ fun UploadSuccessScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Ваш момент опубликован.",
+                text = stringResource(R.string.upload_success_text),
                 color = MomentaTextSecondary,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center
@@ -53,9 +56,10 @@ fun UploadSuccessScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             MomentaPrimaryButton(
-                text = "Вернуться на главную",
+                text = stringResource(R.string.watch_world_now),
                 onClick = onGoToToday
             )
         }
+    }
     }
 }

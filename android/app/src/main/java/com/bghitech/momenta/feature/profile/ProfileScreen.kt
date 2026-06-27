@@ -47,6 +47,7 @@ fun ProfileScreen(
         )
     }
 
+    MomentaScreen {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -65,10 +66,8 @@ fun ProfileScreen(
 
         if (state.isLoading) {
             MomentaLoading()
-            return
-        }
-
-        Box(
+        } else {
+            Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(MomentaRoundShape),
@@ -114,11 +113,11 @@ fun ProfileScreen(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            StatItem(value = "${state.momentsCount}", label = "моментов")
-            StatItem(value = "${state.streakCount}", label = "дней подряд")
-            StatItem(value = "${state.likesCount}", label = "лайков")
+            StatItem(value = "${state.momentsCount}", label = "Моменты", modifier = Modifier.weight(1f))
+            StatItem(value = "${state.streakCount}", label = "Серия", modifier = Modifier.weight(1f))
+            StatItem(value = "${state.likesCount}", label = "Лайки", modifier = Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -157,22 +156,26 @@ fun ProfileScreen(
                 }
             }
         }
+        }
+    }
     }
 }
 
 @Composable
-private fun StatItem(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value,
-            color = MomentaText,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = label,
-            color = MomentaTextSecondary,
-            fontSize = 11.sp
-        )
+private fun StatItem(value: String, label: String, modifier: Modifier = Modifier) {
+    MomentaCard(modifier = modifier) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = value,
+                color = MomentaText,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = label,
+                color = MomentaTextSecondary,
+                fontSize = 11.sp
+            )
+        }
     }
 }
