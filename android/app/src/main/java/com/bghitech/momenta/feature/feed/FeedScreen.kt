@@ -18,11 +18,13 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -35,7 +37,6 @@ import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.core.util.DateUtils
 import com.bghitech.momenta.domain.model.Post
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = hiltViewModel()
@@ -43,19 +44,10 @@ fun FeedScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var selectedTab by remember { mutableIntStateOf(0) }
-    val pullToRefreshState = rememberPullToRefreshState()
-
-    if (pullToRefreshState.isRefreshing) {
-        LaunchedEffect(true) {
-            viewModel.loadFeed()
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        if (!state.isLoading) {
-            pullToRefreshState.endRefresh()
-        }
-    }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = state.isLoading && state.items.isNotEmpty(),
+        onRefresh = { viewModel.loadFeed() }
+    )
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -176,7 +168,7 @@ fun FeedScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                .pullRefresh(pullRefreshState)
         ) {
             if (state.isLoading && state.items.isEmpty()) {
                 MomentaLoading()
@@ -223,11 +215,12 @@ fun FeedScreen(
                 }
             }
 
-            PullToRefreshContainer(
-                state = pullToRefreshState,
+            PullRefreshIndicator(
+                refreshing = state.isLoading && state.items.isNotEmpty(),
+                state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
-                containerColor = MomentaSurface,
-                contentColor = MomentaGreen
+                contentColor = MomentaGreen,
+                backgroundColor = MomentaSurface
             )
         }
     }
