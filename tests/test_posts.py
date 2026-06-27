@@ -1,6 +1,7 @@
-import pytest
-from datetime import date
 import uuid
+from datetime import date
+
+import pytest
 
 
 @pytest.mark.asyncio
@@ -10,8 +11,9 @@ async def test_upload_requires_auth(client):
 
 
 @pytest.mark.asyncio
-async def test_upload_creates_post(client, auth_headers, test_challenge, mocker):
+async def test_upload_creates_post(client, auth_headers, test_challenge):
     import io
+
     from PIL import Image
     img = Image.new("RGB", (100, 100), color="red")
     buf = io.BytesIO()
@@ -26,7 +28,9 @@ async def test_upload_creates_post(client, auth_headers, test_challenge, mocker)
 
 
 @pytest.mark.asyncio
-async def test_second_post_same_day_rejected(client, auth_headers, test_challenge, test_user, db_session):
+async def test_second_post_same_day_rejected(
+    client, auth_headers, test_challenge, test_user, db_session
+):
     from app.models.post import Post
     post = Post(
         id=uuid.uuid4(),
@@ -40,6 +44,7 @@ async def test_second_post_same_day_rejected(client, auth_headers, test_challeng
     db_session.add(post)
     await db_session.commit()
     import io
+
     from PIL import Image
     img = Image.new("RGB", (100, 100), color="blue")
     buf = io.BytesIO()

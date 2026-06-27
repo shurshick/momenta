@@ -71,7 +71,7 @@ android {
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             buildConfigField("Boolean", "LOGGING_ENABLED", "true")
         }

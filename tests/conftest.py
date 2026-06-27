@@ -1,32 +1,19 @@
-import asyncio
+import uuid
+from datetime import date
+
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from app.main import app
-from app.db import get_db
-from sqlalchemy import select, text
-from app.models.base import Base
-from app.models.user import User
-from app.models.challenge import Challenge
-from app.models.post import Post
-from app.models.reaction import Reaction
-from app.models.report import Report
-from app.models.user_streak import UserStreak
-from app.models.media_asset import MediaAsset
-from app.models.audit_log import AuditLog
-from app.security import get_password_hash
-import uuid
-from datetime import date, datetime, timezone
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app.db import get_db
+from app.main import app
+from app.models.base import Base
+from app.models.challenge import Challenge
+from app.models.user import User
+from app.security import get_password_hash
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="session")
@@ -62,11 +49,43 @@ async def db_session(engine):
 async def client(db_session):
     async def override_get_db():
         yield db_session
+
     app.dependency_overrides[get_db] = override_get_db
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def mock_external_services(monkeypatch):
+    async def noop_async(*args, **kwargs):
+        return None
+
+    async def empty_feed(*args, **kwargs):
+        return []
+
+    async def no_cached_challenge(*args, **kwargs):
+        return None
+
+    async def user_has_not_posted(*args, **kwargs):
+        return False
+
+    def fake_upload(fileobj, object_key: str, content_type: str) -> str:
+        return f"https://media.test/{object_key}"
+
+    monkeypatch.setattr("app.services.redis_service.set_today_challenge", noop_async)
+    monkeypatch.setattr("app.services.redis_service.get_today_challenge", no_cached_challenge)
+    monkeypatch.setattr("app.services.redis_service.add_to_feed", noop_async)
+    monkeypatch.setattr("app.services.redis_service.get_feed", empty_feed)
+    monkeypatch.setattr("app.services.redis_service.mark_user_posted", noop_async)
+    monkeypatch.setattr("app.services.redis_service.check_user_posted", user_has_not_posted)
+    monkeypatch.setattr("app.services.redis_service.flush_feed_cache", noop_async)
+    monkeypatch.setattr("app.services.challenge_service.set_today_challenge", noop_async)
+    monkeypatch.setattr("app.services.challenge_service.get_today_challenge", no_cached_challenge)
+    monkeypatch.setattr("app.services.post_service.add_to_feed", noop_async)
+    monkeypatch.setattr("app.services.post_service.mark_user_posted", noop_async)
+    monkeypatch.setattr("app.api.v1.posts.upload_fileobj", fake_upload)
 
 
 @pytest.fixture
