@@ -10,7 +10,7 @@
 
 Каждый день — новый вызов. Пользователи делают один снимок, отражающий их день, и делятся им с миром. Никаких лент алгоритмов, никакого бесконечного скроллинга — только сегодня, только сейчас.
 
-## Возможности (v0.2.15)
+## Возможности (v0.2.16)
 
 - **Момента дня** — ежедневное задание для вдохновения
 - **Камера** — съёмка фото с переключением камеры и вспышкой
@@ -107,6 +107,6 @@ Base: `/api/v1`
 - **v0.2.0** — Android APK + Backend integration
 - **v0.2.3** — Critical fixes: APK install, admin auth, worker startup
 - **v0.2.4** — testOnly fix, admin panel Jinja2 fix, adaptive icon crash fix
-- **v0.2.15** — стабильная debug-сборка APK, CI, backend test isolation
+- **v0.2.16** — стабильная debug-сборка APK, CI, backend test isolation
 - **v0.3.0** — Видео 3-5 сек, VerticalPager, шаринг, инвайты
 - **v1.0.0** — Production: refresh токенов, модерация, приватность, аналитика, Google Play

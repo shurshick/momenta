@@ -47,6 +47,7 @@ Use this checklist before publishing a release or redeploying production.
 - Docker image `latest` points to the intended build.
 - Release notes explain user-visible changes and deployment notes.
 - APK is attached to the release or available as a workflow artifact.
+- After fixes or rebuilds, release artifacts must be refreshed to the current build without a separate confirmation step.
 - No secrets are committed.
 
 ## Compatibility Policy

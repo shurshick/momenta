@@ -4,6 +4,17 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 
+## [v0.2.16] - 2026-06-27
+
+### Added
+- **Android**: aligned the app UI with Momenta Design Concept v1.
+- **Android**: added shared `MomentaScreen`, logo mark, bottom bar, loading, and icon primitives.
+- **Docs**: added the visual concept reference and Android design system notes.
+
+### Changed
+- **Android**: refreshed splash, onboarding, auth, today, camera, publish, feed, profile, and settings screens.
+- **Release**: bumped Android `versionCode` to 16 and `versionName` to `0.2.16`.
+
 ## [v0.2.15] — 2026-06-27
 
 ### Исправлено
