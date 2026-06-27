@@ -1,9 +1,11 @@
 package com.bghitech.momenta.feature.feed
 
 import android.content.Intent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,17 +20,17 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,8 +39,9 @@ import coil.compose.rememberAsyncImagePainter
 import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.core.util.DateUtils
 import com.bghitech.momenta.domain.model.Post
+import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = hiltViewModel()
@@ -46,10 +49,21 @@ fun FeedScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var selectedTab by remember { mutableIntStateOf(0) }
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = state.isLoading && state.items.isNotEmpty(),
-        onRefresh = { viewModel.loadFeed() }
+    var pullOffset by remember { mutableFloatStateOf(0f) }
+    val isRefreshing = state.isLoading && state.items.isNotEmpty()
+
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing && pullOffset > 0f) {
+            pullOffset = 0f
+        }
+    }
+
+    val animatedOffset by animateFloatAsState(
+        targetValue = if (isRefreshing) 80f else pullOffset,
+        label = "pullOffset"
     )
+
+    val density = LocalDensity.current
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -72,7 +86,6 @@ fun FeedScreen(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
         )
 
-        // Tabs: Мир сейчас / Подписки
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,7 +118,6 @@ fun FeedScreen(
             }
         }
 
-        // Horizontal avatars row
         LazyRow(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -170,7 +182,6 @@ fun FeedScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .pullRefresh(pullRefreshState)
         ) {
             if (state.isLoading && state.items.isEmpty()) {
                 MomentaLoading()
@@ -197,7 +208,33 @@ fun FeedScreen(
 
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset { IntOffset(0, animatedOffset.roundToInt()) }
+                    .pointerInput(isRefreshing) {
+                        if (!isRefreshing) {
+                            detectVerticalDragGestures(
+                                onDragEnd = {
+                                    if (pullOffset > 120f) {
+                                        viewModel.loadFeed()
+                                    } else {
+                                        pullOffset = 0f
+                                    }
+                                },
+                                onVerticalDrag = { change, dragAmount ->
+                                    val scrollUp = listState.firstVisibleItemIndex == 0 &&
+                                            listState.firstVisibleItemScrollOffset == 0
+                                    if (scrollUp && dragAmount > 0f) {
+                                        change.consume()
+                                        pullOffset = (pullOffset + dragAmount / density.density).coerceIn(0f, 200f)
+                                    } else if (dragAmount < 0f || pullOffset > 0f) {
+                                        change.consume()
+                                        pullOffset = (pullOffset + dragAmount / density.density).coerceAtLeast(0f)
+                                    }
+                                }
+                            )
+                        }
+                    },
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -217,13 +254,17 @@ fun FeedScreen(
                 }
             }
 
-            PullRefreshIndicator(
-                refreshing = state.isLoading && state.items.isNotEmpty(),
-                state = pullRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter),
-                contentColor = MomentaGreen,
-                backgroundColor = MomentaSurface
-            )
+            if (animatedOffset > 10f) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 12.dp)
+                        .size(24.dp),
+                    color = MomentaGreen,
+                    strokeWidth = 2.dp,
+                    progress = { (animatedOffset / 120f).coerceIn(0f, 1f) }
+                )
+            }
         }
     }
 }
