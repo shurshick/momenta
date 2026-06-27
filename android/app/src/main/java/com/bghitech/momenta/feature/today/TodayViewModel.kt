@@ -37,6 +37,7 @@ class TodayViewModel @Inject constructor(
 
     init {
         loadChallenge()
+        refreshBestMoment()
     }
 
     fun loadChallenge() {

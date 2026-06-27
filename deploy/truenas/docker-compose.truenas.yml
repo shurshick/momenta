@@ -14,7 +14,7 @@ services:
     environment:
       APP_NAME: Momenta
       APP_ENV: production
-      APP_VERSION: 0.2.24
+      APP_VERSION: 0.2.25
       API_HOST: 0.0.0.0
       API_PORT: 8000
       PUBLIC_BASE_URL: https://momenta.example.com

@@ -45,7 +45,6 @@ class ProfileViewModel @Inject constructor(
 
     fun loadProfile(force: Boolean = false, showLoading: Boolean = true) {
         if (_state.value.isLoading && _state.value.username.isNotBlank() && !force) return
-        if (_state.value.isLoading && _state.value.username.isBlank()) return
         if (force) loadJob?.cancel()
         loadJob = viewModelScope.launch {
             val hasProfile = _state.value.username.isNotBlank()

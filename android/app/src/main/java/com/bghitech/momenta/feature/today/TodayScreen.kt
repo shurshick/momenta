@@ -222,7 +222,17 @@ fun TodayScreen(
                     }
                 }
 
-                else -> EmptyBestMoment(onCaptureClick = onCaptureClick)
+                else -> {
+                    if (state.bestPost != null) {
+                        BestMomentCard(post = state.bestPost!!, onClick = onOpenFeed)
+                    } else if (state.isBestMomentLoading) {
+                        MomentaCard(modifier = Modifier.fillMaxWidth()) {
+                            MomentaLoading(message = "Ищем лучший момент…")
+                        }
+                    } else {
+                        EmptyBestMoment(onCaptureClick = onCaptureClick)
+                    }
+                }
             }
         }
     }
