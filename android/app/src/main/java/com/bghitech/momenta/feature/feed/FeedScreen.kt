@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +35,7 @@ import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.core.util.DateUtils
 import com.bghitech.momenta.domain.model.Post
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = hiltViewModel()
@@ -41,6 +43,19 @@ fun FeedScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var selectedTab by remember { mutableIntStateOf(0) }
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    if (pullToRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            viewModel.loadFeed()
+        }
+    }
+
+    LaunchedEffect(state.isLoading) {
+        if (!state.isLoading) {
+            pullToRefreshState.endRefresh()
+        }
+    }
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -157,49 +172,63 @@ fun FeedScreen(
             }
         }
 
-        if (state.isLoading && state.items.isEmpty()) {
-            MomentaLoading()
-            return
-        }
-
-        if (state.error != null && state.items.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = state.error!!,
-                        color = MomentaError,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    MomentaPrimaryButton(text = "Повторить", onClick = { viewModel.loadFeed() })
-                }
-            }
-            return
-        }
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
         ) {
-            items(state.items, key = { it.id }) { post ->
-                FeedPostCard(post = post, onLikeClick = { viewModel.toggleLike(post.id, post.isLiked) })
+            if (state.isLoading && state.items.isEmpty()) {
+                MomentaLoading()
+                return@Box
             }
 
-            if (state.isLoadingMore) {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = MomentaGreen, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            if (state.error != null && state.items.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = state.error!!,
+                            color = MomentaError,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        MomentaPrimaryButton(text = "Повторить", onClick = { viewModel.loadFeed() })
+                    }
+                }
+                return@Box
+            }
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(state.items, key = { it.id }) { post ->
+                    FeedPostCard(post = post, onLikeClick = { viewModel.toggleLike(post.id, post.isLiked) })
+                }
+
+                if (state.isLoadingMore) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MomentaGreen, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        }
                     }
                 }
             }
+
+            PullToRefreshContainer(
+                state = pullToRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                containerColor = MomentaSurface,
+                contentColor = MomentaGreen
+            )
         }
     }
 }
