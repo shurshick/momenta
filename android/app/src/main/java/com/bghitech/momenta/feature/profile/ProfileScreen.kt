@@ -80,7 +80,7 @@ fun ProfileScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.loadProfile(force = true)
+                viewModel.loadProfile(force = true, showLoading = false)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

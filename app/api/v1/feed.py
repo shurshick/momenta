@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 import random
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -27,6 +27,8 @@ async def today_feed(cursor: str = Query(None), limit: int = Query(default=20, l
 async def today_best_random(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
     posts = await _top_active_posts(db, challenge_date=date.today())
     if not posts:
+        posts = await _top_recent_active_posts(db, hours=48)
+    if not posts:
         posts = await _top_active_posts(db)
     if not posts:
         return {"post": None}
@@ -39,6 +41,18 @@ async def _top_active_posts(db: AsyncSession, challenge_date: date | None = None
     if challenge_date is not None:
         query = query.where(Post.challenge_date == challenge_date)
     query = query.order_by(Post.likes_count.desc(), Post.created_at.desc()).limit(10)
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
+async def _top_recent_active_posts(db: AsyncSession, hours: int = 48) -> list[Post]:
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    query = (
+        select(Post)
+        .where(Post.status == "active", Post.created_at >= since)
+        .order_by(Post.likes_count.desc(), Post.created_at.desc())
+        .limit(10)
+    )
     result = await db.execute(query)
     return list(result.scalars().all())
 

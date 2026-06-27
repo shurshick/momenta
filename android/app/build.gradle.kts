@@ -15,6 +15,13 @@ val keystoreProperties = Properties().also { props ->
         keystorePropertiesFile.inputStream().use { props.load(it) }
     }
 }
+val updateKeystoreFile = file(
+    keystoreProperties.getProperty(
+        "updateStoreFile",
+        System.getenv("MOMENTA_UPDATE_STORE_FILE") ?: "../keystore/momenta-update.jks"
+    )
+)
+val hasUpdateKeystore = updateKeystoreFile.exists()
 
 android {
     namespace = "com.bghitech.momenta"
@@ -24,8 +31,8 @@ android {
         applicationId = "com.bghitech.momenta"
         minSdk = 24
         targetSdk = 34
-        versionCode = 23
-        versionName = "0.2.23"
+        versionCode = 24
+        versionName = "0.2.24"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -35,6 +42,21 @@ android {
     }
 
     signingConfigs {
+        create("update") {
+            storeFile = updateKeystoreFile
+            storePassword = keystoreProperties.getProperty(
+                "updateStorePassword",
+                System.getenv("MOMENTA_UPDATE_STORE_PASSWORD") ?: "android"
+            )
+            keyAlias = keystoreProperties.getProperty(
+                "updateKeyAlias",
+                System.getenv("MOMENTA_UPDATE_KEY_ALIAS") ?: "androiddebugkey"
+            )
+            keyPassword = keystoreProperties.getProperty(
+                "updateKeyPassword",
+                System.getenv("MOMENTA_UPDATE_KEY_PASSWORD") ?: "android"
+            )
+        }
         create("release") {
             storeFile = file(keystoreProperties.getProperty("storeFile", "../keystore/momenta.jks"))
             storePassword = keystoreProperties.getProperty("storePassword", "momenta123")
@@ -71,7 +93,7 @@ android {
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (hasUpdateKeystore) "update" else "debug")
             isMinifyEnabled = false
             buildConfigField("Boolean", "LOGGING_ENABLED", "true")
         }

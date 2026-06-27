@@ -71,6 +71,13 @@ class TodayViewModel @Inject constructor(
         }
     }
 
+    fun refreshBestMoment() {
+        if (_state.value.isBestMomentLoading) return
+        viewModelScope.launch {
+            loadBestPost()
+        }
+    }
+
     private suspend fun loadBestPost() {
         _state.value = _state.value.copy(isBestMomentLoading = true)
         val cached = getTodayFeedUseCase.getCached()

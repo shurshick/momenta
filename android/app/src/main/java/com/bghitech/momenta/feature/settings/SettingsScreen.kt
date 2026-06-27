@@ -1,7 +1,12 @@
 package com.bghitech.momenta.feature.settings
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.provider.Settings as AndroidSettings
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,10 +24,12 @@ import androidx.compose.ui.unit.sp
 import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.BuildConfig
 import com.bghitech.momenta.R
+import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.File
 import java.net.URL
 
 @Composable
@@ -36,6 +43,7 @@ fun SettingsScreen(
     var showConnectionResult by remember { mutableStateOf<String?>(null) }
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     var isCheckingUpdate by remember { mutableStateOf(false) }
+    var isDownloadingApk by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -77,12 +85,18 @@ fun SettingsScreen(
                         if (it.hasUpdate && downloadUrl != null) {
                             Spacer(modifier = Modifier.height(4.dp))
                             MomentaPrimaryButton(
-                                text = "Скачать APK",
+                                text = if (isDownloadingApk) "Скачиваем..." else "Скачать APK",
                                 onClick = {
-                                    context.startActivity(
-                                        Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
-                                    )
-                                }
+                                    if (!isDownloadingApk) {
+                                        scope.launch {
+                                            isDownloadingApk = true
+                                            val message = downloadAndOpenApk(context, downloadUrl)
+                                            updateInfo = it.copy(message = message)
+                                            isDownloadingApk = false
+                                        }
+                                    }
+                                },
+                                enabled = !isDownloadingApk
                             )
                         }
                     }
@@ -304,5 +318,48 @@ private suspend fun checkLatestRelease(): UpdateInfo = withContext(Dispatchers.I
         }
     }.getOrElse {
         UpdateInfo("Не удалось проверить обновление. Проверь интернет и повтори.")
+    }
+}
+
+private suspend fun downloadAndOpenApk(context: Context, downloadUrl: String): String {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+        val settingsIntent = Intent(
+            AndroidSettings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+            Uri.parse("package:${context.packageName}")
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(settingsIntent)
+        return "Разреши установку из этого источника, затем нажми «Скачать APK» еще раз."
+    }
+
+    return runCatching {
+        val apkFile = withContext(Dispatchers.IO) {
+            val output = File(context.externalCacheDir ?: context.cacheDir, "momenta-update.apk")
+            URL(downloadUrl).openConnection().apply {
+                connectTimeout = 15000
+                readTimeout = 30000
+                setRequestProperty("User-Agent", "Momenta/${BuildConfig.VERSION_NAME}")
+            }.getInputStream().use { input ->
+                output.outputStream().use { outputStream ->
+                    input.copyTo(outputStream)
+                }
+            }
+            output
+        }
+
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
+        val installIntent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(installIntent)
+        "APK скачан. Подтверди установку в системном окне."
+    }.getOrElse { error ->
+        if (error is ActivityNotFoundException) {
+            Toast.makeText(context, "Не найден системный установщик APK", Toast.LENGTH_LONG).show()
+            "Не найден системный установщик APK."
+        } else {
+            "Не удалось скачать APK. Проверь интернет и повтори."
+        }
     }
 }

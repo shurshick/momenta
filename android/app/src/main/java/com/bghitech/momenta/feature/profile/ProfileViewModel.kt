@@ -7,6 +7,7 @@ import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.repository.ProfileRepository
 import com.bghitech.momenta.domain.usecase.GetMyProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -36,15 +37,23 @@ class ProfileViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(ProfileUiState())
     val state = _state.asStateFlow()
+    private var loadJob: Job? = null
 
     init {
         loadProfile()
     }
 
-    fun loadProfile(force: Boolean = false) {
+    fun loadProfile(force: Boolean = false, showLoading: Boolean = true) {
         if (_state.value.isLoading && _state.value.username.isNotBlank() && !force) return
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+        if (_state.value.isLoading && _state.value.username.isBlank()) return
+        if (force) loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            val hasProfile = _state.value.username.isNotBlank()
+            if (showLoading && !hasProfile) {
+                _state.value = _state.value.copy(isLoading = true, error = null)
+            } else {
+                _state.value = _state.value.copy(error = null)
+            }
 
             val cached = if (force) null else getMyProfileUseCase.getCached()
             if (cached != null) {
@@ -59,7 +68,7 @@ class ProfileViewModel @Inject constructor(
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        error = if (cached == null) "Не удалось загрузить профиль" else null
+                        error = if (cached == null && !hasProfile) "Не удалось загрузить профиль" else null
                     )
                 }
             }
