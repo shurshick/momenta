@@ -49,6 +49,11 @@ Use this checklist before publishing a release or redeploying production.
 - APK is attached to the release or available as a workflow artifact.
 - No secrets are committed.
 
+## Compatibility Policy
+
+- Before the first production deploy, breaking server, API, database, and Android app changes are allowed when they keep the project cleaner.
+- After the first production deploy, every breaking API or schema change must include compatibility handling or an explicit migration path.
+
 ## Production
 
 - Use a clean database and clean datasets for first production deploy.
