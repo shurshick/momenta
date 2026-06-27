@@ -1,22 +1,35 @@
-from datetime import date
 import uuid
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_db
-from app.services.challenge_service import get_today_challenge_data, get_challenge_by_id, get_challenge_by_date
+
 from app.api.v1.auth import get_current_user_id
+from app.db import get_db
+from app.services.challenge_service import (
+    get_challenge_by_date,
+    get_challenge_by_id,
+    get_today_challenge_data,
+)
 
 router = APIRouter(prefix="/api/v1/challenges", tags=["challenges"])
 
 
 @router.get("/today")
-async def today_challenge(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+async def today_challenge(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
     return await get_today_challenge_data(db, user_id)
 
 
-@router.get("/{challenge_id}")
-async def get_challenge(challenge_id: str, db: AsyncSession = Depends(get_db)):
-    challenge = await get_challenge_by_id(db, uuid.UUID(challenge_id))
+@router.get("/by-date/{challenge_date}")
+async def get_challenge_by_date_endpoint(challenge_date: str, db: AsyncSession = Depends(get_db)):
+    try:
+        d = date.fromisoformat(challenge_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+    challenge = await get_challenge_by_date(db, d)
     if not challenge:
         raise HTTPException(status_code=404)
     return {
@@ -28,13 +41,9 @@ async def get_challenge(challenge_id: str, db: AsyncSession = Depends(get_db)):
     }
 
 
-@router.get("/by-date/{challenge_date}")
-async def get_challenge_by_date_endpoint(challenge_date: str, db: AsyncSession = Depends(get_db)):
-    try:
-        d = date.fromisoformat(challenge_date)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format")
-    challenge = await get_challenge_by_date(db, d)
+@router.get("/{challenge_id}")
+async def get_challenge(challenge_id: str, db: AsyncSession = Depends(get_db)):
+    challenge = await get_challenge_by_id(db, uuid.UUID(challenge_id))
     if not challenge:
         raise HTTPException(status_code=404)
     return {
