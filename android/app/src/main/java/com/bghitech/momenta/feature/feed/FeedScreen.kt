@@ -24,7 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -41,7 +40,6 @@ import com.bghitech.momenta.core.util.DateUtils
 import com.bghitech.momenta.domain.model.Post
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = hiltViewModel()
@@ -183,87 +181,87 @@ fun FeedScreen(
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            if (state.isLoading && state.items.isEmpty()) {
-                MomentaLoading()
-                return@Box
-            }
-
-            if (state.error != null && state.items.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = state.error!!,
-                            color = MomentaError,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MomentaPrimaryButton(text = "Повторить", onClick = { viewModel.loadFeed() })
-                    }
+            when {
+                state.isLoading && state.items.isEmpty() -> {
+                    MomentaLoading()
                 }
-                return@Box
-            }
-
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset { IntOffset(0, animatedOffset.roundToInt()) }
-                    .pointerInput(isRefreshing) {
-                        if (!isRefreshing) {
-                            detectVerticalDragGestures(
-                                onDragEnd = {
-                                    if (pullOffset > 120f) {
-                                        viewModel.loadFeed()
-                                    } else {
-                                        pullOffset = 0f
-                                    }
-                                },
-                                onVerticalDrag = { change, dragAmount ->
-                                    val scrollUp = listState.firstVisibleItemIndex == 0 &&
-                                            listState.firstVisibleItemScrollOffset == 0
-                                    if (scrollUp && dragAmount > 0f) {
-                                        change.consume()
-                                        pullOffset = (pullOffset + dragAmount / density.density).coerceIn(0f, 200f)
-                                    } else if (dragAmount < 0f || pullOffset > 0f) {
-                                        change.consume()
-                                        pullOffset = (pullOffset + dragAmount / density.density).coerceAtLeast(0f)
-                                    }
-                                }
+                state.error != null && state.items.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = state.error!!,
+                                color = MomentaError,
+                                style = MaterialTheme.typography.bodyLarge
                             )
-                        }
-                    },
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(state.items, key = { it.id }) { post ->
-                    FeedPostCard(post = post, onLikeClick = { viewModel.toggleLike(post.id, post.isLiked) })
-                }
-
-                if (state.isLoadingMore) {
-                    item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = MomentaGreen, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            MomentaPrimaryButton(text = "Повторить", onClick = { viewModel.loadFeed() })
                         }
                     }
                 }
-            }
+                else -> {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .offset { IntOffset(0, animatedOffset.roundToInt()) }
+                            .pointerInput(isRefreshing) {
+                                if (!isRefreshing) {
+                                    detectVerticalDragGestures(
+                                        onDragEnd = {
+                                            if (pullOffset > 120f) {
+                                                viewModel.loadFeed()
+                                            } else {
+                                                pullOffset = 0f
+                                            }
+                                        },
+                                        onVerticalDrag = { change, dragAmount ->
+                                            val scrollUp = listState.firstVisibleItemIndex == 0 &&
+                                                    listState.firstVisibleItemScrollOffset == 0
+                                            if (scrollUp && dragAmount > 0f) {
+                                                change.consume()
+                                                pullOffset = (pullOffset + dragAmount / density.density).coerceIn(0f, 200f)
+                                            } else if (dragAmount < 0f || pullOffset > 0f) {
+                                                change.consume()
+                                                pullOffset = (pullOffset + dragAmount / density.density).coerceAtLeast(0f)
+                                            }
+                                        }
+                                    )
+                                }
+                            },
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(state.items, key = { it.id }) { post ->
+                            FeedPostCard(post = post, onLikeClick = { viewModel.toggleLike(post.id, post.isLiked) })
+                        }
 
-            if (animatedOffset > 10f) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 12.dp)
-                        .size(24.dp),
-                    color = MomentaGreen,
-                    strokeWidth = 2.dp,
-                    progress = { (animatedOffset / 120f).coerceIn(0f, 1f) }
-                )
+                        if (state.isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(color = MomentaGreen, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                }
+                            }
+                        }
+                    }
+
+                    if (animatedOffset > 10f) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 12.dp)
+                                .size(24.dp),
+                            color = MomentaGreen,
+                            strokeWidth = 2.dp,
+                            progress = { (animatedOffset / 120f).coerceIn(0f, 1f) }
+                        )
+                    }
+                }
             }
         }
     }
