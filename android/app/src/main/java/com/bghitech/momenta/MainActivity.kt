@@ -59,11 +59,6 @@ fun MomentaNavGraph() {
     ) {
         composable(NavRoutes.SPLASH) {
             SplashScreen(
-                onNavigateToAuth = {
-                    navController.navigate(NavRoutes.AUTH) {
-                        popUpTo(NavRoutes.SPLASH) { inclusive = true }
-                    }
-                },
                 onNavigateToMain = {
                     navController.navigate(NavRoutes.MAIN) {
                         popUpTo(NavRoutes.SPLASH) { inclusive = true }

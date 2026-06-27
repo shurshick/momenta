@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Момента</string>
-    <string name="today_title">Сегодня</string>
+    <string name="slogan">Один момент. Все вместе.</string>
+    <string name="today_title">Момента дня</string>
     <string name="world_now">Мир сейчас</string>
-    <string name="join_today">Присоединиться</string>
-    <string name="capture_moment">Снять момент</string>
+    <string name="join_today">Принять участие</string>
+    <string name="capture_moment">Лови момент</string>
     <string name="settings">Настройки</string>
+    <string name="back">&#1053;&#1072;&#1079;&#1072;&#1076;</string>
     <string name="profile">Профиль</string>
     <string name="feed">Лента</string>
     <string name="create">Создать</string>
@@ -26,10 +28,14 @@
     <string name="camera_permission_required">Для съёмки моментов нужен доступ к камере</string>
     <string name="grant_permission">Разрешить</string>
     <string name="publish">Опубликовать</string>
+    <string name="retake">Переснять</string>
     <string name="caption">Подпись</string>
+    <string name="upload_success_title">Готово!</string>
+    <string name="upload_success_text">Твой момент опубликован</string>
     <string name="upload_success">Готово!</string>
-    <string name="upload_success_desc">Ваш момент опубликован.</string>
-    <string name="already_posted">Вы уже опубликовали момент сегодня</string>
+    <string name="upload_success_desc">Твой момент опубликован</string>
+    <string name="watch_world_now">Смотреть мир сейчас</string>
+    <string name="already_posted">Ты уже поделился моментом сегодня</string>
     <string name="participants">участников</string>
     <string name="likes">лайков</string>
     <string name="comments">комментариев</string>
@@ -42,8 +48,20 @@
     <string name="server_url">URL сервера</string>
     <string name="debug_info">Информация для отладки</string>
     <string name="check_connection">Проверить соединение</string>
-    <string name="onboarding_title">Добро пожаловать в Момента</string>
-    <string name="onboarding_desc">Запечатлейте то, что делает каждый день уникальным. Один момент. Один день. Весь мир.</string>
-    <string name="onboarding_get_started">Начать</string>
-    <string name="splash_tagline">Мир в одном мгновении</string>
+    <string name="onboarding_title">Момента</string>
+    <string name="onboarding_desc">Каждый день — новая тема. Сними фото или видео и посмотри, как живёт мир сейчас.</string>
+    <string name="onboarding_get_started">Создать аккаунт</string>
+    <string name="splash_tagline">Один момент. Все вместе.</string>
+    <string name="login_to_momenta">Войти в Моменту</string>
+    <string name="create_account">Создать аккаунт</string>
+    <string name="username_or_email">Имя пользователя или email</string>
+    <string name="continue_action">Продолжить</string>
+    <string name="daily_topic_label">Тема дня</string>
+    <string name="default_challenge_title">Маленькие радости большого дня</string>
+    <string name="default_challenge_description">Замечай то, что делает твой день особенным.</string>
+    <string name="examples_title">Примеры моментов</string>
+    <string name="publishing_moment">Публикуем твой момент…</string>
+    <string name="upload_retry_later">Не удалось опубликовать. Мы попробуем снова, когда появится интернет.</string>
+    <string name="feed_empty">Пока никто не поделился моментом. Стань первым.</string>
+    <string name="offline_cached">Нет соединения. Показываем сохранённые моменты.</string>
 </resources>

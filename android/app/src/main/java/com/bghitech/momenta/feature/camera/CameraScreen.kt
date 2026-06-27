@@ -5,6 +5,7 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -117,6 +118,7 @@ private fun CameraContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .statusBarsPadding()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -137,7 +139,8 @@ private fun CameraContent(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .background(MomentaBackground.copy(alpha = 0.42f))
+                .padding(bottom = 18.dp, top = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Gallery + Effects row
@@ -154,7 +157,15 @@ private fun CameraContent(
                     fontSize = 12.sp
                 )
 
-                IconButton(
+                Box(
+                    modifier = Modifier
+                        .size(82.dp)
+                        .clip(CircleShape)
+                        .background(MomentaGreen.copy(alpha = 0.18f))
+                        .border(3.dp, MomentaGreen, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    IconButton(
                     onClick = {
                         val photoFile = File(
                             context.cacheDir,
@@ -172,20 +183,13 @@ private fun CameraContent(
                             }
                         )
                     },
-                    modifier = Modifier.size(72.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(72.dp)
-                            .clip(CircleShape)
-                            .background(MomentaGreen),
-                        contentAlignment = Alignment.Center
+                    modifier = Modifier.size(76.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(60.dp)
+                                .size(58.dp)
                                 .clip(CircleShape)
-                                .background(MomentaBackground)
+                                .background(MomentaText)
                         )
                     }
                 }

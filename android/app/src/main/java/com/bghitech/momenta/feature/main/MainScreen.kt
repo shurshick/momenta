@@ -9,7 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bghitech.momenta.core.design.MomentaBottomBar
-import com.bghitech.momenta.core.design.MomentaSurface
+import com.bghitech.momenta.core.design.MomentaBackground
 import com.bghitech.momenta.core.navigation.NavRoutes
 import com.bghitech.momenta.feature.circle.CircleScreen
 import com.bghitech.momenta.feature.feed.FeedScreen
@@ -29,15 +29,13 @@ fun MainScreen(
 
     val bottomBarRoutes = listOf(
         NavRoutes.TODAY,
-        NavRoutes.SEARCH,
         NavRoutes.FEED,
-        NavRoutes.CIRCLE,
         NavRoutes.PROFILE
     )
     val showBottomBar = currentRoute in bottomBarRoutes
 
     Scaffold(
-        containerColor = MomentaSurface,
+        containerColor = MomentaBackground,
         bottomBar = {
             if (showBottomBar) {
                 MomentaBottomBar(
