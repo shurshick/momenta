@@ -24,8 +24,8 @@ android {
         applicationId = "com.bghitech.momenta"
         minSdk = 24
         targetSdk = 34
-        versionCode = 20
-        versionName = "0.2.20"
+        versionCode = 21
+        versionName = "0.2.21"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -49,7 +49,7 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
-            resValue("string", "app_name", "Момента Dev")
+            resValue("string", "app_name", "Момент Dev")
             buildConfigField("String", "DEFAULT_SERVER_URL", "\"https://momenta.bghitech.ru\"")
             buildConfigField("String", "MEDIA_BASE_URL", "\"https://momenta-media.bghitech.ru\"")
         }
@@ -57,13 +57,13 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
-            resValue("string", "app_name", "Момента Staging")
+            resValue("string", "app_name", "Момент Staging")
             buildConfigField("String", "DEFAULT_SERVER_URL", "\"https://momenta.bghitech.ru\"")
             buildConfigField("String", "MEDIA_BASE_URL", "\"https://momenta-media.bghitech.ru\"")
         }
         create("prod") {
             dimension = "environment"
-            resValue("string", "app_name", "Момента")
+            resValue("string", "app_name", "Момент")
             buildConfigField("String", "DEFAULT_SERVER_URL", "\"https://momenta.bghitech.ru\"")
             buildConfigField("String", "MEDIA_BASE_URL", "\"https://momenta-media.bghitech.ru\"")
         }

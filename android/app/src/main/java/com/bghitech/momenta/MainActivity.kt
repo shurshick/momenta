@@ -1,6 +1,7 @@
 package com.bghitech.momenta
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
@@ -20,6 +22,7 @@ import com.bghitech.momenta.core.design.MomentaBackground
 import com.bghitech.momenta.core.design.MomentaTheme
 import com.bghitech.momenta.core.navigation.NavRoutes
 import com.bghitech.momenta.feature.auth.AuthScreen
+import com.bghitech.momenta.feature.auth.AppAuthStateViewModel
 import com.bghitech.momenta.feature.camera.CameraScreen
 import com.bghitech.momenta.feature.feed.FeedScreen
 import com.bghitech.momenta.feature.main.MainScreen
@@ -52,6 +55,22 @@ class MainActivity : ComponentActivity() {
 fun MomentaNavGraph() {
     val navController = rememberNavController()
     val startDestination = NavRoutes.SPLASH
+    val appAuthStateViewModel: AppAuthStateViewModel = hiltViewModel()
+    val isLoggedIn by appAuthStateViewModel.isLoggedIn.collectAsStateWithLifecycle()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(isLoggedIn, backStackEntry?.destination?.route) {
+        val route = backStackEntry?.destination?.route
+        val publicRoute = route in setOf(NavRoutes.SPLASH, NavRoutes.ONBOARDING, NavRoutes.AUTH)
+        if (!isLoggedIn && !publicRoute) {
+            Toast.makeText(context, "Сессия истекла. Войдите снова.", Toast.LENGTH_LONG).show()
+            navController.navigate(NavRoutes.AUTH) {
+                popUpTo(0)
+                launchSingleTop = true
+            }
+        }
+    }
 
     NavHost(
         navController = navController,

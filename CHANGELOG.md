@@ -4,6 +4,18 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 
+## [v0.2.21] - 2026-06-27
+
+### Changed
+- **Android**: имя установленного приложения изменено на "Момент".
+- **Android**: Authorization header добавляется только к защищенным `/api/v1/*` запросам, без auth/health endpoints.
+- **Android**: 401 теперь запускает refresh token flow с одним повтором исходного запроса.
+- **Android**: при провале refresh токены очищаются, приложение переводит пользователя на экран входа и показывает сообщение о завершении сессии.
+
+### Fixed
+- **Android**: убраны фоновые дублирующиеся загрузки ленты при обычном открытии экрана.
+- **Backend**: добавлены тесты на login tokens, invalid token, refresh token и доступ refreshed token к `/api/v1/challenges/today`.
+
 ## [v0.2.20] - 2026-06-27
 
 ### Added

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Момента</string>
+    <string name="app_name">Момент</string>
     <string name="slogan">Один момент. Все вместе.</string>
     <string name="today_title">Момент дня</string>
     <string name="world_now">Мир сейчас</string>

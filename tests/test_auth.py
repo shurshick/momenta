@@ -35,6 +35,7 @@ async def test_login_success(client, test_user):
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
+    assert "refresh_token" in data
 
 
 @pytest.mark.asyncio
@@ -58,3 +59,46 @@ async def test_get_me_with_token(client, auth_headers):
 async def test_get_me_without_token(client):
     response = await client.get("/api/v1/auth/me")
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_invalid_token_returns_401(client):
+    response = await client.get("/api/v1/auth/me", headers={"Authorization": "Bearer broken.token"})
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_returns_access_token(client, test_user):
+    login = await client.post("/api/v1/auth/login", json={
+        "username_or_email": "testuser",
+        "password": "password123",
+    })
+    refresh_token = login.json()["refresh_token"]
+
+    response = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["access_token"]
+    assert data["refresh_token"]
+
+
+@pytest.mark.asyncio
+async def test_refreshed_access_token_works_with_today_challenge(client, test_user, test_challenge):
+    login = await client.post("/api/v1/auth/login", json={
+        "username_or_email": "testuser",
+        "password": "password123",
+    })
+    refresh = await client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": login.json()["refresh_token"]},
+    )
+    access_token = refresh.json()["access_token"]
+
+    response = await client.get(
+        "/api/v1/challenges/today",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "Тестовый челлендж"

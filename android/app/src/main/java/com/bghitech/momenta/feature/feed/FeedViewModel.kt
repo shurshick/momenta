@@ -10,7 +10,6 @@ import com.bghitech.momenta.domain.repository.PostRepository
 import com.bghitech.momenta.domain.usecase.GetTodayFeedUseCase
 import com.bghitech.momenta.domain.usecase.LikePostUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -41,10 +40,10 @@ class FeedViewModel @Inject constructor(
 
     init {
         loadFeed()
-        schedulePostPublishRefreshes()
     }
 
     fun loadFeed(showCached: Boolean = true) {
+        if (_state.value.isLoading) return
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
@@ -73,15 +72,6 @@ class FeedViewModel @Inject constructor(
     }
 
     fun refresh() = loadFeed(showCached = false)
-
-    private fun schedulePostPublishRefreshes() {
-        viewModelScope.launch {
-            listOf(1500L, 3500L, 7000L).forEach { delayMs ->
-                delay(delayMs)
-                loadFeed(showCached = false)
-            }
-        }
-    }
 
     fun loadMore() {
         if (_state.value.isLoadingMore) return

@@ -42,6 +42,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun loadProfile() {
+        if (_state.value.isLoading && _state.value.username.isNotBlank()) return
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
 

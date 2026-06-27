@@ -14,7 +14,8 @@ private val Context.dataStore by preferencesDataStore(name = "momenta_prefs")
 
 @Singleton
 class TokenStore @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val tokenProvider: AuthTokenProvider
 ) {
     private object Keys {
         val ACCESS_TOKEN = stringPreferencesKey("access_token")
@@ -30,17 +31,27 @@ class TokenStore @Inject constructor(
         context.dataStore.edit { prefs ->
             prefs[Keys.ACCESS_TOKEN] = accessToken
             prefs[Keys.REFRESH_TOKEN] = refreshToken
-            prefs[Keys.USER_ID] = userId
-            prefs[Keys.USERNAME] = username
+            if (userId.isNotBlank()) prefs[Keys.USER_ID] = userId
+            if (username.isNotBlank()) prefs[Keys.USERNAME] = username
         }
+        tokenProvider.update(accessToken, refreshToken)
     }
 
     suspend fun getAccessToken(): String? {
-        return context.dataStore.data.map { it[Keys.ACCESS_TOKEN] }.first()
+        tokenProvider.accessToken()?.let { return it }
+        loadTokensIntoProvider()
+        return tokenProvider.accessToken()
     }
 
     suspend fun getRefreshToken(): String? {
-        return context.dataStore.data.map { it[Keys.REFRESH_TOKEN] }.first()
+        tokenProvider.refreshToken()?.let { return it }
+        loadTokensIntoProvider()
+        return tokenProvider.refreshToken()
+    }
+
+    private suspend fun loadTokensIntoProvider() {
+        val prefs = context.dataStore.data.first()
+        tokenProvider.update(prefs[Keys.ACCESS_TOKEN], prefs[Keys.REFRESH_TOKEN])
     }
 
     suspend fun clearTokens() {
@@ -50,6 +61,7 @@ class TokenStore @Inject constructor(
             prefs.remove(Keys.USER_ID)
             prefs.remove(Keys.USERNAME)
         }
+        tokenProvider.clear()
     }
 
     fun observeToken(): Flow<String?> {

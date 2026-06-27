@@ -79,7 +79,7 @@ docker pull ghcr.io/shurshick/momenta:latest
 | Поле | Значение |
 |---|---|
 | Application Name | `momenta` |
-| Version | `0.2.20` |
+| Version | `0.2.21` |
 
 ### 4.3. Вставьте YAML конфигурацию
 
@@ -103,7 +103,7 @@ services:
     environment:
       APP_NAME: Momenta
       APP_ENV: production
-      APP_VERSION: 0.2.20
+      APP_VERSION: 0.2.21
       API_HOST: 0.0.0.0
       API_PORT: 8000
       PUBLIC_BASE_URL: https://momenta.example.com
@@ -343,7 +343,7 @@ http://<trueNAS-IP>:9011
 Для тестового стенда можно оставить `latest`. Для production лучше заменить `latest` на конкретную версию:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.20
+image: ghcr.io/shurshick/momenta:v0.2.21
 ```
 
 ### 7.3. Запустите

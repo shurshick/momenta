@@ -1,13 +1,13 @@
 package com.bghitech.momenta.data.remote
 
 import com.bghitech.momenta.BuildConfig
-import com.bghitech.momenta.core.datastore.TokenStore
 import com.bghitech.momenta.data.remote.interceptor.AuthInterceptor
 import com.bghitech.momenta.data.remote.interceptor.TokenAuthenticator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -23,6 +23,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @OptIn(ExperimentalSerializationApi::class)
     fun provideJson(): Json = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -46,6 +47,7 @@ object NetworkModule {
         if (BuildConfig.LOGGING_ENABLED) {
             val logging = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
+                redactHeader("Authorization")
             }
             builder.addInterceptor(logging)
         }
@@ -57,8 +59,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(
         okHttpClient: OkHttpClient,
-        json: Json,
-        tokenStore: TokenStore
+        json: Json
     ): Retrofit {
         val baseUrl = BuildConfig.DEFAULT_SERVER_URL.let {
             if (it.endsWith("/")) it else "$it/"
