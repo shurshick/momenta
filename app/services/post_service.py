@@ -1,6 +1,6 @@
 import uuid
 import logging
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from typing import Optional
 from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -77,9 +77,26 @@ async def soft_delete_post(db: AsyncSession, post_id: uuid.UUID, user_id: Option
         return False
     if user_id and post.user_id != user_id:
         return False
+    if post.created_at:
+        created_at = post.created_at
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) - created_at > timedelta(hours=24):
+            return False
     post.status = "deleted"
     await db.commit()
     return True
+
+
+def can_delete_post(post: Post, user_id: Optional[uuid.UUID]) -> bool:
+    if not user_id or post.user_id != user_id or post.status != "active":
+        return False
+    if not post.created_at:
+        return True
+    created_at = post.created_at
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - created_at <= timedelta(hours=24)
 
 
 async def get_feed_posts(db: AsyncSession, challenge_date: date, cursor: Optional[str] = None, limit: int = 20, country: Optional[str] = None) -> tuple[list[Post], Optional[str]]:
@@ -98,18 +115,17 @@ async def get_feed_posts(db: AsyncSession, challenge_date: date, cursor: Optiona
     return list(posts), next_cursor
 
 
-async def toggle_like(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+async def like_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+    post = await get_post_by_id(db, post_id)
+    if not post or post.status != "active":
+        return {"liked": False, "likes_count": 0}
+
     existing = await db.execute(
         select(Reaction).where(Reaction.post_id == post_id, Reaction.user_id == user_id, Reaction.type == "like")
     )
     reaction = existing.scalar_one_or_none()
     if reaction:
-        await db.delete(reaction)
-        post = await get_post_by_id(db, post_id)
-        if post and post.likes_count > 0:
-            post.likes_count -= 1
-        await db.commit()
-        return {"liked": False}
+        return {"liked": True, "likes_count": post.likes_count}
     reaction = Reaction(
         id=uuid.uuid4(),
         post_id=post_id,
@@ -117,13 +133,28 @@ async def toggle_like(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) 
         type="like",
     )
     db.add(reaction)
-    post = await get_post_by_id(db, post_id)
-    if post:
-        post.likes_count += 1
+    post.likes_count += 1
     await db.commit()
     key = f"post:likes:{post_id}"
     await increment_counter(key)
-    return {"liked": True}
+    return {"liked": True, "likes_count": post.likes_count}
+
+
+async def unlike_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+    post = await get_post_by_id(db, post_id)
+    if not post or post.status != "active":
+        return {"liked": False, "likes_count": 0}
+    existing = await db.execute(
+        select(Reaction).where(Reaction.post_id == post_id, Reaction.user_id == user_id, Reaction.type == "like")
+    )
+    reaction = existing.scalar_one_or_none()
+    if not reaction:
+        return {"liked": False, "likes_count": post.likes_count}
+    await db.delete(reaction)
+    if post.likes_count > 0:
+        post.likes_count -= 1
+    await db.commit()
+    return {"liked": False, "likes_count": post.likes_count}
 
 
 async def increment_views(db: AsyncSession, post_id: uuid.UUID):

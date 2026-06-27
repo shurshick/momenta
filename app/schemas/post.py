@@ -16,6 +16,8 @@ class PostOut(BaseModel):
     views_count: int = 0
     created_at: datetime | None = None
     is_liked: bool = False
+    is_mine: bool = False
+    can_delete: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -34,11 +36,17 @@ class PostFeedItem(BaseModel):
     views_count: int = 0
     created_at: datetime | None = None
     is_liked: bool = False
+    is_mine: bool = False
+    can_delete: bool = False
 
 
 class FeedResponse(BaseModel):
     items: list[PostFeedItem]
     next_cursor: str | None = None
+
+
+class BestMomentResponse(BaseModel):
+    post: PostFeedItem | None = None
 
 
 class CreatePostResponse(BaseModel):

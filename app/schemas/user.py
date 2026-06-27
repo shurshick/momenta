@@ -6,6 +6,7 @@ class UserProfile(BaseModel):
     id: str
     username: str
     display_name: str
+    avatar_key: str | None = None
     avatar_url: str | None = None
     bio: str | None = None
     country: str | None = None
@@ -28,3 +29,15 @@ class UpdateProfileRequest(BaseModel):
     country: str | None = Field(None, max_length=2)
     city: str | None = Field(None, max_length=100)
     locale: str | None = None
+
+
+class AvatarOption(BaseModel):
+    key: str
+
+
+class AvatarListResponse(BaseModel):
+    items: list[AvatarOption]
+
+
+class UpdateAvatarRequest(BaseModel):
+    avatar_key: str

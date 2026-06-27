@@ -2,8 +2,11 @@ package com.bghitech.momenta.data.repository
 
 import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.data.mapper.toDomain
 import com.bghitech.momenta.data.remote.MomentaApi
+import com.bghitech.momenta.data.remote.dto.CreateCommentRequestDto
 import com.bghitech.momenta.data.remote.dto.ReportRequestDto
+import com.bghitech.momenta.domain.model.Comment
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.PostRepository
@@ -40,7 +43,7 @@ class PostRepositoryImpl @Inject constructor(
             val response = api.uploadPost(challengeIdPart, captionPart, countryPart, cityPart, mediaPart)
             AppResult.Success(Post(
                 id = response.id,
-                user = User("", "", null, null, null),
+                user = User("", "", null, null, null, null),
                 mediaType = "image",
                 previewUrl = "",
                 thumbUrl = null,
@@ -95,6 +98,40 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun reportPost(postId: String, reason: String): AppResult<Unit> {
         return try {
             api.reportPost(postId, ReportRequestDto(reason))
+            AppResult.Success(Unit)
+        } catch (e: Exception) {
+            AppResult.Error(AppError.Unknown(e.message))
+        }
+    }
+
+    override suspend fun deletePost(postId: String): AppResult<Unit> {
+        return try {
+            api.deletePost(postId)
+            AppResult.Success(Unit)
+        } catch (e: Exception) {
+            AppResult.Error(AppError.Unknown(e.message))
+        }
+    }
+
+    override suspend fun getComments(postId: String): AppResult<List<Comment>> {
+        return try {
+            AppResult.Success(api.getComments(postId).items.map { it.toDomain() })
+        } catch (e: Exception) {
+            AppResult.Error(AppError.Unknown(e.message))
+        }
+    }
+
+    override suspend fun createComment(postId: String, text: String): AppResult<Comment> {
+        return try {
+            AppResult.Success(api.createComment(postId, CreateCommentRequestDto(text)).toDomain())
+        } catch (e: Exception) {
+            AppResult.Error(AppError.Unknown(e.message))
+        }
+    }
+
+    override suspend fun deleteComment(postId: String, commentId: String): AppResult<Unit> {
+        return try {
+            api.deleteComment(postId, commentId)
             AppResult.Success(Unit)
         } catch (e: Exception) {
             AppResult.Error(AppError.Unknown(e.message))

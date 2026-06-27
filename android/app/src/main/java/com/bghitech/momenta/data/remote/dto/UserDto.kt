@@ -11,5 +11,7 @@ data class UserDto(
     val displayName: String? = null,
     @SerialName("avatar_url")
     val avatarUrl: String? = null,
+    @SerialName("avatar_key")
+    val avatarKey: String? = null,
     val email: String? = null
 )

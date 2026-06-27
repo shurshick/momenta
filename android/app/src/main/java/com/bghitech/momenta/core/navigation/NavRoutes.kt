@@ -7,6 +7,7 @@ object NavRoutes {
     const val ONBOARDING = "onboarding"
     const val AUTH = "auth"
     const val MAIN = "main"
+    const val MAIN_FEED = "main_feed"
     const val TODAY = "today"
     const val SEARCH = "search"
     const val FEED = "feed"

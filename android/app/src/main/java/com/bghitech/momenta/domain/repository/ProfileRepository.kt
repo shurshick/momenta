@@ -6,6 +6,8 @@ import com.bghitech.momenta.domain.model.Profile
 interface ProfileRepository {
     suspend fun getMyProfile(): AppResult<Profile>
     suspend fun updateProfile(displayName: String?, bio: String?): AppResult<Profile>
+    suspend fun updateAvatar(avatarKey: String): AppResult<Profile>
+    suspend fun getAvatars(): AppResult<List<String>>
     suspend fun getCachedProfile(): Profile?
     suspend fun cacheProfile(profile: Profile)
 }

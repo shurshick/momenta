@@ -21,7 +21,8 @@ import com.bghitech.momenta.feature.today.TodayScreen
 fun MainScreen(
     onNavigateToCamera: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    startRoute: String = NavRoutes.TODAY
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -45,7 +46,7 @@ fun MainScreen(
                             onNavigateToCamera()
                         } else {
                             navController.navigate(route) {
-                                popUpTo(NavRoutes.TODAY) { saveState = true }
+                                popUpTo(startRoute) { saveState = true }
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -57,7 +58,7 @@ fun MainScreen(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = NavRoutes.TODAY,
+            startDestination = startRoute,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(NavRoutes.TODAY) {

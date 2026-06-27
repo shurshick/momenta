@@ -11,6 +11,8 @@ data class ProfileDto(
     val displayName: String? = null,
     @SerialName("avatar_url")
     val avatarUrl: String? = null,
+    @SerialName("avatar_key")
+    val avatarKey: String? = null,
     val bio: String? = null,
     val country: String? = null,
     val city: String? = null,
@@ -38,4 +40,20 @@ data class RecentPostDto(
     val thumbUrl: String? = null,
     @SerialName("created_at")
     val createdAt: String? = null
+)
+
+@Serializable
+data class AvatarOptionDto(
+    val key: String
+)
+
+@Serializable
+data class AvatarListResponseDto(
+    val items: List<AvatarOptionDto> = emptyList()
+)
+
+@Serializable
+data class UpdateAvatarRequestDto(
+    @SerialName("avatar_key")
+    val avatarKey: String
 )

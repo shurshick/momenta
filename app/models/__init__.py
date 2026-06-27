@@ -5,6 +5,7 @@ from app.models.reaction import Reaction
 from app.models.report import Report
 from app.models.user_streak import UserStreak
 from app.models.media_asset import MediaAsset
+from app.models.comment import Comment
 from app.models.audit_log import AuditLog
 from app.models.setting import Setting
 from app.models.base import Base
@@ -18,6 +19,7 @@ __all__ = [
     "Report",
     "UserStreak",
     "MediaAsset",
+    "Comment",
     "AuditLog",
     "Setting",
 ]

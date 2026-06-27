@@ -31,5 +31,39 @@ data class PostDto(
     @SerialName("created_at")
     val createdAt: String? = null,
     @SerialName("is_liked")
-    val isLiked: Boolean = false
+    val isLiked: Boolean = false,
+    @SerialName("is_mine")
+    val isMine: Boolean = false,
+    @SerialName("can_delete")
+    val canDelete: Boolean = false
+)
+
+@Serializable
+data class BestMomentResponseDto(
+    val post: PostDto? = null
+)
+
+@Serializable
+data class CommentDto(
+    val id: String,
+    @SerialName("post_id")
+    val postId: String,
+    val user: UserDto,
+    val text: String,
+    @SerialName("created_at")
+    val createdAt: String? = null,
+    @SerialName("is_mine")
+    val isMine: Boolean = false,
+    @SerialName("can_delete")
+    val canDelete: Boolean = false
+)
+
+@Serializable
+data class CommentListResponseDto(
+    val items: List<CommentDto> = emptyList()
+)
+
+@Serializable
+data class CreateCommentRequestDto(
+    val text: String
 )

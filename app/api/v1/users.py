@@ -4,13 +4,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
-from app.schemas.user import UserProfile, UpdateProfileRequest
+from app.schemas.user import AvatarListResponse, UpdateAvatarRequest, UserProfile, UpdateProfileRequest
 from app.services.auth_service import get_user_by_id
 from app.api.v1.auth import get_current_user_id
 from app.models.post import Post
 from app.models.reaction import Reaction
 
 router = APIRouter(prefix="/api/v1", tags=["users"])
+
+AVATAR_KEYS = [f"avatar_{index:02d}" for index in range(1, 21)]
 
 
 async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -> UserProfile:
@@ -62,6 +64,7 @@ async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -
         id=str(user.id),
         username=user.username,
         display_name=user.display_name,
+        avatar_key=user.avatar_key,
         avatar_url=user.avatar_url,
         bio=getattr(user, "bio", None),
         country=user.country,
@@ -110,6 +113,28 @@ async def update_my_profile(req: UpdateProfileRequest, user_id: str = Depends(ge
         user.city = req.city
     if req.locale is not None:
         user.locale = req.locale
+    await db.commit()
+    await db.refresh(user)
+    return await _build_profile(db, user)
+
+
+@router.get("/avatars", response_model=AvatarListResponse)
+async def list_avatars():
+    return {"items": [{"key": key} for key in AVATAR_KEYS]}
+
+
+@router.patch("/me/avatar", response_model=UserProfile)
+async def update_my_avatar(
+    req: UpdateAvatarRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    if req.avatar_key not in AVATAR_KEYS:
+        raise HTTPException(status_code=400, detail="Unknown avatar")
+    user = await get_user_by_id(db, uuid.UUID(user_id))
+    if not user:
+        raise HTTPException(status_code=404)
+    user.avatar_key = req.avatar_key
     await db.commit()
     await db.refresh(user)
     return await _build_profile(db, user)

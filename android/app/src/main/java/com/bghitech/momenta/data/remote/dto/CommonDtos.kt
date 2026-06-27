@@ -6,7 +6,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ApiMessageDto(
     val message: String = "",
-    val status: String = "ok"
+    val status: String = "ok",
+    val liked: Boolean? = null,
+    @SerialName("likes_count")
+    val likesCount: Int? = null
 )
 
 @Serializable

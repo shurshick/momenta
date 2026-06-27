@@ -5,6 +5,7 @@ data class Profile(
     val username: String,
     val displayName: String?,
     val avatarUrl: String?,
+    val avatarKey: String?,
     val bio: String?,
     val momentsCount: Int,
     val streakCount: Int,

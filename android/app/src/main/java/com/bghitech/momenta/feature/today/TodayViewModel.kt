@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.domain.model.Challenge
 import com.bghitech.momenta.domain.model.Post
+import com.bghitech.momenta.domain.repository.FeedRepository
 import com.bghitech.momenta.domain.usecase.GetTodayFeedUseCase
 import com.bghitech.momenta.domain.usecase.GetTodayChallengeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +27,8 @@ data class TodayUiState(
 @HiltViewModel
 class TodayViewModel @Inject constructor(
     private val getTodayChallengeUseCase: GetTodayChallengeUseCase,
-    private val getTodayFeedUseCase: GetTodayFeedUseCase
+    private val getTodayFeedUseCase: GetTodayFeedUseCase,
+    private val feedRepository: FeedRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TodayUiState())
@@ -73,10 +75,10 @@ class TodayViewModel @Inject constructor(
             _state.value = _state.value.copy(bestPost = cached.bestMoment(), feedLoaded = true)
         }
 
-        when (val result = getTodayFeedUseCase(limit = 50)) {
+        when (val result = feedRepository.getBestMoment()) {
             is AppResult.Success -> {
                 _state.value = _state.value.copy(
-                    bestPost = result.data.bestMoment(),
+                    bestPost = result.data ?: cached.bestMoment(),
                     feedLoaded = true
                 )
             }

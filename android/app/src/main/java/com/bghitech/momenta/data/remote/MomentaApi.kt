@@ -36,6 +36,9 @@ interface MomentaApi {
         @Query("limit") limit: Int = 20
     ): FeedResponseDto
 
+    @GET("/api/v1/feed/today/best-random")
+    suspend fun getBestMoment(): BestMomentResponseDto
+
     @Multipart
     @POST("/api/v1/posts")
     suspend fun uploadPost(
@@ -58,9 +61,33 @@ interface MomentaApi {
         @Body request: ReportRequestDto
     ): ApiMessageDto
 
+    @DELETE("/api/v1/posts/{id}")
+    suspend fun deletePost(@Path("id") postId: String): ApiMessageDto
+
+    @GET("/api/v1/posts/{id}/comments")
+    suspend fun getComments(@Path("id") postId: String): CommentListResponseDto
+
+    @POST("/api/v1/posts/{id}/comments")
+    suspend fun createComment(
+        @Path("id") postId: String,
+        @Body request: CreateCommentRequestDto
+    ): CommentDto
+
+    @DELETE("/api/v1/posts/{postId}/comments/{commentId}")
+    suspend fun deleteComment(
+        @Path("postId") postId: String,
+        @Path("commentId") commentId: String
+    ): ApiMessageDto
+
     @GET("/api/v1/me/profile")
     suspend fun getMyProfile(): ProfileDto
 
     @PATCH("/api/v1/me/profile")
     suspend fun updateMyProfile(@Body request: UpdateProfileRequestDto): ProfileDto
+
+    @GET("/api/v1/avatars")
+    suspend fun getAvatars(): AvatarListResponseDto
+
+    @PATCH("/api/v1/me/avatar")
+    suspend fun updateMyAvatar(@Body request: UpdateAvatarRequestDto): ProfileDto
 }

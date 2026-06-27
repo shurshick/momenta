@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.schemas.post import CreatePostResponse
-from app.services.post_service import create_post, get_post_by_id, soft_delete_post, increment_views
+from app.services.post_service import can_delete_post, create_post, get_post_by_id, soft_delete_post, increment_views
 from app.services.challenge_service import get_challenge_by_id, get_challenge_by_date
 from app.services.s3_service import upload_fileobj, make_object_key
 from app.api.v1.auth import get_current_user_id
@@ -89,6 +89,7 @@ async def get_post(post_id: str, user_id: str = Depends(get_current_user_id), db
             "username": user.username if user else "unknown",
             "display_name": user.display_name if user else "Unknown",
             "avatar_url": user.avatar_url if user else None,
+            "avatar_key": user.avatar_key if user else None,
         },
         "media_type": post.media_type,
         "preview_url": post.preview_url,
@@ -101,12 +102,22 @@ async def get_post(post_id: str, user_id: str = Depends(get_current_user_id), db
         "views_count": post.views_count,
         "created_at": post.created_at,
         "is_liked": is_liked,
+        "is_mine": uuid.UUID(user_id) == post.user_id,
+        "can_delete": can_delete_post(post, uuid.UUID(user_id)),
     }
 
 
 @router.delete("/{post_id}")
 async def delete_post(post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
-    success = await soft_delete_post(db, uuid.UUID(post_id), uuid.UUID(user_id))
+    post = await get_post_by_id(db, uuid.UUID(post_id))
+    current_user_id = uuid.UUID(user_id)
+    if not post or post.status == "deleted":
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="You can delete only your own post")
+    if not can_delete_post(post, current_user_id):
+        raise HTTPException(status_code=403, detail="Post can be deleted only within 24 hours")
+    success = await soft_delete_post(db, uuid.UUID(post_id), current_user_id)
     if not success:
-        raise HTTPException(status_code=404, detail="Post not found or not yours")
+        raise HTTPException(status_code=404, detail="Post not found")
     return {"status": "deleted"}

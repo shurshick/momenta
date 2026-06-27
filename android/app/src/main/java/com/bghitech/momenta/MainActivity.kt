@@ -108,6 +108,23 @@ fun MomentaNavGraph() {
             )
         }
 
+        composable(NavRoutes.MAIN_FEED) {
+            MainScreen(
+                startRoute = NavRoutes.FEED,
+                onNavigateToCamera = {
+                    navController.navigate(NavRoutes.CAMERA)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(NavRoutes.SETTINGS)
+                },
+                onLogout = {
+                    navController.navigate(NavRoutes.AUTH) {
+                        popUpTo(NavRoutes.MAIN_FEED) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(NavRoutes.SETTINGS) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
@@ -147,7 +164,7 @@ fun MomentaNavGraph() {
         composable(NavRoutes.UPLOAD_SUCCESS) {
             com.bghitech.momenta.feature.publish.UploadSuccessScreen(
                 onGoToToday = {
-                    navController.navigate(NavRoutes.MAIN) {
+                    navController.navigate(NavRoutes.MAIN_FEED) {
                         popUpTo(NavRoutes.UPLOAD_SUCCESS) { inclusive = true }
                     }
                 }

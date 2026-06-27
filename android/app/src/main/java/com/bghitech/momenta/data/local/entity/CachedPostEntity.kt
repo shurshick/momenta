@@ -9,6 +9,7 @@ data class CachedPostEntity(
     val username: String,
     val displayName: String?,
     val avatarUrl: String?,
+    val avatarKey: String?,
     val challengeDate: String,
     val mediaType: String,
     val previewUrl: String,
@@ -20,5 +21,8 @@ data class CachedPostEntity(
     val commentsCount: Int,
     val viewsCount: Int,
     val createdAt: String,
+    val isLiked: Boolean,
+    val isMine: Boolean,
+    val canDelete: Boolean,
     val cachedAt: Long = System.currentTimeMillis()
 )

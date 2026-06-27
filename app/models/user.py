@@ -15,6 +15,7 @@ class User(Base, TimestampMixin):
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    avatar_key: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     country: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

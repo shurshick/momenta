@@ -13,5 +13,7 @@ data class Post(
     val commentsCount: Int,
     val viewsCount: Int,
     val createdAt: String,
-    val isLiked: Boolean = false
+    val isLiked: Boolean = false,
+    val isMine: Boolean = false,
+    val canDelete: Boolean = false
 )

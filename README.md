@@ -8,7 +8,7 @@
 
 ## Current Status
 
-Текущая стабильная версия: **v0.2.17**.
+Текущая стабильная версия: **v0.2.18**.
 
 Текущий визуальный стандарт Android: **Momenta Design Concept v1**.
 
@@ -21,6 +21,8 @@ Reference: [docs/design/momenta_visual_concept.png](docs/design/momenta_visual_c
 - Docker/TrueNAS deploy: API, worker, PostgreSQL, Redis, MinIO.
 - Android APK на Kotlin + Jetpack Compose.
 - Загрузка фото из Android, обработка медиа worker'ом, отображение постов в ленте.
+- Pull-to-refresh ленты, комментарии, корректные лайки, жалобы и удаление своих постов в течение 24 часов.
+- Предопределенные аватарки, случайный лучший момент дня из топа и реально применяемые фото-эффекты.
 - CI: backend tests, Android debug build, Docker image publish в GHCR.
 
 Что ещё не стоит считать production-ready:
@@ -109,7 +111,7 @@ Production-like ports used by the current deploy:
 For test/dev deploys `ghcr.io/shurshick/momenta:latest` is convenient. For production use a fixed tag, for example:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.17
+image: ghcr.io/shurshick/momenta:v0.2.18
 ```
 
 Full guide: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
@@ -154,11 +156,11 @@ GitHub Actions:
 
 ## Releases
 
-Latest release: [v0.2.17](https://github.com/shurshick/momenta/releases/tag/v0.2.17)
+Latest release: [v0.2.18](https://github.com/shurshick/momenta/releases/tag/v0.2.18)
 
 Release artifacts:
 
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.17`
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.18`
 - Docker image: `ghcr.io/shurshick/momenta:latest`
 - Android APK: attached to the GitHub release and workflow artifacts
 

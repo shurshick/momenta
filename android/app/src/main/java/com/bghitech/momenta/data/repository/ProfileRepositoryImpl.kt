@@ -4,6 +4,7 @@ import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.data.mapper.toDomain
 import com.bghitech.momenta.data.remote.MomentaApi
+import com.bghitech.momenta.data.remote.dto.UpdateAvatarRequestDto
 import com.bghitech.momenta.data.remote.dto.UpdateProfileRequestDto
 import com.bghitech.momenta.domain.model.Profile
 import com.bghitech.momenta.domain.repository.ProfileRepository
@@ -38,6 +39,24 @@ class ProfileRepositoryImpl @Inject constructor(
             AppResult.Success(profile)
         } catch (e: Exception) {
             AppResult.Error(AppError.Unknown(e.message))
+        }
+    }
+
+    override suspend fun updateAvatar(avatarKey: String): AppResult<Profile> {
+        return try {
+            val profile = api.updateMyAvatar(UpdateAvatarRequestDto(avatarKey)).toDomain()
+            cachedProfile = profile
+            AppResult.Success(profile)
+        } catch (e: Exception) {
+            AppResult.Error(AppError.Unknown(e.message))
+        }
+    }
+
+    override suspend fun getAvatars(): AppResult<List<String>> {
+        return try {
+            AppResult.Success(api.getAvatars().items.map { it.key })
+        } catch (e: Exception) {
+            AppResult.Success((1..20).map { index -> "avatar_%02d".format(index) })
         }
     }
 

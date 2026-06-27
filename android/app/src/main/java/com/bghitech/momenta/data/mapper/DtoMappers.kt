@@ -10,6 +10,7 @@ fun UserDto.toDomain(): User = User(
     username = username,
     displayName = displayName,
     avatarUrl = avatarUrl,
+    avatarKey = avatarKey,
     email = email
 )
 
@@ -25,7 +26,7 @@ fun ChallengeDto.toDomain(): Challenge = Challenge(
 
 fun PostDto.toDomain(): Post = Post(
     id = id,
-    user = user?.toDomain() ?: User(id = "", username = "", displayName = null, avatarUrl = null, email = null),
+    user = user?.toDomain() ?: User(id = "", username = "", displayName = null, avatarUrl = null, avatarKey = null, email = null),
     mediaType = mediaType,
     previewUrl = previewUrl ?: "",
     thumbUrl = thumbUrl,
@@ -36,7 +37,9 @@ fun PostDto.toDomain(): Post = Post(
     commentsCount = commentsCount,
     viewsCount = viewsCount,
     createdAt = createdAt ?: "",
-    isLiked = isLiked
+    isLiked = isLiked,
+    isMine = isMine,
+    canDelete = canDelete
 )
 
 fun ProfileDto.toDomain(): Profile = Profile(
@@ -44,6 +47,7 @@ fun ProfileDto.toDomain(): Profile = Profile(
     username = username,
     displayName = displayName,
     avatarUrl = avatarUrl,
+    avatarKey = avatarKey,
     bio = bio,
     momentsCount = momentsCount,
     streakCount = streakCount,
@@ -53,7 +57,7 @@ fun ProfileDto.toDomain(): Profile = Profile(
 
 fun RecentPostDto.toDomain(): Post = Post(
     id = id,
-    user = User(id = "", username = "", displayName = null, avatarUrl = null, email = null),
+    user = User(id = "", username = "", displayName = null, avatarUrl = null, avatarKey = null, email = null),
     mediaType = "image",
     previewUrl = previewUrl ?: "",
     thumbUrl = thumbUrl,
@@ -92,6 +96,7 @@ fun Post.toCachedEntity(): CachedPostEntity = CachedPostEntity(
     username = user.username,
     displayName = user.displayName,
     avatarUrl = user.avatarUrl,
+    avatarKey = user.avatarKey,
     challengeDate = "",
     mediaType = mediaType,
     previewUrl = previewUrl,
@@ -102,12 +107,15 @@ fun Post.toCachedEntity(): CachedPostEntity = CachedPostEntity(
     likesCount = likesCount,
     commentsCount = commentsCount,
     viewsCount = viewsCount,
-    createdAt = createdAt
+    createdAt = createdAt,
+    isLiked = isLiked,
+    isMine = isMine,
+    canDelete = canDelete
 )
 
 fun CachedPostEntity.toDomain(): Post = Post(
     id = id,
-    user = User(id = "", username = username, displayName = displayName, avatarUrl = avatarUrl, email = null),
+    user = User(id = "", username = username, displayName = displayName, avatarUrl = avatarUrl, avatarKey = avatarKey, email = null),
     mediaType = mediaType,
     previewUrl = previewUrl,
     thumbUrl = thumbUrl,
@@ -117,5 +125,18 @@ fun CachedPostEntity.toDomain(): Post = Post(
     likesCount = likesCount,
     commentsCount = commentsCount,
     viewsCount = viewsCount,
-    createdAt = createdAt
+    createdAt = createdAt,
+    isLiked = isLiked,
+    isMine = isMine,
+    canDelete = canDelete
+)
+
+fun CommentDto.toDomain(): Comment = Comment(
+    id = id,
+    postId = postId,
+    user = user.toDomain(),
+    text = text,
+    createdAt = createdAt ?: "",
+    isMine = isMine,
+    canDelete = canDelete
 )

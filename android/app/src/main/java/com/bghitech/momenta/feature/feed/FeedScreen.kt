@@ -15,9 +15,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.core.util.DateUtils
+import com.bghitech.momenta.domain.model.Comment
 import com.bghitech.momenta.domain.model.Post
 import kotlin.math.roundToInt
 
@@ -62,6 +65,18 @@ fun FeedScreen(
     )
 
     val density = LocalDensity.current
+
+    state.commentsPost?.let { post ->
+        CommentsDialog(
+            post = post,
+            comments = state.comments,
+            isLoading = state.isCommentsLoading,
+            error = state.commentsError,
+            onDismiss = viewModel::closeComments,
+            onSend = viewModel::createComment,
+            onDelete = viewModel::deleteComment
+        )
+    }
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -232,7 +247,7 @@ fun FeedScreen(
                                     detectVerticalDragGestures(
                                         onDragEnd = {
                                             if (pullOffset > 120f) {
-                                                viewModel.loadFeed()
+                                                viewModel.refresh()
                                             } else {
                                                 pullOffset = 0f
                                             }
@@ -255,7 +270,13 @@ fun FeedScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(state.items, key = { it.id }) { post ->
-                            FeedPostCard(post = post, onLikeClick = { viewModel.toggleLike(post.id, post.isLiked) })
+                            FeedPostCard(
+                                post = post,
+                                onLikeClick = { viewModel.toggleLike(post.id, post.isLiked) },
+                                onCommentsClick = { viewModel.openComments(post) },
+                                onReport = { viewModel.reportPost(post.id) },
+                                onDelete = { viewModel.deletePost(post.id) }
+                            )
                         }
 
                         if (state.isLoadingMore) {
@@ -291,9 +312,13 @@ fun FeedScreen(
 @Composable
 private fun FeedPostCard(
     post: Post,
-    onLikeClick: () -> Unit
+    onLikeClick: () -> Unit,
+    onCommentsClick: () -> Unit,
+    onReport: () -> Unit,
+    onDelete: () -> Unit
 ) {
     var showReportDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     if (showReportDialog) {
@@ -302,10 +327,31 @@ private fun FeedPostCard(
             title = { Text("Пожаловаться", color = MomentaText) },
             text = { Text("Отправить жалобу на этот момент?", color = MomentaTextSecondary) },
             confirmButton = {
-                TextButton(onClick = { showReportDialog = false }) { Text("Отправить", color = MomentaError) }
+                TextButton(onClick = {
+                    showReportDialog = false
+                    onReport()
+                }) { Text("Отправить", color = MomentaError) }
             },
             dismissButton = {
                 TextButton(onClick = { showReportDialog = false }) { Text("Отмена", color = MomentaGreen) }
+            },
+            containerColor = MomentaSurface
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Удалить момент?", color = MomentaText) },
+            text = { Text("Удаление доступно только для своих моментов в первые 24 часа.", color = MomentaTextSecondary) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    onDelete()
+                }) { Text("Удалить", color = MomentaError) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Отмена", color = MomentaGreen) }
             },
             containerColor = MomentaSurface
         )
@@ -317,7 +363,13 @@ private fun FeedPostCard(
                 modifier = Modifier.fillMaxWidth().padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.size(36.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
+                MomentaAvatar(
+                    avatarUrl = post.user.avatarUrl,
+                    avatarKey = post.user.avatarKey,
+                    username = post.user.username,
+                    size = 36.dp
+                )
+                Box(modifier = Modifier.size(0.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
                     Surface(modifier = Modifier.fillMaxSize(), color = MomentaSurfaceAlt, shape = CircleShape) {
                         Box(contentAlignment = Alignment.Center) {
                             Text("•", color = MomentaGreen, fontSize = 16.sp)
@@ -349,8 +401,14 @@ private fun FeedPostCard(
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                if (post.canDelete) {
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(Icons.Default.DeleteOutline, contentDescription = "Удалить", tint = MomentaTextSecondary, modifier = Modifier.size(20.dp))
+                    }
+                }
+
                 IconButton(onClick = { showReportDialog = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "Ещё", tint = MomentaTextSecondary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Flag, contentDescription = "Пожаловаться", tint = MomentaTextSecondary, modifier = Modifier.size(20.dp))
                 }
             }
 
@@ -386,7 +444,7 @@ private fun FeedPostCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                IconButton(onClick = { }, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onCommentsClick, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Default.ChatBubbleOutline,
                         contentDescription = "Комментарии",
@@ -394,6 +452,7 @@ private fun FeedPostCard(
                         modifier = Modifier.size(20.dp)
                     )
                 }
+                Text(text = post.commentsCount.toString(), color = MomentaTextSecondary, fontSize = 12.sp)
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -409,4 +468,85 @@ private fun FeedPostCard(
             }
         }
     }
+}
+
+@Composable
+private fun CommentsDialog(
+    post: Post,
+    comments: List<Comment>,
+    isLoading: Boolean,
+    error: String?,
+    onDismiss: () -> Unit,
+    onSend: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
+    var text by remember(post.id) { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Комментарии", color = MomentaText) },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                when {
+                    isLoading -> Box(
+                        modifier = Modifier.fillMaxWidth().height(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) { CircularProgressIndicator(color = MomentaGreen) }
+                    error != null -> Text(error, color = MomentaError)
+                    comments.isEmpty() -> Text("Пока нет комментариев", color = MomentaTextSecondary)
+                    else -> LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(comments, key = { it.id }) { comment ->
+                            Row(verticalAlignment = Alignment.Top) {
+                                MomentaAvatar(
+                                    avatarUrl = comment.user.avatarUrl,
+                                    avatarKey = comment.user.avatarKey,
+                                    username = comment.user.username,
+                                    size = 32.dp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = comment.user.displayName ?: comment.user.username,
+                                        color = MomentaText,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(comment.text, color = MomentaTextSecondary, fontSize = 13.sp)
+                                }
+                                if (comment.canDelete) {
+                                    IconButton(onClick = { onDelete(comment.id) }, modifier = Modifier.size(28.dp)) {
+                                        Icon(Icons.Default.DeleteOutline, contentDescription = "Удалить", tint = MomentaTextSecondary, modifier = Modifier.size(18.dp))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it.take(500) },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Ваш комментарий") },
+                        maxLines = 3
+                    )
+                    IconButton(onClick = {
+                        onSend(text)
+                        text = ""
+                    }) {
+                        Icon(Icons.Default.Send, contentDescription = "Отправить", tint = MomentaGreen)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Закрыть", color = MomentaGreen) }
+        },
+        containerColor = MomentaSurface
+    )
 }

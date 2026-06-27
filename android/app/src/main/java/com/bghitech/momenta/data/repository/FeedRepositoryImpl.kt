@@ -34,6 +34,15 @@ class FeedRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getBestMoment(): AppResult<Post?> {
+        return try {
+            AppResult.Success(api.getBestMoment().post?.toDomain())
+        } catch (e: Exception) {
+            val cached = getCachedFeed()
+            AppResult.Success(cached.sortedByDescending { it.likesCount }.take(10).randomOrNull())
+        }
+    }
+
     override suspend fun getNextCursor(): String? = nextCursor
 
     override suspend fun getCachedFeed(): List<Post> {

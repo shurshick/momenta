@@ -17,11 +17,13 @@ data class ProfileUiState(
     val username: String = "",
     val displayName: String = "",
     val avatarUrl: String? = null,
+    val avatarKey: String? = null,
     val bio: String? = null,
     val momentsCount: Int = 0,
     val streakCount: Int = 0,
     val likesCount: Int = 0,
     val recentPosts: List<Post> = emptyList(),
+    val avatarOptions: List<String> = (1..20).map { index -> "avatar_%02d".format(index) },
     val isSaving: Boolean = false,
     val error: String? = null
 )
@@ -55,7 +57,7 @@ class ProfileViewModel @Inject constructor(
                 }
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(
-                        isLoading = cached == null,
+                        isLoading = false,
                         error = if (cached == null) "Не удалось загрузить профиль" else null
                     )
                 }
@@ -78,6 +80,29 @@ class ProfileViewModel @Inject constructor(
                     )
                 }
             }
+
+            when (val avatars = profileRepository.getAvatars()) {
+                is AppResult.Success -> _state.value = _state.value.copy(avatarOptions = avatars.data)
+                is AppResult.Error -> Unit
+            }
+        }
+    }
+
+    fun updateAvatar(avatarKey: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isSaving = true, error = null)
+            when (val result = profileRepository.updateAvatar(avatarKey)) {
+                is AppResult.Success -> {
+                    mapProfile(result.data)
+                    _state.value = _state.value.copy(isSaving = false)
+                }
+                is AppResult.Error -> {
+                    _state.value = _state.value.copy(
+                        isSaving = false,
+                        error = "Не удалось сохранить аватар"
+                    )
+                }
+            }
         }
     }
 
@@ -86,6 +111,7 @@ class ProfileViewModel @Inject constructor(
             username = "@${profile.username}",
             displayName = profile.displayName ?: profile.username,
             avatarUrl = profile.avatarUrl,
+            avatarKey = profile.avatarKey,
             bio = profile.bio,
             momentsCount = profile.momentsCount,
             streakCount = profile.streakCount,

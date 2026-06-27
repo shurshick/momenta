@@ -1,4 +1,6 @@
 from datetime import date
+import random
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -6,8 +8,8 @@ from app.db import get_db
 from app.models.post import Post
 from app.models.user import User
 from app.models.reaction import Reaction
-from app.schemas.post import FeedResponse, PostFeedItem
-from app.services.post_service import get_feed_posts
+from app.schemas.post import BestMomentResponse, FeedResponse, PostFeedItem
+from app.services.post_service import can_delete_post, get_feed_posts
 from app.api.v1.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/v1/feed", tags=["feed"])
@@ -19,6 +21,21 @@ async def today_feed(cursor: str = Query(None), limit: int = Query(default=20, l
     posts, next_cursor = await get_feed_posts(db, date.today(), cursor=cursor, limit=limit)
     items = await _build_feed_items(db, posts, user_id)
     return {"items": items, "next_cursor": next_cursor}
+
+
+@router.get("/today/best-random", response_model=BestMomentResponse)
+async def today_best_random(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Post)
+        .where(Post.challenge_date == date.today(), Post.status == "active")
+        .order_by(Post.likes_count.desc(), Post.created_at.desc())
+        .limit(10)
+    )
+    posts = list(result.scalars().all())
+    if not posts:
+        return {"post": None}
+    items = await _build_feed_items(db, [random.choice(posts)], user_id)
+    return {"post": items[0] if items else None}
 
 
 @router.get("/country/{country_code}", response_model=FeedResponse)
@@ -51,13 +68,13 @@ async def _build_feed_items(db: AsyncSession, posts: list, current_user_id: str 
     items = []
 
     liked_post_ids: set = set()
+    current_user_uuid = uuid.UUID(current_user_id) if current_user_id else None
     if current_user_id and posts:
-        import uuid
         post_ids = [p.id for p in posts]
         likes_result = await db.execute(
             select(Reaction.post_id).where(
                 Reaction.post_id.in_(post_ids),
-                Reaction.user_id == uuid.UUID(current_user_id),
+                Reaction.user_id == current_user_uuid,
                 Reaction.type == "like",
             )
         )
@@ -73,6 +90,7 @@ async def _build_feed_items(db: AsyncSession, posts: list, current_user_id: str 
                 "username": user.username if user else "unknown",
                 "display_name": user.display_name if user else "Unknown",
                 "avatar_url": user.avatar_url if user else None,
+                "avatar_key": user.avatar_key if user else None,
             },
             media_type=post.media_type,
             preview_url=post.preview_url,
@@ -85,5 +103,7 @@ async def _build_feed_items(db: AsyncSession, posts: list, current_user_id: str 
             views_count=post.views_count,
             created_at=post.created_at,
             is_liked=post.id in liked_post_ids,
+            is_mine=current_user_uuid == post.user_id if current_user_uuid else False,
+            can_delete=can_delete_post(post, current_user_uuid),
         ))
     return items

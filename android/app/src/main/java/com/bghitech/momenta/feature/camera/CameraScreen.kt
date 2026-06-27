@@ -2,12 +2,6 @@ package com.bghitech.momenta.feature.camera
 
 import android.Manifest
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Paint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -69,6 +63,8 @@ import com.bghitech.momenta.core.design.MomentaSurface
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
 import com.bghitech.momenta.core.design.MomentaWarm
+import com.bghitech.momenta.core.media.PhotoEffect
+import com.bghitech.momenta.core.media.PhotoEffectProcessor
 import com.bghitech.momenta.core.permissions.CameraPermissionContent
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -129,13 +125,13 @@ private fun CameraContent(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
-    var selectedEffect by remember { mutableStateOf(MomentEffect.Natural) }
+    var selectedEffect by remember { mutableStateOf(PhotoEffect.Natural) }
     var showEffects by remember { mutableStateOf(false) }
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             copyGalleryImageToCache(context, it)?.let { file ->
-                onImageCaptured(file.absolutePath)
+                onImageCaptured(PhotoEffectProcessor.apply(context, file, selectedEffect).absolutePath)
             }
         }
     }
@@ -318,8 +314,8 @@ private fun CaptureButton(
 
 @Composable
 private fun EffectsPanel(
-    selected: MomentEffect,
-    onSelect: (MomentEffect) -> Unit
+    selected: PhotoEffect,
+    onSelect: (PhotoEffect) -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -332,7 +328,7 @@ private fun EffectsPanel(
             modifier = Modifier.padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MomentEffect.entries.forEach { effect ->
+            PhotoEffect.entries.forEach { effect ->
                 Surface(
                     modifier = Modifier
                         .weight(1f)
@@ -367,7 +363,7 @@ private fun EffectsPanel(
 private fun capturePhoto(
     context: Context,
     imageCapture: ImageCapture?,
-    effect: MomentEffect,
+    effect: PhotoEffect,
     onImageCaptured: (String) -> Unit
 ) {
     val capture = imageCapture ?: return
@@ -381,11 +377,7 @@ private fun capturePhoto(
         ContextCompat.getMainExecutor(context),
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                val finalFile = if (effect == MomentEffect.Natural) {
-                    photoFile
-                } else {
-                    applyEffect(context, photoFile, effect) ?: photoFile
-                }
+                val finalFile = PhotoEffectProcessor.apply(context, photoFile, effect)
                 onImageCaptured(finalFile.absolutePath)
             }
 
@@ -407,43 +399,5 @@ private fun copyGalleryImageToCache(context: Context, uri: Uri): File? {
         output
     } catch (_: Exception) {
         null
-    }
-}
-
-private fun applyEffect(context: Context, input: File, effect: MomentEffect): File? {
-    return try {
-        val source = BitmapFactory.decodeFile(input.absolutePath) ?: return null
-        val result = Bitmap.createBitmap(source.width, source.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            colorFilter = ColorMatrixColorFilter(effect.colorMatrix())
-        }
-        canvas.drawBitmap(source, 0f, 0f, paint)
-
-        val output = File(context.cacheDir, "${input.nameWithoutExtension}_${effect.name.lowercase()}.jpg")
-        FileOutputStream(output).use { out ->
-            result.compress(Bitmap.CompressFormat.JPEG, 92, out)
-        }
-        source.recycle()
-        result.recycle()
-        output
-    } catch (_: Exception) {
-        null
-    }
-}
-
-private fun MomentEffect.colorMatrix(): ColorMatrix {
-    return when (this) {
-        MomentEffect.Natural -> ColorMatrix()
-        MomentEffect.Warm -> ColorMatrix(
-            floatArrayOf(
-                1.12f, 0f, 0f, 0f, 10f,
-                0f, 1.03f, 0f, 0f, 6f,
-                0f, 0f, 0.90f, 0f, -4f,
-                0f, 0f, 0f, 1f, 0f
-            )
-        )
-        MomentEffect.Vivid -> ColorMatrix().apply { setSaturation(1.35f) }
-        MomentEffect.Mono -> ColorMatrix().apply { setSaturation(0f) }
     }
 }

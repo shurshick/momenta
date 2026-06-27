@@ -1,6 +1,7 @@
 package com.bghitech.momenta.feature.profile
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.bghitech.momenta.core.design.MomentaCard
+import com.bghitech.momenta.core.design.MomentaAvatar
 import com.bghitech.momenta.core.design.MomentaDivider
 import com.bghitech.momenta.core.design.MomentaError
 import com.bghitech.momenta.core.design.MomentaGreen
@@ -68,6 +71,7 @@ fun ProfileScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
+    var showAvatarDialog by remember { mutableStateOf(false) }
 
     if (showEditDialog) {
         EditProfileDialog(
@@ -76,6 +80,17 @@ fun ProfileScreen(
             onSave = { displayName, bio ->
                 viewModel.updateProfile(displayName, bio)
                 showEditDialog = false
+            }
+        )
+    }
+
+    if (showAvatarDialog) {
+        AvatarPickerDialog(
+            state = state,
+            onDismiss = { showAvatarDialog = false },
+            onSelect = { avatarKey ->
+                viewModel.updateAvatar(avatarKey)
+                showAvatarDialog = false
             }
         )
     }
@@ -121,7 +136,8 @@ fun ProfileScreen(
             } else {
                 ProfileContent(
                     state = state,
-                    onEditClick = { showEditDialog = true }
+                    onEditClick = { showEditDialog = true },
+                    onAvatarClick = { showAvatarDialog = true }
                 )
             }
         }
@@ -131,11 +147,19 @@ fun ProfileScreen(
 @Composable
 private fun ProfileContent(
     state: ProfileUiState,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    onAvatarClick: () -> Unit
 ) {
+    MomentaAvatar(
+        avatarUrl = state.avatarUrl,
+        avatarKey = state.avatarKey,
+        username = state.username,
+        size = 80.dp,
+        modifier = Modifier.clickable(onClick = onAvatarClick)
+    )
     Box(
         modifier = Modifier
-            .size(80.dp)
+            .size(0.dp)
             .clip(MomentaRoundShape),
         contentAlignment = Alignment.Center
     ) {
@@ -200,6 +224,13 @@ private fun ProfileContent(
     MomentaSecondaryButton(
         text = "Редактировать",
         onClick = onEditClick
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    MomentaSecondaryButton(
+        text = "Выбрать аватар",
+        onClick = onAvatarClick
     )
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -279,6 +310,54 @@ private fun EditProfileDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Отмена", color = MomentaTextSecondary)
+            }
+        },
+        containerColor = MomentaSurface
+    )
+}
+
+@Composable
+private fun AvatarPickerDialog(
+    state: ProfileUiState,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Выбрать аватар", color = MomentaText) },
+        text = {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(4),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(320.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(state.avatarOptions, key = { it }) { avatarKey ->
+                    val selected = avatarKey == state.avatarKey
+                    Surface(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clip(MomentaRoundShape)
+                            .clickable { onSelect(avatarKey) },
+                        color = if (selected) MomentaGreenAlpha else MomentaSurfaceAlt
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            MomentaAvatar(
+                                avatarUrl = null,
+                                avatarKey = avatarKey,
+                                username = state.username.removePrefix("@"),
+                                size = 58.dp
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Закрыть", color = MomentaGreen)
             }
         },
         containerColor = MomentaSurface
