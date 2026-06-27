@@ -181,6 +181,8 @@ dependencies {
 tasks.register("verifyInstallableProdApk") {
     description = "Verifies the prod debug APK is installable (no testOnly, signed, correct package)"
     group = "verification"
+    dependsOn("assembleProdDebug")
+
     doLast {
         val apkDir = layout.buildDirectory.dir("outputs/apk/prod/debug").get().asFile
         val apkFiles = apkDir.listFiles()?.filter { it.extension == "apk" }
