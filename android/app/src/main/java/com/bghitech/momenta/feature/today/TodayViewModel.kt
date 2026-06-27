@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.domain.model.Challenge
+import com.bghitech.momenta.domain.model.Post
+import com.bghitech.momenta.domain.usecase.GetTodayFeedUseCase
 import com.bghitech.momenta.domain.usecase.GetTodayChallengeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +16,8 @@ import javax.inject.Inject
 data class TodayUiState(
     val isLoading: Boolean = true,
     val challenge: Challenge? = null,
+    val bestPost: Post? = null,
+    val feedLoaded: Boolean = false,
     val userPostedToday: Boolean = false,
     val isOffline: Boolean = false,
     val error: String? = null
@@ -21,7 +25,8 @@ data class TodayUiState(
 
 @HiltViewModel
 class TodayViewModel @Inject constructor(
-    private val getTodayChallengeUseCase: GetTodayChallengeUseCase
+    private val getTodayChallengeUseCase: GetTodayChallengeUseCase,
+    private val getTodayFeedUseCase: GetTodayFeedUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TodayUiState())
@@ -57,6 +62,31 @@ class TodayViewModel @Inject constructor(
                     )
                 }
             }
+
+            loadBestPost()
         }
     }
+
+    private suspend fun loadBestPost() {
+        val cached = getTodayFeedUseCase.getCached()
+        if (cached.isNotEmpty()) {
+            _state.value = _state.value.copy(bestPost = cached.bestMoment(), feedLoaded = true)
+        }
+
+        when (val result = getTodayFeedUseCase(limit = 50)) {
+            is AppResult.Success -> {
+                _state.value = _state.value.copy(
+                    bestPost = result.data.bestMoment(),
+                    feedLoaded = true
+                )
+            }
+            is AppResult.Error -> {
+                _state.value = _state.value.copy(feedLoaded = cached.isNotEmpty())
+            }
+        }
+    }
+
+    private fun List<Post>.bestMoment(): Post? =
+        filter { it.previewUrl.isNotBlank() || !it.thumbUrl.isNullOrBlank() }
+            .maxWithOrNull(compareBy<Post> { it.likesCount }.thenBy { it.createdAt })
 }

@@ -4,6 +4,18 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 
+## [v0.2.17] - 2026-06-27
+
+### Added
+- **Android**: "Момента дня" now shows the best moment of the day by likes instead of an empty screen.
+- **Android**: camera gallery button opens the system image picker and imports an existing photo.
+- **Android**: camera effects panel applies Natural, Warm, Vivid, and Mono effects before publishing.
+- **Android**: profile editing dialog saves display name and bio through the existing profile API.
+
+### Fixed
+- **Android**: profile now renders real recent post thumbnails from `thumb_url`/`preview_url`.
+- **Android**: publish action is now next to the caption field and stays visible above the keyboard.
+
 ## [v0.2.16] - 2026-06-27
 
 ### Added

@@ -1,17 +1,55 @@
 package com.bghitech.momenta.feature.camera
 
 import android.Manifest
-import androidx.camera.core.*
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,14 +62,31 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.bghitech.momenta.core.design.*
+import com.bghitech.momenta.core.design.MomentaBackground
+import com.bghitech.momenta.core.design.MomentaDivider
+import com.bghitech.momenta.core.design.MomentaGreen
+import com.bghitech.momenta.core.design.MomentaSurface
+import com.bghitech.momenta.core.design.MomentaText
+import com.bghitech.momenta.core.design.MomentaTextSecondary
+import com.bghitech.momenta.core.design.MomentaWarm
 import com.bghitech.momenta.core.permissions.CameraPermissionContent
-import com.google.accompanist.permissions.*
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
+private enum class MomentEffect(val title: String, val subtitle: String) {
+    Natural("Оригинал", "Без обработки"),
+    Warm("Тепло", "Мягкий вечерний тон"),
+    Vivid("Живой", "Больше света и цвета"),
+    Mono("Ч/Б", "Контрастный монохром")
+}
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -74,7 +129,16 @@ private fun CameraContent(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    var selectedEffect by remember { mutableStateOf(MomentEffect.Natural) }
+    var showEffects by remember { mutableStateOf(false) }
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            copyGalleryImageToCache(context, it)?.let { file ->
+                onImageCaptured(file.absolutePath)
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
@@ -96,25 +160,26 @@ private fun CameraContent(
                         )
                         .build()
 
-                    val cameraSelector = if (state.isFrontCamera) {
-                        CameraSelector.DEFAULT_FRONT_CAMERA
-                    } else {
-                        CameraSelector.DEFAULT_BACK_CAMERA
-                    }
-
                     try {
                         cameraProvider.unbindAll()
                         cameraProvider.bindToLifecycle(
-                            lifecycleOwner, cameraSelector, preview, imageCapture
+                            lifecycleOwner,
+                            if (state.isFrontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA,
+                            preview,
+                            imageCapture
                         )
-                    } catch (_: Exception) { }
+                    } catch (_: Exception) {
+                    }
                 }, ContextCompat.getMainExecutor(ctx))
 
                 previewView
+            },
+            update = {
+                imageCapture?.flashMode =
+                    if (state.flashMode) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
             }
         )
 
-        // Top bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -134,16 +199,15 @@ private fun CameraContent(
             }
         }
 
-        // Bottom controls
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .background(MomentaBackground.copy(alpha = 0.42f))
+                .background(MomentaBackground.copy(alpha = 0.52f))
+                .navigationBarsPadding()
                 .padding(bottom = 18.dp, top = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Gallery + Effects row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,62 +215,45 @@ private fun CameraContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Галерея",
-                    color = MomentaText,
-                    fontSize = 12.sp
+                CameraToolButton(
+                    icon = Icons.Default.Image,
+                    label = "Галерея",
+                    onClick = { galleryLauncher.launch("image/*") }
                 )
 
-                Box(
-                    modifier = Modifier
-                        .size(82.dp)
-                        .clip(CircleShape)
-                        .background(MomentaGreen.copy(alpha = 0.18f))
-                        .border(3.dp, MomentaGreen, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(
+                CaptureButton(
+                    enabled = imageCapture != null,
                     onClick = {
-                        val photoFile = File(
-                            context.cacheDir,
-                            "IMG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.jpg"
-                        )
-                        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-                        imageCapture?.takePicture(
-                            outputOptions,
-                            ContextCompat.getMainExecutor(context),
-                            object : ImageCapture.OnImageSavedCallback {
-                                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                    onImageCaptured(photoFile.absolutePath)
-                                }
-                                override fun onError(exception: ImageCaptureException) { }
-                            }
-                        )
-                    },
-                    modifier = Modifier.size(76.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(58.dp)
-                                .clip(CircleShape)
-                                .background(MomentaText)
+                        capturePhoto(
+                            context = context,
+                            imageCapture = imageCapture,
+                            effect = selectedEffect,
+                            onImageCaptured = onImageCaptured
                         )
                     }
-                }
+                )
 
-                Text(
-                    text = "Эффекты",
-                    color = MomentaText,
-                    fontSize = 12.sp
+                CameraToolButton(
+                    icon = Icons.Default.Tune,
+                    label = selectedEffect.title,
+                    onClick = { showEffects = !showEffects }
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            if (showEffects) {
+                Spacer(modifier = Modifier.height(16.dp))
+                EffectsPanel(
+                    selected = selectedEffect,
+                    onSelect = {
+                        selectedEffect = it
+                        showEffects = false
+                    }
+                )
+            }
 
-            // Mode selector
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 listOf("Фото", "Видео", "История").forEach { mode ->
                     Text(
                         text = mode,
@@ -223,5 +270,180 @@ private fun CameraContent(
         onDispose {
             cameraExecutor.shutdown()
         }
+    }
+}
+
+@Composable
+private fun CameraToolButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .size(width = 74.dp, height = 64.dp)
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(icon, contentDescription = label, tint = MomentaText, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(text = label, color = MomentaText, fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun CaptureButton(
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(82.dp)
+            .clip(CircleShape)
+            .background(MomentaGreen.copy(alpha = 0.18f))
+            .border(3.dp, if (enabled) MomentaGreen else MomentaDivider, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(76.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(58.dp)
+                    .clip(CircleShape)
+                    .background(MomentaText)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EffectsPanel(
+    selected: MomentEffect,
+    onSelect: (MomentEffect) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        color = MomentaSurface.copy(alpha = 0.95f),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            MomentEffect.entries.forEach { effect ->
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onSelect(effect) },
+                    color = if (effect == selected) MomentaGreen.copy(alpha = 0.20f) else MomentaBackground,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        if (effect == selected) MomentaGreen else MomentaDivider
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text(
+                            text = effect.title,
+                            color = if (effect == selected) MomentaGreen else MomentaText,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = effect.subtitle,
+                            color = MomentaTextSecondary,
+                            fontSize = 10.sp,
+                            lineHeight = 13.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun capturePhoto(
+    context: Context,
+    imageCapture: ImageCapture?,
+    effect: MomentEffect,
+    onImageCaptured: (String) -> Unit
+) {
+    val capture = imageCapture ?: return
+    val photoFile = File(
+        context.cacheDir,
+        "IMG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.jpg"
+    )
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+    capture.takePicture(
+        outputOptions,
+        ContextCompat.getMainExecutor(context),
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                val finalFile = if (effect == MomentEffect.Natural) {
+                    photoFile
+                } else {
+                    applyEffect(context, photoFile, effect) ?: photoFile
+                }
+                onImageCaptured(finalFile.absolutePath)
+            }
+
+            override fun onError(exception: ImageCaptureException) {
+            }
+        }
+    )
+}
+
+private fun copyGalleryImageToCache(context: Context, uri: Uri): File? {
+    return try {
+        val output = File(
+            context.cacheDir,
+            "GALLERY_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.jpg"
+        )
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            FileOutputStream(output).use { outputStream -> input.copyTo(outputStream) }
+        } ?: return null
+        output
+    } catch (_: Exception) {
+        null
+    }
+}
+
+private fun applyEffect(context: Context, input: File, effect: MomentEffect): File? {
+    return try {
+        val source = BitmapFactory.decodeFile(input.absolutePath) ?: return null
+        val result = Bitmap.createBitmap(source.width, source.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            colorFilter = ColorMatrixColorFilter(effect.colorMatrix())
+        }
+        canvas.drawBitmap(source, 0f, 0f, paint)
+
+        val output = File(context.cacheDir, "${input.nameWithoutExtension}_${effect.name.lowercase()}.jpg")
+        FileOutputStream(output).use { out ->
+            result.compress(Bitmap.CompressFormat.JPEG, 92, out)
+        }
+        source.recycle()
+        result.recycle()
+        output
+    } catch (_: Exception) {
+        null
+    }
+}
+
+private fun MomentEffect.colorMatrix(): ColorMatrix {
+    return when (this) {
+        MomentEffect.Natural -> ColorMatrix()
+        MomentEffect.Warm -> ColorMatrix(
+            floatArrayOf(
+                1.12f, 0f, 0f, 0f, 10f,
+                0f, 1.03f, 0f, 0f, 6f,
+                0f, 0f, 0.90f, 0f, -4f,
+                0f, 0f, 0f, 1f, 0f
+            )
+        )
+        MomentEffect.Vivid -> ColorMatrix().apply { setSaturation(1.35f) }
+        MomentEffect.Mono -> ColorMatrix().apply { setSaturation(0f) }
     }
 }

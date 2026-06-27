@@ -3,6 +3,8 @@ package com.bghitech.momenta.feature.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.domain.model.Post
+import com.bghitech.momenta.domain.repository.ProfileRepository
 import com.bghitech.momenta.domain.usecase.GetMyProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,12 +21,15 @@ data class ProfileUiState(
     val momentsCount: Int = 0,
     val streakCount: Int = 0,
     val likesCount: Int = 0,
+    val recentPosts: List<Post> = emptyList(),
+    val isSaving: Boolean = false,
     val error: String? = null
 )
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val getMyProfileUseCase: GetMyProfileUseCase
+    private val getMyProfileUseCase: GetMyProfileUseCase,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
@@ -58,6 +63,24 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun updateProfile(displayName: String, bio: String?) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isSaving = true, error = null)
+            when (val result = profileRepository.updateProfile(displayName.ifBlank { null }, bio?.ifBlank { null })) {
+                is AppResult.Success -> {
+                    mapProfile(result.data)
+                    _state.value = _state.value.copy(isSaving = false)
+                }
+                is AppResult.Error -> {
+                    _state.value = _state.value.copy(
+                        isSaving = false,
+                        error = "Не удалось сохранить профиль"
+                    )
+                }
+            }
+        }
+    }
+
     private fun mapProfile(profile: com.bghitech.momenta.domain.model.Profile) {
         _state.value = _state.value.copy(
             username = "@${profile.username}",
@@ -66,7 +89,8 @@ class ProfileViewModel @Inject constructor(
             bio = profile.bio,
             momentsCount = profile.momentsCount,
             streakCount = profile.streakCount,
-            likesCount = profile.likesCount
+            likesCount = profile.likesCount,
+            recentPosts = profile.recentPosts
         )
     }
 }

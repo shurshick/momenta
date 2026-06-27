@@ -1,6 +1,7 @@
 package com.bghitech.momenta.feature.today
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.rememberAsyncImagePainter
 import com.bghitech.momenta.R
 import com.bghitech.momenta.core.design.MomentaBlue
 import com.bghitech.momenta.core.design.MomentaCard
@@ -45,6 +49,7 @@ import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
 import com.bghitech.momenta.core.design.MomentaWarm
 import com.bghitech.momenta.core.design.rememberCountdownTime
+import com.bghitech.momenta.domain.model.Post
 
 @Composable
 fun TodayScreen(
@@ -187,38 +192,121 @@ fun TodayScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = stringResource(R.string.examples_title),
-                        color = MomentaText,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    if (state.bestPost != null) {
+                        BestMomentCard(post = state.bestPost!!)
+                    } else {
+                        EmptyBestMoment(onCaptureClick = onCaptureClick)
+                    }
+                }
+
+                else -> EmptyBestMoment(onCaptureClick = onCaptureClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BestMomentCard(post: Post) {
+    Column {
+        Text(
+            text = "Лучший момент дня",
+            color = MomentaText,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        MomentaCard(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
+        ) {
+            Column {
+                Image(
+                    painter = rememberAsyncImagePainter(model = post.thumbUrl ?: post.previewUrl),
+                    contentDescription = "Лучший момент дня",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(0.86f)
+                        .clip(MomentaLargeShape),
+                    contentScale = ContentScale.Crop
+                )
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        listOf(MomentaWarm, MomentaGreen, MomentaBlue).forEach { color ->
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(0.72f)
-                                    .clip(MomentaLargeShape)
-                                    .background(MomentaSurfaceAlt),
-                                contentAlignment = Alignment.BottomStart
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(12.dp)
-                                        .size(10.dp)
-                                        .clip(CircleShape)
-                                        .background(color)
-                                )
-                            }
+                        Text(
+                            text = post.user.displayName ?: "@${post.user.username}",
+                            color = MomentaText,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Filled.Favorite,
+                                contentDescription = null,
+                                tint = MomentaWarm,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.size(6.dp))
+                            Text(
+                                text = post.likesCount.toString(),
+                                color = MomentaText,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
+                    }
+                    if (!post.caption.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = post.caption,
+                            color = MomentaTextSecondary,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp
+                        )
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyBestMoment(onCaptureClick: () -> Unit) {
+    MomentaCard(modifier = Modifier.fillMaxWidth()) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(MomentaGreen.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(MomentaWarm)
+                )
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = "Сегодняшний лучший момент еще впереди",
+                color = MomentaText,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Сделай снимок и задай тон этому дню.",
+                color = MomentaTextSecondary,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            MomentaPrimaryButton(text = stringResource(R.string.capture_moment), onClick = onCaptureClick)
         }
     }
 }
