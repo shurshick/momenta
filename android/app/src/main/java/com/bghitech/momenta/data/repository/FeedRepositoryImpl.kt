@@ -52,4 +52,9 @@ class FeedRepositoryImpl @Inject constructor(
     override suspend fun cacheFeed(posts: List<Post>) {
         postDao.insertPosts(posts.map { it.toCachedEntity() })
     }
+
+    override suspend fun replaceCachedFeed(posts: List<Post>) {
+        postDao.clearAll()
+        postDao.insertPosts(posts.map { it.toCachedEntity() })
+    }
 }

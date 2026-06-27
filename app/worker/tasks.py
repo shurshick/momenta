@@ -8,7 +8,7 @@ from app.db import async_session_factory
 from app.models.post import Post
 from app.models.media_asset import MediaAsset
 from app.services.s3_service import upload_fileobj, make_object_key
-from app.services.redis_service import get_redis, get_counter
+from app.services.redis_service import add_to_feed, get_redis, get_counter
 from app.config import settings
 
 
@@ -77,8 +77,7 @@ async def reprocess_broken_posts():
 
 async def _process_post_media(db, post):
     if post.media_type != "photo":
-        post.status = "active"
-        await db.commit()
+        await _activate_post(db, post)
         return
     try:
         from app.services.s3_service import get_s3
@@ -97,8 +96,7 @@ async def _process_post_media(db, post):
         print(f"[worker] Downloaded {len(img_data)} bytes")
     except Exception as e:
         print(f"Failed to download from S3: {e}")
-        post.status = "active"
-        await db.commit()
+        await _activate_post(db, post)
         return
     try:
         img = Image.open(io.BytesIO(img_data))
@@ -136,12 +134,17 @@ async def _process_post_media(db, post):
             status="ready",
         )
         db.add(asset)
-        post.status = "active"
-        await db.commit()
+        await _activate_post(db, post)
     except Exception as e:
         print(f"Image processing failed: {e}")
-        post.status = "active"
-        await db.commit()
+        await _activate_post(db, post)
+
+
+async def _activate_post(db, post):
+    post.status = "active"
+    await db.commit()
+    score = post.created_at.timestamp() if post.created_at else datetime.now(timezone.utc).timestamp()
+    await add_to_feed(post.challenge_date, str(post.id), score, post.country)
 
 
 async def flush_counters():

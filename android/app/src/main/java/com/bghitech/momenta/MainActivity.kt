@@ -130,6 +130,7 @@ fun MomentaNavGraph() {
         composable(NavRoutes.MAIN_FEED) {
             MainScreen(
                 startRoute = NavRoutes.FEED,
+                forceRefreshFeed = false,
                 onNavigateToCamera = {
                     navController.navigate(NavRoutes.CAMERA)
                 },
@@ -139,6 +140,24 @@ fun MomentaNavGraph() {
                 onLogout = {
                     navController.navigate(NavRoutes.AUTH) {
                         popUpTo(NavRoutes.MAIN_FEED) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(NavRoutes.MAIN_FEED_REFRESH) {
+            MainScreen(
+                startRoute = NavRoutes.FEED,
+                forceRefreshFeed = true,
+                onNavigateToCamera = {
+                    navController.navigate(NavRoutes.CAMERA)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(NavRoutes.SETTINGS)
+                },
+                onLogout = {
+                    navController.navigate(NavRoutes.AUTH) {
+                        popUpTo(NavRoutes.MAIN_FEED_REFRESH) { inclusive = true }
                     }
                 }
             )
@@ -173,8 +192,9 @@ fun MomentaNavGraph() {
                 imagePath = imagePath,
                 onBack = { navController.popBackStack() },
                 onUploadSuccess = {
-                    navController.navigate(NavRoutes.UPLOAD_SUCCESS) {
-                        popUpTo(NavRoutes.CAMERA) { inclusive = true }
+                    navController.navigate(NavRoutes.MAIN_FEED_REFRESH) {
+                        popUpTo(0)
+                        launchSingleTop = true
                     }
                 }
             )
@@ -183,7 +203,7 @@ fun MomentaNavGraph() {
         composable(NavRoutes.UPLOAD_SUCCESS) {
             com.bghitech.momenta.feature.publish.UploadSuccessScreen(
                 onGoToToday = {
-                    navController.navigate(NavRoutes.MAIN_FEED) {
+                    navController.navigate(NavRoutes.MAIN_FEED_REFRESH) {
                         popUpTo(NavRoutes.UPLOAD_SUCCESS) { inclusive = true }
                     }
                 }

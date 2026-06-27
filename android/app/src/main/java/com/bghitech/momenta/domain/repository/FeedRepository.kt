@@ -9,4 +9,5 @@ interface FeedRepository {
     suspend fun getNextCursor(): String?
     suspend fun getCachedFeed(): List<Post>
     suspend fun cacheFeed(posts: List<Post>)
+    suspend fun replaceCachedFeed(posts: List<Post>)
 }

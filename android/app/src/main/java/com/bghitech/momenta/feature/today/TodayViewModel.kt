@@ -18,6 +18,7 @@ data class TodayUiState(
     val isLoading: Boolean = true,
     val challenge: Challenge? = null,
     val bestPost: Post? = null,
+    val isBestMomentLoading: Boolean = false,
     val feedLoaded: Boolean = false,
     val userPostedToday: Boolean = false,
     val isOffline: Boolean = false,
@@ -71,20 +72,26 @@ class TodayViewModel @Inject constructor(
     }
 
     private suspend fun loadBestPost() {
+        _state.value = _state.value.copy(isBestMomentLoading = true)
         val cached = getTodayFeedUseCase.getCached()
-        if (cached.isNotEmpty()) {
+        if (cached.isNotEmpty() && _state.value.bestPost == null) {
             _state.value = _state.value.copy(bestPost = cached.bestMoment(), feedLoaded = true)
         }
 
         when (val result = feedRepository.getBestMoment()) {
             is AppResult.Success -> {
+                val currentBestPost = _state.value.bestPost
                 _state.value = _state.value.copy(
-                    bestPost = result.data ?: cached.bestMoment(),
-                    feedLoaded = true
+                    bestPost = result.data ?: currentBestPost ?: cached.bestMoment(),
+                    feedLoaded = true,
+                    isBestMomentLoading = false
                 )
             }
             is AppResult.Error -> {
-                _state.value = _state.value.copy(feedLoaded = cached.isNotEmpty())
+                _state.value = _state.value.copy(
+                    feedLoaded = cached.isNotEmpty(),
+                    isBestMomentLoading = false
+                )
             }
         }
     }

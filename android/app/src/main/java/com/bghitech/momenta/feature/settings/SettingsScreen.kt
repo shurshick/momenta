@@ -1,5 +1,7 @@
 package com.bghitech.momenta.feature.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -32,9 +34,10 @@ fun SettingsScreen(
     var showAboutDialog by remember { mutableStateOf(false) }
     var serverUrl by remember { mutableStateOf(BuildConfig.DEFAULT_SERVER_URL) }
     var showConnectionResult by remember { mutableStateOf<String?>(null) }
-    var updateStatus by remember { mutableStateOf<String?>(null) }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     var isCheckingUpdate by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -68,8 +71,20 @@ fun SettingsScreen(
                     Text("Один момент. Все вместе.", color = MomentaTextSecondary, fontSize = 13.sp)
                     Text("Версия ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", color = MomentaTextSecondary, fontSize = 13.sp)
                     Text("© 2026 BGHitech / shurshick", color = MomentaTextSecondary, fontSize = 13.sp)
-                    updateStatus?.let {
-                        Text(it, color = MomentaText, fontSize = 13.sp)
+                    updateInfo?.let {
+                        Text(it.message, color = MomentaText, fontSize = 13.sp)
+                        val downloadUrl = it.downloadUrl
+                        if (it.hasUpdate && downloadUrl != null) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            MomentaPrimaryButton(
+                                text = "Скачать APK",
+                                onClick = {
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             },
@@ -79,8 +94,8 @@ fun SettingsScreen(
                     onClick = {
                         scope.launch {
                             isCheckingUpdate = true
-                            updateStatus = "Проверяем обновление..."
-                            updateStatus = checkLatestRelease()
+                            updateInfo = UpdateInfo("Проверяем обновление...")
+                            updateInfo = checkLatestRelease()
                             isCheckingUpdate = false
                         }
                     }
@@ -244,7 +259,13 @@ private fun SettingsInfoRow(label: String, value: String) {
     }
 }
 
-private suspend fun checkLatestRelease(): String = withContext(Dispatchers.IO) {
+private data class UpdateInfo(
+    val message: String,
+    val hasUpdate: Boolean = false,
+    val downloadUrl: String? = null
+)
+
+private suspend fun checkLatestRelease(): UpdateInfo = withContext(Dispatchers.IO) {
     runCatching {
         val json = URL("https://api.github.com/repos/shurshick/momenta/releases/latest")
             .openConnection()
@@ -256,15 +277,32 @@ private suspend fun checkLatestRelease(): String = withContext(Dispatchers.IO) {
             .getInputStream()
             .bufferedReader()
             .use { it.readText() }
-        val latest = JSONObject(json).optString("tag_name").removePrefix("v")
+        val release = JSONObject(json)
+        val latestTag = release.optString("tag_name")
+        val latest = latestTag.removePrefix("v")
+        val releaseUrl = release.optString("html_url").ifBlank {
+            "https://github.com/shurshick/momenta/releases/latest"
+        }
+        val assets = release.optJSONArray("assets")
+        val apkUrl = (0 until (assets?.length() ?: 0))
+            .asSequence()
+            .mapNotNull { assets?.optJSONObject(it) }
+            .firstOrNull { it.optString("name").endsWith(".apk") }
+            ?.optString("browser_download_url")
+            ?.takeIf { it.isNotBlank() }
+            ?: releaseUrl
         if (latest.isBlank()) {
-            "Не удалось определить последнюю версию."
+            UpdateInfo("Не удалось определить последнюю версию.")
         } else if (latest == BuildConfig.VERSION_NAME) {
-            "Установлена актуальная версия $latest."
+            UpdateInfo("Установлена актуальная версия $latest.")
         } else {
-            "Доступна версия $latest. Текущая: ${BuildConfig.VERSION_NAME}."
+            UpdateInfo(
+                message = "Доступна версия $latest. Текущая: ${BuildConfig.VERSION_NAME}.",
+                hasUpdate = true,
+                downloadUrl = apkUrl
+            )
         }
     }.getOrElse {
-        "Не удалось проверить обновление. Проверь интернет и повтори."
+        UpdateInfo("Не удалось проверить обновление. Проверь интернет и повтори.")
     }
 }

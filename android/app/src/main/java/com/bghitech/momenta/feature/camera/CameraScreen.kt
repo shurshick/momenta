@@ -17,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,7 +27,11 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FlashOff
@@ -50,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -242,7 +248,6 @@ private fun CameraContent(
                     selected = selectedEffect,
                     onSelect = {
                         selectedEffect = it
-                        showEffects = false
                     }
                 )
             }
@@ -322,40 +327,64 @@ private fun EffectsPanel(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         color = MomentaSurface.copy(alpha = 0.95f),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)
+        shape = RoundedCornerShape(18.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            PhotoEffect.entries.forEach { effect ->
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onSelect(effect) },
-                    color = if (effect == selected) MomentaGreen.copy(alpha = 0.20f) else MomentaBackground,
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        if (effect == selected) MomentaGreen else MomentaDivider
+        Column(modifier = Modifier.padding(vertical = 12.dp)) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp)
+            ) {
+                items(PhotoEffect.entries) { effect ->
+                    EffectChip(
+                        effect = effect,
+                        selected = effect == selected,
+                        onClick = { onSelect(effect) }
                     )
-                ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        Text(
-                            text = effect.title,
-                            color = if (effect == selected) MomentaGreen else MomentaText,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = effect.subtitle,
-                            color = MomentaTextSecondary,
-                            fontSize = 10.sp,
-                            lineHeight = 13.sp
-                        )
-                    }
                 }
             }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = selected.subtitle,
+                color = MomentaTextSecondary,
+                fontSize = 12.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EffectChip(
+    effect: PhotoEffect,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .height(44.dp)
+            .widthIn(min = 104.dp)
+            .clickable(onClick = onClick),
+        color = if (selected) MomentaGreen.copy(alpha = 0.20f) else MomentaBackground,
+        shape = RoundedCornerShape(22.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (selected) MomentaGreen else MomentaDivider
+        )
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = effect.title,
+                color = if (selected) MomentaGreen else MomentaText,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

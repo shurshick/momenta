@@ -24,7 +24,8 @@ data class FeedUiState(
     val commentsPost: Post? = null,
     val comments: List<Comment> = emptyList(),
     val isCommentsLoading: Boolean = false,
-    val commentsError: String? = null
+    val commentsError: String? = null,
+    val scrollToTopSignal: Int = 0
 )
 
 @HiltViewModel
@@ -42,7 +43,7 @@ class FeedViewModel @Inject constructor(
         loadFeed()
     }
 
-    fun loadFeed(showCached: Boolean = true) {
+    fun loadFeed(showCached: Boolean = true, scrollToTop: Boolean = false) {
         if (_state.value.isLoading) return
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
@@ -57,14 +58,16 @@ class FeedViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         isLoading = false,
                         items = result.data,
-                        isOffline = false
+                        isOffline = false,
+                        scrollToTopSignal = if (scrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
                     )
                 }
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(
                         isLoading = false,
                         isOffline = cached.isEmpty(),
-                        error = if (cached.isEmpty()) "Не удалось загрузить ленту" else null
+                        error = if (cached.isEmpty()) "Не удалось загрузить ленту" else null,
+                        scrollToTopSignal = if (scrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
                     )
                 }
             }
@@ -72,6 +75,8 @@ class FeedViewModel @Inject constructor(
     }
 
     fun refresh() = loadFeed(showCached = false)
+
+    fun refreshAfterPublish() = loadFeed(showCached = false, scrollToTop = true)
 
     fun loadMore() {
         if (_state.value.isLoadingMore) return

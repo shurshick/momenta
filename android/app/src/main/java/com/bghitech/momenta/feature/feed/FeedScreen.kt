@@ -45,6 +45,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun FeedScreen(
+    forceRefreshOnOpen: Boolean = false,
     viewModel: FeedViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -52,6 +53,20 @@ fun FeedScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     var pullOffset by remember { mutableFloatStateOf(0f) }
     val isRefreshing = state.isLoading && state.items.isNotEmpty()
+    var handledForcedRefresh by remember { mutableStateOf(false) }
+
+    LaunchedEffect(forceRefreshOnOpen, state.isLoading) {
+        if (forceRefreshOnOpen && !handledForcedRefresh && !state.isLoading) {
+            handledForcedRefresh = true
+            viewModel.refreshAfterPublish()
+        }
+    }
+
+    LaunchedEffect(state.scrollToTopSignal) {
+        if (state.scrollToTopSignal > 0) {
+            listState.scrollToItem(0)
+        }
+    }
 
     LaunchedEffect(isRefreshing) {
         if (!isRefreshing && pullOffset > 0f) {

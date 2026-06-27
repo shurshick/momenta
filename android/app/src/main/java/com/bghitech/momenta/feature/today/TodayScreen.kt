@@ -2,6 +2,7 @@ package com.bghitech.momenta.feature.today
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +56,7 @@ import com.bghitech.momenta.domain.model.Post
 fun TodayScreen(
     onCaptureClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onOpenFeed: () -> Unit,
     viewModel: TodayViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -179,7 +181,7 @@ fun TodayScreen(
                                 Spacer(modifier = Modifier.height(14.dp))
                                 MomentaSecondaryButton(
                                     text = stringResource(R.string.watch_world_now),
-                                    onClick = { }
+                                    onClick = onOpenFeed
                                 )
                             } else {
                                 MomentaPrimaryButton(
@@ -193,7 +195,11 @@ fun TodayScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     if (state.bestPost != null) {
-                        BestMomentCard(post = state.bestPost!!)
+                        BestMomentCard(post = state.bestPost!!, onClick = onOpenFeed)
+                    } else if (state.isBestMomentLoading) {
+                        MomentaCard(modifier = Modifier.fillMaxWidth()) {
+                            MomentaLoading(message = "Ищем лучший момент…")
+                        }
                     } else {
                         EmptyBestMoment(onCaptureClick = onCaptureClick)
                     }
@@ -206,7 +212,7 @@ fun TodayScreen(
 }
 
 @Composable
-private fun BestMomentCard(post: Post) {
+private fun BestMomentCard(post: Post, onClick: () -> Unit) {
     Column {
         Text(
             text = "Лучший момент дня",
@@ -216,7 +222,9 @@ private fun BestMomentCard(post: Post) {
         )
         Spacer(modifier = Modifier.height(12.dp))
         MomentaCard(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
         ) {
             Column {

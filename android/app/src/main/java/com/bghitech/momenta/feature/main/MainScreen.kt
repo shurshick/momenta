@@ -22,7 +22,8 @@ fun MainScreen(
     onNavigateToCamera: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit,
-    startRoute: String = NavRoutes.TODAY
+    startRoute: String = NavRoutes.TODAY,
+    forceRefreshFeed: Boolean = false
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -64,14 +65,21 @@ fun MainScreen(
             composable(NavRoutes.TODAY) {
                 TodayScreen(
                     onCaptureClick = onNavigateToCamera,
-                    onSettingsClick = onNavigateToSettings
+                    onSettingsClick = onNavigateToSettings,
+                    onOpenFeed = {
+                        navController.navigate(NavRoutes.FEED) {
+                            popUpTo(startRoute) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
             composable(NavRoutes.SEARCH) {
                 SearchScreen()
             }
             composable(NavRoutes.FEED) {
-                FeedScreen()
+                FeedScreen(forceRefreshOnOpen = forceRefreshFeed)
             }
             composable(NavRoutes.CIRCLE) {
                 CircleScreen()

@@ -8,6 +8,7 @@ object NavRoutes {
     const val AUTH = "auth"
     const val MAIN = "main"
     const val MAIN_FEED = "main_feed"
+    const val MAIN_FEED_REFRESH = "main_feed_refresh"
     const val TODAY = "today"
     const val SEARCH = "search"
     const val FEED = "feed"
