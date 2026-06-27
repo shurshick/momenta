@@ -4,6 +4,32 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 
+## [v0.2.15] — 2026-06-27
+
+### Исправлено
+- **Android**: исправлен Compose crash в ленте.
+- **Android**: debug-сборки больше не требуют release keystore.
+- **Android**: `verifyInstallableProdApk` теперь сам собирает APK перед проверкой.
+- **Backend**: тесты больше не зависят от живых Redis и MinIO.
+- **API**: исправлен порядок routes для `/api/v1/challenges/by-date/{date}`.
+
+### Добавлено
+- **CI**: backend tests и Android debug build на push/PR.
+- **Release**: Docker image `ghcr.io/shurshick/momenta:latest` пересобирается через workflow.
+- **Docs**: актуализирован README, TrueNAS deploy и release checklist.
+
+## [v0.2.14] — 2026-06-27
+
+### Исправлено
+- **Android**: pull-to-refresh переведён на custom implementation без Material2 dependency.
+- **Worker**: убраны лишние diagnostic logs.
+
+## [v0.2.13] — 2026-06-26
+
+### Исправлено
+- **Android**: исправлены проблемы Compose/Navigation/Publish flow после интеграции.
+- **Backend**: уточнена версия приложения и стабилизированы runtime-настройки.
+
 ## [v0.2.4] — 2026-06-26
 
 ### Исправлено

@@ -1,145 +1,163 @@
-# Momenta
+# Momenta / Момента
 
 **Момента** — социальное camera-приложение для ежедневных фото-моментов.
 
 > Один момент. Один день. Весь мир.
 
-Каждый день — новый вызов. Пользователи делают один снимок, отражающий их день, и делятся им с миром. Никаких лент алгоритмов, никакого бесконечного скроллинга — только сегодня, только сейчас.
+Каждый день пользователь получает общую "Моменту дня", делает один снимок, публикует его и смотрит живую ленту моментов других людей. Без алгоритмической гонки и бесконечного скролла: один день, один момент, один общий контекст.
 
-## Репозиторий
+## Current Status
 
-Монорепозиторий содержит:
+Текущая стабильная версия: **v0.2.15**.
 
-- **`/`** — Python бэкенд (FastAPI) + Docker + CI/CD
-- **`android/`** — Android-приложение (Kotlin, Jetpack Compose)
+Что уже работает:
 
-## Быстрый старт (Backend)
+- FastAPI backend с auth, posts, feed, challenges, reactions, reports и профилями.
+- Admin panel для пользователей, челленджей, постов, жалоб, медиа, настроек и audit log.
+- Docker/TrueNAS deploy: API, worker, PostgreSQL, Redis, MinIO.
+- Android APK на Kotlin + Jetpack Compose.
+- Загрузка фото из Android, обработка медиа worker'ом, отображение постов в ленте.
+- CI: backend tests, Android debug build, Docker image publish в GHCR.
+
+Что ещё не стоит считать production-ready:
+
+- Продовая установка должна быть чистой, с новыми секретами.
+- Нужен полный ручной E2E-прогон перед публичным запуском.
+- Видео, шаринг, invite/privacy flow и полноценная модерация ещё впереди.
+
+## Repository Layout
+
+```text
+/
+├── app/                    # FastAPI backend
+├── alembic/                # Database migrations
+├── tests/                  # Backend tests
+├── docs/                   # Backend/deploy docs
+├── deploy/truenas/         # TrueNAS compose YAML
+├── android/                # Android app
+├── Dockerfile
+├── docker-compose.yml
+└── pyproject.toml
+```
+
+## Quick Start
+
+### Backend
 
 ```bash
 cp .env.example .env
 docker compose up -d --build
 ```
 
-| Сервис | URL |
-|--------|-----|
+| Service | URL |
+|---|---|
 | API | http://localhost:8000 |
-| Swagger Docs | http://localhost:8000/docs |
-| Admin Panel | http://localhost:8000/admin |
+| Swagger | http://localhost:8000/docs |
+| Admin | http://localhost:8000/admin |
 | MinIO Console | http://localhost:9001 |
-| Health Check | http://localhost:8000/health |
+| Health | http://localhost:8000/health |
+| Ready | http://localhost:8000/ready |
 
-### Backend Tech Stack
+Default admin credentials come from `.env`:
 
-Python 3.12+, FastAPI, SQLAlchemy 2.x (async), Alembic, PostgreSQL 16, Redis 7, MinIO (S3), Jinja2, Pydantic Settings
+```env
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=change_me_admin_password
+```
 
-## Android
+### Android
+
+```bash
+cd android
+./gradlew assembleProdDebug
+```
+
+APK:
+
+```text
+android/app/build/outputs/apk/prod/debug/app-prod-debug.apk
+```
+
+Installable APK check:
+
+```bash
+./gradlew verifyInstallableProdApk
+```
+
+## TrueNAS Deploy
+
+TrueNAS YAML lives here:
+
+```text
+deploy/truenas/docker-compose.truenas.yml
+```
+
+Production-like ports used by the current deploy:
+
+| Service | External | Internal |
+|---|---:|---:|
+| API | 8010 | 8000 |
+| MinIO S3 | 9010 | 9000 |
+| MinIO Console | 9011 | 9001 |
+| PostgreSQL | not exposed | 5432 |
+| Redis | not exposed | 6379 |
+
+For test/dev deploys `ghcr.io/shurshick/momenta:latest` is convenient. For production use a fixed tag, for example:
+
+```yaml
+image: ghcr.io/shurshick/momenta:v0.2.15
+```
+
+Full guide: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
+
+## Tests And CI
+
+Backend:
+
+```bash
+uv run --python 3.12 --extra dev pytest -q
+```
+
+Android:
 
 ```bash
 cd android
 ./gradlew assembleDevDebug
+./gradlew assembleProdDebug verifyInstallableProdApk
 ```
 
-APK: `android/app/build/outputs/apk/dev/debug/app-dev-debug.apk`
+GitHub Actions:
 
-### Android Tech Stack
+- `CI` runs backend tests and Android debug builds on PRs and pushes to `master`.
+- `Build and Publish` publishes Docker image to GHCR and uploads APK artifacts.
 
-Kotlin, Jetpack Compose, Material 3, Hilt (DI), Navigation Compose, ViewModel + Coroutines + Flow, Retrofit + OkHttp + Kotlinx Serialization, Room (кэш), DataStore Preferences, CameraX, Coil, WorkManager
+## Documentation
 
-### Flavor-ы
+- [API](docs/API.md)
+- [Admin Panel](docs/ADMIN.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Media Storage](docs/MEDIA_STORAGE.md)
+- [Security](docs/SECURITY.md)
+- [TrueNAS Deploy](docs/DEPLOY_TRUENAS.md)
+- [Release Checklist](docs/RELEASE_CHECKLIST.md)
+- [Android Build & Install](android/docs/BUILD_AND_INSTALL.md)
+- [Android Architecture](android/docs/ANDROID_ARCHITECTURE.md)
+- [Android API Integration](android/docs/API_INTEGRATION.md)
+- [Android Design System](android/docs/DESIGN_SYSTEM.md)
+- [Android Offline Upload](android/docs/OFFLINE_UPLOAD.md)
 
-| Flavor | App ID | app_name | Cleartext | Server |
-|--------|--------|----------|-----------|--------|
-| dev | com.bghitech.momenta.dev | Момента Dev | Да | localhost:8000 |
-| staging | com.bghitech.momenta.staging | Момента Staging | Нет | momenta.bghitech.ru |
-| prod | com.bghitech.momenta | Момента | Нет | momenta.bghitech.ru |
+## Releases
 
-## Деплой на TrueNAS
+Latest release: [v0.2.15](https://github.com/shurshick/momenta/releases/tag/v0.2.15)
 
-```bash
-# 1. Клонируй репозиторий
-git clone https://github.com/shurshick/momenta.git
-cd momenta/deploy/truenas
+Release artifacts:
 
-# 2. Настрой .env (замени CHANGE_ME_* пароли)
-cp ../../.env.example .env
-nano .env
-
-# 3. Запусти
-docker compose -f docker-compose.truenas.yml up -d
-```
-
-Подробная инструкция: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
-
-## CI/CD
-
-GitHub Actions workflow (`.github/workflows/docker-publish.yml`) запускается при создании Release или вручную:
-
-1. **Docker image** → `ghcr.io/shurshick/momenta:latest` (теги: semver, sha, latest)
-2. **Android APK** → артефакт workflow + attachment к релизу
-
-CI включает:
-- Автоматическую проверку `android:testOnly=true` в merged manifest и APK
-- Retry loop для сборки APK (3 попытки)
-- Публикацию Docker image в GHCR
-
-## Структура проекта
-
-```
-momenta-server/
-├── app/                    # FastAPI backend
-│   ├── api/v1/             # REST API endpoints
-│   ├── admin/              # Admin panel (routes + Jinja2 templates)
-│   ├── models/             # SQLAlchemy models
-│   ├── schemas/            # Pydantic DTOs
-│   ├── services/           # Business logic
-│   ├── worker/             # Background tasks (Redis Queue)
-│   ├── config.py           # Pydantic Settings
-│   ├── db.py               # Async database engine
-│   ├── main.py             # FastAPI app + lifespan
-│   └── security.py         # JWT, password hashing
-├── android/                # Android app (Kotlin/Compose)
-├── tests/                  # pytest + pytest-asyncio
-├── docs/                   # Backend documentation
-├── deploy/truenas/         # TrueNAS docker-compose
-├── alembic/                # Database migrations
-├── Dockerfile              # Python 3.12-slim + uvicorn
-├── docker-compose.yml      # Full stack (API + Worker + PG + Redis + MinIO)
-└── pyproject.toml          # Python project metadata
-```
-
-## Тесты
-
-```bash
-# Backend tests
-docker compose exec momenta-api pytest tests/ -v
-
-# С локальной машины (нужен Python 3.12 + PostgreSQL)
-pip install -e ".[dev]"
-pytest tests/ -v
-```
-
-## Документация
-
-### Backend
-- [API Reference](docs/API.md) — REST endpoints
-- [Admin Panel](docs/ADMIN.md) — админ-панель
-- [Architecture](docs/ARCHITECTURE.md) — архитектура и data flow
-- [TrueNAS Deploy](docs/DEPLOY_TRUENAS.md) — деплой на TrueNAS SCALE
-- [Security](docs/SECURITY.md) — безопасность
-- [Media Storage](docs/MEDIA_STORAGE.md) — S3 storage
-
-### Android
-- [Architecture](android/docs/ANDROID_ARCHITECTURE.md)
-- [API Integration](android/docs/API_INTEGRATION.md)
-- [Build & Install](android/docs/BUILD_AND_INSTALL.md)
-- [Design System](android/docs/DESIGN_SYSTEM.md)
-- [Offline Upload](android/docs/OFFLINE_UPLOAD.md)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.15`
+- Docker image: `ghcr.io/shurshick/momenta:latest`
+- Android APK: attached to the GitHub release and workflow artifacts
 
 ## Roadmap
 
-- [x] **v0.1.0** — MVP: auth, today challenge, camera, publish, feed, profile, settings
-- [x] **v0.2.0** — Android APK + Backend integration
-- [x] **v0.2.3** — Critical fixes: APK install, admin auth, worker startup
-- [x] **v0.2.4** — testOnly fix, admin panel Jinja2 fix, adaptive icon crash fix
-- [ ] **v0.3.0** — Видео 3-5 сек, VerticalPager, шаринг, инвайты
-- [ ] **v1.0.0** — Production: refresh токенов, модерация, приватность, аналитика, Google Play
+- **v0.2.x** — stabilize Android/backend/TrueNAS flow.
+- **v0.3.0** — video moments, better feed UX, sharing, invites.
+- **v1.0.0** — production hardening: secrets, moderation, privacy, analytics, store-ready release.

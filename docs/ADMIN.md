@@ -1,6 +1,11 @@
 # Admin Panel
 
-Access: `http://localhost:8000/admin`
+Local access: `http://localhost:8000/admin`
+
+TrueNAS/default reverse-proxy access:
+
+- Direct: `http://<truenas-ip>:8010/admin`
+- Public: `https://momenta.bghitech.ru/admin`
 
 ## Login
 
@@ -8,6 +13,8 @@ Default credentials from `.env`:
 
 - Username: `admin`
 - Password: `change_me_admin_password`
+
+For production, set `ADMIN_USERNAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` explicitly.
 
 ## Sections
 
@@ -21,3 +28,12 @@ Default credentials from `.env`:
 - **System** — Health, env summary, flush feed cache, init S3 bucket
 
 All admin actions are logged in `audit_logs`.
+
+## System Checks
+
+Use the System section after deploy:
+
+- Check environment summary.
+- Initialize S3 bucket if needed.
+- Flush feed cache after manual moderation or data fixes.
+- Verify that sensitive values are not printed in full.
