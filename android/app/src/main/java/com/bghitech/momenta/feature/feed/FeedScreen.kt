@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -37,6 +38,7 @@ import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.core.util.DateUtils
 import com.bghitech.momenta.domain.model.Post
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = hiltViewModel()
