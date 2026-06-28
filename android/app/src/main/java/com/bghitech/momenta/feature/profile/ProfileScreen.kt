@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -33,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +47,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,7 +61,7 @@ import com.bghitech.momenta.core.design.MomentaDivider
 import com.bghitech.momenta.core.design.MomentaError
 import com.bghitech.momenta.core.design.MomentaGreen
 import com.bghitech.momenta.core.design.MomentaGreenAlpha
-import com.bghitech.momenta.core.design.MomentaLoading
+import com.bghitech.momenta.core.design.MomentaLargeShape
 import com.bghitech.momenta.core.design.MomentaMediumShape
 import com.bghitech.momenta.core.design.MomentaRoundShape
 import com.bghitech.momenta.core.design.MomentaScreen
@@ -78,6 +82,10 @@ fun ProfileScreen(
     var showEditDialog by remember { mutableStateOf(false) }
     var showAvatarDialog by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        viewModel.loadProfile(force = true, showLoading = false)
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -136,6 +144,7 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
             Row(
@@ -150,7 +159,7 @@ fun ProfileScreen(
             }
 
             if (state.isLoading) {
-                MomentaLoading()
+                ProfileLoadingSkeleton()
             } else {
                 val error = state.error
                 if (error != null) {
@@ -223,7 +232,10 @@ private fun ProfileContent(
                     text = state.displayName,
                     color = MomentaText,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 IconButton(
                     onClick = onEditClick,
@@ -241,7 +253,9 @@ private fun ProfileContent(
             Text(
                 text = state.username,
                 color = MomentaTextSecondary,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
             if (!state.bio.isNullOrBlank()) {
@@ -250,7 +264,9 @@ private fun ProfileContent(
                     text = state.bio,
                     color = MomentaTextSecondary,
                     fontSize = 13.sp,
-                    lineHeight = 17.sp
+                    lineHeight = 17.sp,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -391,30 +407,44 @@ private fun AvatarPickerDialog(
         onDismissRequest = onDismiss,
         title = { Text("Выбрать аватар", color = MomentaText) },
         text = {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(320.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(state.avatarOptions, key = { it }) { avatarKey ->
-                    val selected = avatarKey == state.avatarKey
-                    Surface(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clip(MomentaRoundShape)
-                            .clickable { onSelect(avatarKey) },
-                        color = if (selected) MomentaGreenAlpha else MomentaSurfaceAlt
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            MomentaAvatar(
-                                avatarUrl = null,
-                                avatarKey = avatarKey,
-                                username = state.username.removePrefix("@"),
-                                size = 58.dp
-                            )
+            Column {
+                Text(
+                    text = "Нажми на портрет, чтобы поставить его в профиль.",
+                    color = MomentaTextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(320.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(state.avatarOptions, key = { it }) { avatarKey ->
+                        val selected = avatarKey == state.avatarKey
+                        Surface(
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clip(MomentaRoundShape)
+                                .border(
+                                    width = if (selected) 2.dp else 1.dp,
+                                    color = if (selected) MomentaGreen else MomentaDivider,
+                                    shape = MomentaRoundShape
+                                )
+                                .clickable { onSelect(avatarKey) },
+                            color = if (selected) MomentaGreenAlpha else MomentaSurfaceAlt
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                MomentaAvatar(
+                                    avatarUrl = null,
+                                    avatarKey = avatarKey,
+                                    username = state.username.removePrefix("@"),
+                                    size = 58.dp
+                                )
+                            }
                         }
                     }
                 }
@@ -426,6 +456,83 @@ private fun AvatarPickerDialog(
             }
         },
         containerColor = MomentaSurface
+    )
+}
+
+@Composable
+private fun ProfileLoadingSkeleton() {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .size(78.dp)
+                        .clip(CircleShape)
+                        .background(MomentaSurfaceAlt)
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+                SkeletonBlock(width = 130.dp, height = 22.dp)
+                Spacer(modifier = Modifier.height(8.dp))
+                SkeletonBlock(width = 96.dp, height = 14.dp)
+                Spacer(modifier = Modifier.height(12.dp))
+                SkeletonBlock(width = 150.dp, height = 14.dp)
+            }
+            Column(
+                modifier = Modifier.weight(1.25f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SkeletonStat(fill = true)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SkeletonStat(modifier = Modifier.weight(1f))
+                    SkeletonStat(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        SkeletonBlock(width = 168.dp, height = 20.dp)
+        Spacer(modifier = Modifier.height(8.dp))
+        repeat(3) {
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                repeat(3) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .clip(MomentaMediumShape)
+                            .background(MomentaSurfaceAlt)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(5.dp))
+        }
+    }
+}
+
+@Composable
+private fun SkeletonStat(modifier: Modifier = Modifier, fill: Boolean = false) {
+    MomentaCard(
+        modifier = if (fill) Modifier.fillMaxWidth() else modifier,
+        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp)
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            SkeletonBlock(width = 36.dp, height = 22.dp)
+            Spacer(modifier = Modifier.height(8.dp))
+            SkeletonBlock(width = 58.dp, height = 12.dp)
+        }
+    }
+}
+
+@Composable
+private fun SkeletonBlock(width: androidx.compose.ui.unit.Dp, height: androidx.compose.ui.unit.Dp) {
+    Box(
+        modifier = Modifier
+            .size(width = width, height = height)
+            .clip(MomentaLargeShape)
+            .background(MomentaSurfaceAlt)
     )
 }
 

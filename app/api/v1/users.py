@@ -8,7 +8,6 @@ from app.schemas.user import AvatarListResponse, UpdateAvatarRequest, UserProfil
 from app.services.auth_service import get_user_by_id
 from app.api.v1.auth import get_current_user_id
 from app.models.post import Post
-from app.models.reaction import Reaction
 
 router = APIRouter(prefix="/api/v1", tags=["users"])
 
@@ -24,11 +23,9 @@ async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -
     moments_count = moments_result.scalar() or 0
 
     likes_result = await db.execute(
-        select(func.count(Reaction.id)).where(
-            Reaction.post_id.in_(
-                select(Post.id).where(Post.user_id == user.id, Post.status == "active")
-            ),
-            Reaction.type == "like",
+        select(func.coalesce(func.sum(Post.likes_count), 0)).where(
+            Post.user_id == user.id,
+            Post.status == "active",
         )
     )
     likes_count = likes_result.scalar() or 0

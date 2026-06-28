@@ -8,6 +8,7 @@ import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.FeedRepository
 import com.bghitech.momenta.domain.repository.PostRepository
+import com.bghitech.momenta.domain.repository.ProfileRepository
 import com.bghitech.momenta.domain.usecase.GetTodayFeedUseCase
 import com.bghitech.momenta.domain.usecase.LikePostUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +38,8 @@ class FeedViewModel @Inject constructor(
     private val getTodayFeedUseCase: GetTodayFeedUseCase,
     private val likePostUseCase: LikePostUseCase,
     private val feedRepository: FeedRepository,
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FeedUiState())
@@ -66,11 +68,21 @@ class FeedViewModel @Inject constructor(
         userScrolledAfterPublish = false
         loadJob?.cancel()
         publishRefreshJob = viewModelScope.launch {
-            loadFeedNow(showCached = false, scrollToTop = true)
-            listOf(1000L, 2500L, 5000L, 8500L).forEach { delayMs ->
-                delay(delayMs)
-                if (userScrolledAfterPublish) return@launch
-                loadFeedNow(showCached = false, scrollToTop = false)
+            val previousTopId = _state.value.items.firstOrNull()?.id
+            loadFeedNow(
+                showCached = false,
+                scrollToTop = false,
+                keepExistingWhileLoading = true,
+                scrollToTopWhenChangedFromId = previousTopId
+            )
+            delay(1400L)
+            if (!userScrolledAfterPublish) {
+                loadFeedNow(
+                    showCached = false,
+                    scrollToTop = false,
+                    keepExistingWhileLoading = true,
+                    scrollToTopWhenChangedFromId = previousTopId
+                )
             }
         }
     }
@@ -81,11 +93,16 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadFeedNow(showCached: Boolean, scrollToTop: Boolean) {
+    private suspend fun loadFeedNow(
+        showCached: Boolean,
+        scrollToTop: Boolean,
+        keepExistingWhileLoading: Boolean = false,
+        scrollToTopWhenChangedFromId: String? = null
+    ) {
         _state.value = _state.value.copy(isLoading = true, error = null)
 
         val cached = getTodayFeedUseCase.getCached()
-        if (showCached && cached.isNotEmpty()) {
+        if (showCached && cached.isNotEmpty() && !keepExistingWhileLoading) {
             _state.value = _state.value.copy(
                 items = cached,
                 suggestedUsers = _state.value.suggestedUsers.ifEmpty { cached.suggestedUsers() }
@@ -94,12 +111,16 @@ class FeedViewModel @Inject constructor(
 
         when (val result = getTodayFeedUseCase()) {
             is AppResult.Success -> {
+                val shouldScrollToTop = scrollToTop ||
+                        (scrollToTopWhenChangedFromId != null &&
+                                result.data.firstOrNull()?.id != null &&
+                                result.data.firstOrNull()?.id != scrollToTopWhenChangedFromId)
                 _state.value = _state.value.copy(
                     isLoading = false,
                     items = result.data,
                     suggestedUsers = _state.value.suggestedUsers.ifEmpty { result.data.suggestedUsers() },
                     isOffline = false,
-                    scrollToTopSignal = if (scrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
+                    scrollToTopSignal = if (shouldScrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
                 )
             }
             is AppResult.Error -> {
@@ -150,16 +171,20 @@ class FeedViewModel @Inject constructor(
     fun toggleLike(postId: String, currentlyLiked: Boolean) {
         viewModelScope.launch {
             val oldItems = _state.value.items
+            val targetPost = oldItems.firstOrNull { it.id == postId }
+            val likesDelta = if (currentlyLiked) -1 else 1
             _state.value = _state.value.copy(
                 items = _state.value.items.map {
                     if (it.id == postId) it.copy(
                         isLiked = !currentlyLiked,
-                        likesCount = if (currentlyLiked) (it.likesCount - 1).coerceAtLeast(0) else it.likesCount + 1
+                        likesCount = (it.likesCount + likesDelta).coerceAtLeast(0)
                     ) else it
                 }
             )
             if (likePostUseCase(postId, !currentlyLiked) is AppResult.Error) {
                 _state.value = _state.value.copy(items = oldItems)
+            } else if (targetPost?.isMine == true) {
+                adjustCachedProfileLikes(likesDelta)
             }
         }
     }
@@ -172,6 +197,7 @@ class FeedViewModel @Inject constructor(
 
     fun deletePost(postId: String) {
         viewModelScope.launch {
+            val deletedPost = _state.value.items.firstOrNull { it.id == postId }
             when (postRepository.deletePost(postId)) {
                 is AppResult.Success -> {
                     val newItems = _state.value.items.filterNot { it.id == postId }
@@ -179,6 +205,9 @@ class FeedViewModel @Inject constructor(
                         items = newItems,
                         suggestedUsers = _state.value.suggestedUsers.ifEmpty { newItems.suggestedUsers() }
                     )
+                    if (deletedPost?.isMine == true) {
+                        removePostFromCachedProfile(deletedPost)
+                    }
                 }
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(error = "Не удалось удалить момент")
@@ -263,4 +292,22 @@ class FeedViewModel @Inject constructor(
             .filter { it.username.isNotBlank() }
             .distinctBy { it.username }
             .take(20)
+
+    private suspend fun adjustCachedProfileLikes(delta: Int) {
+        val cachedProfile = profileRepository.getCachedProfile() ?: return
+        profileRepository.cacheProfile(
+            cachedProfile.copy(likesCount = (cachedProfile.likesCount + delta).coerceAtLeast(0))
+        )
+    }
+
+    private suspend fun removePostFromCachedProfile(post: Post) {
+        val cachedProfile = profileRepository.getCachedProfile() ?: return
+        profileRepository.cacheProfile(
+            cachedProfile.copy(
+                momentsCount = (cachedProfile.momentsCount - 1).coerceAtLeast(0),
+                likesCount = (cachedProfile.likesCount - post.likesCount).coerceAtLeast(0),
+                recentPosts = cachedProfile.recentPosts.filterNot { it.id == post.id }
+            )
+        )
+    }
 }

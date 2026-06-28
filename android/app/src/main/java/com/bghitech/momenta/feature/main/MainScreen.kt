@@ -23,7 +23,7 @@ fun MainScreen(
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit,
     startRoute: String = NavRoutes.TODAY,
-    forceRefreshFeed: Boolean = false
+    feedRefreshKey: Int = 0
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -79,7 +79,7 @@ fun MainScreen(
                 SearchScreen()
             }
             composable(NavRoutes.FEED) {
-                FeedScreen(forceRefreshOnOpen = forceRefreshFeed)
+                FeedScreen(publishRefreshKey = feedRefreshKey)
             }
             composable(NavRoutes.CIRCLE) {
                 CircleScreen()

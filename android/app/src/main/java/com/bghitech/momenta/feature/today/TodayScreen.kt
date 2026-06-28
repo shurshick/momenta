@@ -153,9 +153,7 @@ private fun ChallengeSection(
             onCaptureClick = onCaptureClick,
             onOpenFeed = onOpenFeed
         )
-        state.isChallengeLoading -> MomentaCard(modifier = Modifier.fillMaxWidth()) {
-            MomentaLoading(message = "Загружаем задание дня...")
-        }
+        state.isChallengeLoading -> ChallengeSkeleton()
         else -> SmallErrorCard(
             title = "Задание дня",
             message = state.challengeError ?: "Не удалось загрузить задание дня",
@@ -278,12 +276,70 @@ private fun BestMomentSection(
 
         when {
             state.bestPost != null -> BestMomentCard(post = state.bestPost, onClick = onOpenFeed)
-            state.isBestMomentLoading -> MomentaCard(modifier = Modifier.fillMaxWidth()) {
-                MomentaLoading(message = "Ищем лучший момент...")
-            }
+            state.isBestMomentLoading -> BestMomentSkeleton()
             else -> EmptyBestMoment(onCaptureClick = onCaptureClick)
         }
     }
+}
+
+@Composable
+private fun ChallengeSkeleton() {
+    MomentaCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SkeletonLine(width = 88.dp, height = 12.dp)
+                SkeletonLine(width = 96.dp, height = 12.dp)
+            }
+            SkeletonLine(width = 160.dp, height = 22.dp)
+            SkeletonLine(width = 240.dp, height = 14.dp)
+            SkeletonLine(width = 132.dp, height = 14.dp, warm = true)
+            SkeletonLine(width = 180.dp, height = 40.dp)
+        }
+    }
+}
+
+@Composable
+private fun BestMomentSkeleton() {
+    MomentaCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.18f)
+                    .background(com.bghitech.momenta.core.design.MomentaSurfaceAlt)
+            )
+            Column(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SkeletonLine(width = 120.dp, height = 16.dp)
+                SkeletonLine(width = 210.dp, height = 13.dp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SkeletonLine(width: androidx.compose.ui.unit.Dp, height: androidx.compose.ui.unit.Dp, warm: Boolean = false) {
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(height)
+            .clip(MomentaLargeShape)
+            .background(
+                if (warm) MomentaWarm.copy(alpha = 0.24f)
+                else com.bghitech.momenta.core.design.MomentaSurfaceAlt
+            )
+    )
 }
 
 @Composable

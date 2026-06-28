@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -59,6 +60,7 @@ fun MomentaNavGraph() {
     val isLoggedIn by appAuthStateViewModel.isLoggedIn.collectAsStateWithLifecycle()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val context = LocalContext.current
+    var feedRefreshKey by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(isLoggedIn, backStackEntry?.destination?.route) {
         val route = backStackEntry?.destination?.route
@@ -130,7 +132,7 @@ fun MomentaNavGraph() {
         composable(NavRoutes.MAIN_FEED) {
             MainScreen(
                 startRoute = NavRoutes.FEED,
-                forceRefreshFeed = false,
+                feedRefreshKey = feedRefreshKey,
                 onNavigateToCamera = {
                     navController.navigate(NavRoutes.CAMERA)
                 },
@@ -140,24 +142,6 @@ fun MomentaNavGraph() {
                 onLogout = {
                     navController.navigate(NavRoutes.AUTH) {
                         popUpTo(NavRoutes.MAIN_FEED) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(NavRoutes.MAIN_FEED_REFRESH) {
-            MainScreen(
-                startRoute = NavRoutes.FEED,
-                forceRefreshFeed = true,
-                onNavigateToCamera = {
-                    navController.navigate(NavRoutes.CAMERA)
-                },
-                onNavigateToSettings = {
-                    navController.navigate(NavRoutes.SETTINGS)
-                },
-                onLogout = {
-                    navController.navigate(NavRoutes.AUTH) {
-                        popUpTo(NavRoutes.MAIN_FEED_REFRESH) { inclusive = true }
                     }
                 }
             )
@@ -192,7 +176,8 @@ fun MomentaNavGraph() {
                 imagePath = imagePath,
                 onBack = { navController.popBackStack() },
                 onUploadSuccess = {
-                    navController.navigate(NavRoutes.MAIN_FEED_REFRESH) {
+                    feedRefreshKey += 1
+                    navController.navigate(NavRoutes.MAIN_FEED) {
                         popUpTo(0)
                         launchSingleTop = true
                     }
@@ -203,7 +188,8 @@ fun MomentaNavGraph() {
         composable(NavRoutes.UPLOAD_SUCCESS) {
             com.bghitech.momenta.feature.publish.UploadSuccessScreen(
                 onGoToToday = {
-                    navController.navigate(NavRoutes.MAIN_FEED_REFRESH) {
+                    feedRefreshKey += 1
+                    navController.navigate(NavRoutes.MAIN_FEED) {
                         popUpTo(NavRoutes.UPLOAD_SUCCESS) { inclusive = true }
                     }
                 }
