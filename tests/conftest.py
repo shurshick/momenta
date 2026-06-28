@@ -12,6 +12,7 @@ from app.models.base import Base
 from app.models.challenge import Challenge
 from app.models.user import User
 from app.security import get_password_hash
+from app.services.challenge_service import current_app_date
 
 @pytest.fixture(scope="session")
 async def engine(tmp_path_factory):
@@ -123,7 +124,7 @@ async def test_admin(db_session):
 async def test_challenge(db_session):
     challenge = Challenge(
         id=uuid.uuid4(),
-        challenge_date=date.today(),
+        challenge_date=current_app_date(),
         title_ru="Тестовый челлендж",
         description_ru="Описание",
         prompt_ru="Сделай тестовый момент",

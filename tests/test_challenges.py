@@ -5,7 +5,11 @@ import pytest
 from sqlalchemy import select
 
 from app.models.challenge import Challenge
-from app.services.challenge_service import generate_auto_challenge_for_date, get_or_create_today_challenge
+from app.services.challenge_service import (
+    current_app_date,
+    generate_auto_challenge_for_date,
+    get_or_create_today_challenge,
+)
 from app.services.challenge_templates import AUTO_CHALLENGE_TEMPLATES
 
 
@@ -31,7 +35,7 @@ async def test_get_today_challenge_auto_creates_when_missing(client, auth_header
     assert data["prompt"]
     assert data["source"] == "auto"
 
-    result = await db_session.execute(select(Challenge).where(Challenge.challenge_date == date.today()))
+    result = await db_session.execute(select(Challenge).where(Challenge.challenge_date == current_app_date()))
     assert result.scalar_one_or_none() is not None
 
 
@@ -44,7 +48,7 @@ async def test_get_today_challenge_is_idempotent(client, auth_headers, db_sessio
     assert second.status_code == 200
     assert first.json()["id"] == second.json()["id"]
 
-    result = await db_session.execute(select(Challenge).where(Challenge.challenge_date == date.today()))
+    result = await db_session.execute(select(Challenge).where(Challenge.challenge_date == current_app_date()))
     assert len(result.scalars().all()) == 1
 
 
@@ -111,7 +115,7 @@ async def test_get_today_challenge_handles_unique_conflict_without_500(client, a
 
 @pytest.mark.asyncio
 async def test_get_challenge_by_date(client, test_challenge):
-    response = await client.get(f"/api/v1/challenges/by-date/{date.today().isoformat()}")
+    response = await client.get(f"/api/v1/challenges/by-date/{current_app_date().isoformat()}")
 
     assert response.status_code == 200
     data = response.json()

@@ -3,6 +3,8 @@ from datetime import date, timedelta
 
 import pytest
 
+from app.services.challenge_service import current_app_date
+
 
 @pytest.mark.asyncio
 async def test_upload_requires_auth(client):
@@ -36,7 +38,7 @@ async def test_second_post_same_day_rejected(
         id=uuid.uuid4(),
         user_id=test_user.id,
         challenge_id=test_challenge.id,
-        challenge_date=date.today(),
+        challenge_date=current_app_date(),
         media_type="photo",
         original_url="https://example.com/test.jpg",
         status="active",
@@ -77,7 +79,7 @@ async def test_best_random_returns_active_today_post(client, auth_headers, test_
         id=uuid.uuid4(),
         user_id=test_user.id,
         challenge_id=test_challenge.id,
-        challenge_date=date.today(),
+        challenge_date=current_app_date(),
         media_type="photo",
         original_url="https://example.com/original.jpg",
         preview_url="https://example.com/preview.webp",
@@ -126,7 +128,7 @@ async def test_best_random_ignores_deleted_posts(client, auth_headers, test_user
         id=uuid.uuid4(),
         user_id=test_user.id,
         challenge_id=test_challenge.id,
-        challenge_date=date.today(),
+        challenge_date=current_app_date(),
         media_type="photo",
         original_url="https://example.com/original.jpg",
         preview_url="https://example.com/preview.webp",
@@ -149,7 +151,7 @@ async def test_feed_first_page_contains_newest_active_post(client, auth_headers,
         id=uuid.uuid4(),
         user_id=test_user.id,
         challenge_id=test_challenge.id,
-        challenge_date=date.today(),
+        challenge_date=current_app_date(),
         media_type="photo",
         original_url="https://example.com/older.jpg",
         preview_url="https://example.com/older.webp",
@@ -159,7 +161,7 @@ async def test_feed_first_page_contains_newest_active_post(client, auth_headers,
         id=uuid.uuid4(),
         user_id=test_user.id,
         challenge_id=test_challenge.id,
-        challenge_date=date.today(),
+        challenge_date=current_app_date(),
         media_type="photo",
         original_url="https://example.com/newer.jpg",
         preview_url="https://example.com/newer.webp",
