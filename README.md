@@ -8,7 +8,7 @@
 
 ## Current Status
 
-РўРµРєСѓС‰Р°СЏ СЃС‚Р°Р±РёР»СЊРЅР°СЏ РІРµСЂСЃРёСЏ: **v0.2.27**.
+РўРµРєСѓС‰Р°СЏ СЃС‚Р°Р±РёР»СЊРЅР°СЏ РІРµСЂСЃРёСЏ: **v0.2.28**.
 
 РўРµРєСѓС‰РёР№ РІРёР·СѓР°Р»СЊРЅС‹Р№ СЃС‚Р°РЅРґР°СЂС‚ Android: **Momenta Design Concept v1**.
 
@@ -111,7 +111,7 @@ Production-like ports used by the current deploy:
 For test/dev deploys `ghcr.io/shurshick/momenta:latest` is convenient. For production use a fixed tag, for example:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.27
+image: ghcr.io/shurshick/momenta:v0.2.28
 ```
 
 Full guide: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
@@ -156,11 +156,11 @@ GitHub Actions:
 
 ## Releases
 
-Latest release: [v0.2.27](https://github.com/shurshick/momenta/releases/tag/v0.2.27)
+Latest release: [v0.2.28](https://github.com/shurshick/momenta/releases/tag/v0.2.28)
 
 Release artifacts:
 
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.27`
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.28`
 - Docker image: `ghcr.io/shurshick/momenta:latest`
 - Android APK: attached to the GitHub release and workflow artifacts
 

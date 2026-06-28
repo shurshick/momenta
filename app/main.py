@@ -14,6 +14,7 @@ from app.models.user import User
 from app.security import get_password_hash
 from app.services.redis_service import close_redis
 from app.services.s3_service import ensure_bucket
+from app.version import RELEASE_VERSION
 
 
 @asynccontextmanager
@@ -73,7 +74,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    version=settings.app_version,
+    version=RELEASE_VERSION,
     lifespan=lifespan,
     docs_url="/docs",
     openapi_url="/openapi.json",
@@ -141,6 +142,6 @@ async def ready():
 async def meta():
     return {
         "name": settings.app_name,
-        "version": settings.app_version,
+        "version": RELEASE_VERSION,
         "environment": settings.app_env,
     }

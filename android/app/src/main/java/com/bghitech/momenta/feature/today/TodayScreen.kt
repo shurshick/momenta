@@ -93,7 +93,7 @@ fun TodayScreen(
                 onOpenFeed = onOpenFeed
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             BestMomentSection(
                 state = state,
@@ -173,7 +173,7 @@ private fun ChallengeCard(
 ) {
     MomentaCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(20.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Column {
             Row(
@@ -194,29 +194,29 @@ private fun ChallengeCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(9.dp))
 
             Text(
                 text = challenge.title.ifBlank { stringResource(R.string.default_challenge_title) },
                 color = MomentaText,
-                fontSize = 25.sp,
+                fontSize = 21.sp,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 31.sp
+                lineHeight = 25.sp
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = challenge.prompt ?: challenge.description ?: stringResource(R.string.default_challenge_description),
                 color = MomentaTextSecondary,
-                fontSize = 15.sp,
-                lineHeight = 22.sp
+                fontSize = 14.sp,
+                lineHeight = 18.sp
             )
 
             if (challenge.endsAt != null) {
                 val timeLeft = rememberCountdownTime(challenge.endsAt)
                 if (timeLeft.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "До конца дня $timeLeft",
                         color = MomentaWarm,
@@ -226,16 +226,17 @@ private fun ChallengeCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             if (userPostedToday) {
                 Text(
                     text = stringResource(R.string.already_posted),
                     color = MomentaText,
-                    fontSize = 15.sp,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 MomentaSecondaryButton(
                     text = stringResource(R.string.watch_world_now),
                     onClick = onOpenFeed
@@ -263,7 +264,7 @@ private fun BestMomentSection(
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         when {
             state.bestPost != null -> BestMomentCard(post = state.bestPost, onClick = onOpenFeed)
@@ -289,7 +290,7 @@ private fun BestMomentCard(post: Post, onClick: () -> Unit) {
                 contentDescription = "Лучший момент дня",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.9f)
+                    .aspectRatio(1.12f)
                     .clip(MomentaLargeShape),
                 contentScale = ContentScale.Crop
             )

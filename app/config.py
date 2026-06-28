@@ -1,11 +1,12 @@
 from pydantic_settings import BaseSettings
 from typing import List
+from app.version import RELEASE_VERSION
 
 
 class Settings(BaseSettings):
     app_name: str = "Momenta"
     app_env: str = "development"
-    app_version: str = "0.2.27"
+    app_version: str = RELEASE_VERSION
     app_timezone: str = "Europe/Moscow"
 
     api_host: str = "0.0.0.0"

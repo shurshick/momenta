@@ -79,7 +79,7 @@ docker pull ghcr.io/shurshick/momenta:latest
 | РџРѕР»Рµ | Р—РЅР°С‡РµРЅРёРµ |
 |---|---|
 | Application Name | `momenta` |
-| Version | `0.2.27` |
+| Version | `0.2.28` |
 
 ### 4.3. Р’СЃС‚Р°РІСЊС‚Рµ YAML РєРѕРЅС„РёРіСѓСЂР°С†РёСЋ
 
@@ -344,7 +344,7 @@ http://<trueNAS-IP>:9011
 Р”Р»СЏ С‚РµСЃС‚РѕРІРѕРіРѕ СЃС‚РµРЅРґР° РјРѕР¶РЅРѕ РѕСЃС‚Р°РІРёС‚СЊ `latest`. Р”Р»СЏ production Р»СѓС‡С€Рµ Р·Р°РјРµРЅРёС‚СЊ `latest` РЅР° РєРѕРЅРєСЂРµС‚РЅСѓСЋ РІРµСЂСЃРёСЋ:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.27
+image: ghcr.io/shurshick/momenta:v0.2.28
 ```
 
 ### 7.3. Р—Р°РїСѓСЃС‚РёС‚Рµ

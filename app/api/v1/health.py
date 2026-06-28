@@ -13,8 +13,9 @@ async def ready():
 @router.get("/api/v1/meta")
 async def meta():
     from app.config import settings
+    from app.version import RELEASE_VERSION
     return {
         "name": settings.app_name,
-        "version": settings.app_version,
+        "version": RELEASE_VERSION,
         "environment": settings.app_env,
     }

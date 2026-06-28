@@ -166,67 +166,69 @@ private fun ProfileContent(
     onEditClick: () -> Unit,
     onAvatarClick: () -> Unit
 ) {
-    MomentaAvatar(
-        avatarUrl = state.avatarUrl,
-        avatarKey = state.avatarKey,
-        username = state.username,
-        size = 80.dp,
-        modifier = Modifier.clickable(onClick = onAvatarClick)
-    )
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = state.displayName,
-            color = MomentaText,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-        IconButton(
-            onClick = onEditClick,
-            modifier = Modifier.size(32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Редактировать профиль",
-                tint = MomentaGreen,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
-
-    Text(
-        text = state.username,
-        color = MomentaTextSecondary,
-        fontSize = 14.sp
-    )
-
-    if (!state.bio.isNullOrBlank()) {
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = state.bio,
-            color = MomentaTextSecondary,
-            fontSize = 13.sp,
-            textAlign = TextAlign.Center
-        )
-    }
-
-    Spacer(modifier = Modifier.height(24.dp))
-
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        StatItem(value = "${state.momentsCount}", label = "Моментов", modifier = Modifier.weight(1f))
-        StatItem(value = "${state.streakCount}", label = "Дней подряд", modifier = Modifier.weight(1f))
-        StatItem(value = "${state.likesCount}", label = "Лайков", modifier = Modifier.weight(1f))
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start
+        ) {
+            MomentaAvatar(
+                avatarUrl = state.avatarUrl,
+                avatarKey = state.avatarKey,
+                username = state.username,
+                size = 78.dp,
+                modifier = Modifier.clickable(onClick = onAvatarClick)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = state.displayName,
+                    color = MomentaText,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(
+                    onClick = onEditClick,
+                    modifier = Modifier.size(30.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Редактировать профиль",
+                        tint = MomentaGreen,
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
+            }
+
+            Text(
+                text = state.username,
+                color = MomentaTextSecondary,
+                fontSize = 14.sp
+            )
+
+            if (!state.bio.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = state.bio,
+                    color = MomentaTextSecondary,
+                    fontSize = 13.sp,
+                    lineHeight = 17.sp
+                )
+            }
+        }
+
+        ProfileStatsBlock(
+            state = state,
+            modifier = Modifier.weight(1.25f)
+        )
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(18.dp))
 
     Text(
         text = "Недавние моменты",
@@ -260,6 +262,35 @@ private fun ProfileContent(
             items(state.recentPosts, key = { it.id }) { post ->
                 RecentPostTile(post = post)
             }
+        }
+    }
+}
+
+@Composable
+private fun ProfileStatsBlock(state: ProfileUiState, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        StatItem(
+            value = "${state.streakCount}",
+            label = "${dayWord(state.streakCount)}\nподряд",
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp)
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            StatItem(
+                value = "${state.momentsCount}",
+                label = momentWord(state.momentsCount),
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp)
+            )
+            StatItem(
+                value = "${state.likesCount}",
+                label = likeWord(state.likesCount),
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp)
+            )
         }
     }
 }
@@ -382,8 +413,13 @@ private fun RecentPostTile(post: Post) {
 }
 
 @Composable
-private fun StatItem(value: String, label: String, modifier: Modifier = Modifier) {
-    MomentaCard(modifier = modifier) {
+private fun StatItem(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 12.dp)
+) {
+    MomentaCard(modifier = modifier, contentPadding = contentPadding) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = value,
@@ -395,9 +431,27 @@ private fun StatItem(value: String, label: String, modifier: Modifier = Modifier
                 text = label,
                 color = MomentaTextSecondary,
                 fontSize = 11.sp,
+                lineHeight = 15.sp,
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+private fun dayWord(value: Int): String = pluralRu(value, "день", "дня", "дней")
+
+private fun momentWord(value: Int): String = pluralRu(value, "Момент", "Момента", "Моментов")
+
+private fun likeWord(value: Int): String = pluralRu(value, "Лайк", "Лайка", "Лайков")
+
+private fun pluralRu(value: Int, one: String, few: String, many: String): String {
+    val mod100 = value % 100
+    val mod10 = value % 10
+    return when {
+        mod100 in 11..14 -> many
+        mod10 == 1 -> one
+        mod10 in 2..4 -> few
+        else -> many
     }
 }
 

@@ -16,6 +16,7 @@ from app.models.audit_log import AuditLog
 from app.models.media_asset import MediaAsset
 from app.security import verify_password, create_access_token, decode_token
 from app.config import settings
+from app.version import RELEASE_VERSION
 from app.services.challenge_service import create_challenge, get_challenge_by_date
 from app.services.auth_service import get_user_by_id
 from app.services.s3_service import ensure_bucket
@@ -23,7 +24,7 @@ from app.services.setting_service import get_all_settings, set_setting, invalida
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
-templates.env.globals["app_version"] = settings.app_version
+templates.env.globals["app_version"] = RELEASE_VERSION
 templates.env.globals["app_env"] = settings.app_env
 
 
