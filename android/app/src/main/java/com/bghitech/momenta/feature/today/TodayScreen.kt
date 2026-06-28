@@ -173,7 +173,7 @@ private fun ChallengeCard(
 ) {
     MomentaCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Column {
             Row(
@@ -194,29 +194,29 @@ private fun ChallengeCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(9.dp))
+            Spacer(modifier = Modifier.height(7.dp))
 
             Text(
                 text = challenge.title.ifBlank { stringResource(R.string.default_challenge_title) },
                 color = MomentaText,
-                fontSize = 21.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 25.sp
+                lineHeight = 23.sp
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             Text(
                 text = challenge.prompt ?: challenge.description ?: stringResource(R.string.default_challenge_description),
                 color = MomentaTextSecondary,
                 fontSize = 14.sp,
-                lineHeight = 18.sp
+                lineHeight = 17.sp
             )
 
             if (challenge.endsAt != null) {
                 val timeLeft = rememberCountdownTime(challenge.endsAt)
                 if (timeLeft.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "До конца дня $timeLeft",
                         color = MomentaWarm,
@@ -226,17 +226,17 @@ private fun ChallengeCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(9.dp))
 
             if (userPostedToday) {
                 Text(
                     text = stringResource(R.string.already_posted),
                     color = MomentaText,
                     fontSize = 14.sp,
-                    lineHeight = 18.sp,
+                    lineHeight = 17.sp,
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(7.dp))
                 MomentaSecondaryButton(
                     text = stringResource(R.string.watch_world_now),
                     onClick = onOpenFeed
@@ -331,8 +331,6 @@ private fun BestMomentCard(post: Post, onClick: () -> Unit) {
                         lineHeight = 20.sp
                     )
                 }
-                Spacer(modifier = Modifier.height(14.dp))
-                MomentaSecondaryButton(text = stringResource(R.string.watch_world_now), onClick = onClick)
             }
         }
     }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
@@ -239,28 +238,36 @@ private fun ProfileContent(
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 96.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        if (state.recentPosts.isEmpty()) {
-            item(span = { GridItemSpan(3) }) {
-                MomentaCard(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "Здесь появятся твои опубликованные моменты.",
-                        color = MomentaTextSecondary,
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+    if (state.recentPosts.isEmpty()) {
+        MomentaCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Здесь появятся твои опубликованные моменты.",
+                color = MomentaTextSecondary,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            state.recentPosts.take(9).chunked(3).forEach { rowPosts ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    rowPosts.forEach { post ->
+                        RecentPostTile(
+                            post = post,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    repeat(3 - rowPosts.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
-            }
-        } else {
-            items(state.recentPosts, key = { it.id }) { post ->
-                RecentPostTile(post = post)
             }
         }
     }
@@ -389,10 +396,10 @@ private fun AvatarPickerDialog(
 }
 
 @Composable
-private fun RecentPostTile(post: Post) {
+private fun RecentPostTile(post: Post, modifier: Modifier = Modifier) {
     val imageUrl = post.thumbUrl ?: post.previewUrl
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .aspectRatio(1f)
             .clip(MomentaMediumShape),
         color = MomentaSurfaceAlt
