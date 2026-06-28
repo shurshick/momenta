@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -62,6 +63,7 @@ import com.bghitech.momenta.core.design.MomentaError
 import com.bghitech.momenta.core.design.MomentaGreen
 import com.bghitech.momenta.core.design.MomentaGreenAlpha
 import com.bghitech.momenta.core.design.MomentaLargeShape
+import com.bghitech.momenta.core.design.MomentaLogoMark
 import com.bghitech.momenta.core.design.MomentaMediumShape
 import com.bghitech.momenta.core.design.MomentaRoundShape
 import com.bghitech.momenta.core.design.MomentaScreen
@@ -186,9 +188,18 @@ private fun ProfileContent(
     onEditClick: () -> Unit,
     onAvatarClick: () -> Unit
 ) {
+    var previewPost by remember { mutableStateOf<Post?>(null) }
+
+    previewPost?.let { post ->
+        RecentPostPreviewDialog(
+            post = post,
+            onDismiss = { previewPost = null }
+        )
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.Top
     ) {
         Column(
@@ -197,7 +208,7 @@ private fun ProfileContent(
         ) {
             Box(
                 modifier = Modifier
-                    .size(84.dp)
+                    .size(78.dp)
                     .clickable(onClick = onAvatarClick),
                 contentAlignment = Alignment.TopStart
             ) {
@@ -207,31 +218,15 @@ private fun ProfileContent(
                     username = state.username,
                     size = 78.dp
                 )
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(MomentaSurface)
-                        .border(1.dp, MomentaGreen, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Выбрать аватар",
-                        tint = MomentaGreen,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = state.displayName,
                     color = MomentaText,
-                    fontSize = 20.sp,
+                    fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -259,7 +254,7 @@ private fun ProfileContent(
             )
 
             if (!state.bio.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = state.bio,
                     color = MomentaTextSecondary,
@@ -277,7 +272,7 @@ private fun ProfileContent(
         )
     }
 
-    Spacer(modifier = Modifier.height(14.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 
     Text(
         text = "Недавние моменты",
@@ -289,29 +284,22 @@ private fun ProfileContent(
     Spacer(modifier = Modifier.height(7.dp))
 
     if (state.recentPosts.isEmpty()) {
-        MomentaCard(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "Здесь появятся твои опубликованные моменты.",
-                color = MomentaTextSecondary,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+        EmptyProfileMoments()
     } else {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             state.recentPosts.take(9).chunked(3).forEach { rowPosts ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     rowPosts.forEach { post ->
                         RecentPostTile(
                             post = post,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { previewPost = post }
                         )
                     }
                     repeat(3 - rowPosts.size) {
@@ -537,12 +525,17 @@ private fun SkeletonBlock(width: androidx.compose.ui.unit.Dp, height: androidx.c
 }
 
 @Composable
-private fun RecentPostTile(post: Post, modifier: Modifier = Modifier) {
+private fun RecentPostTile(
+    post: Post,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     val imageUrl = post.thumbUrl ?: post.previewUrl
     Surface(
         modifier = modifier
             .aspectRatio(1f)
-            .clip(MomentaMediumShape),
+            .clip(MomentaMediumShape)
+            .clickable(onClick = onClick),
         color = MomentaSurfaceAlt
     ) {
         if (imageUrl.isNotBlank()) {
@@ -555,6 +548,66 @@ private fun RecentPostTile(post: Post, modifier: Modifier = Modifier) {
         } else {
             Box(contentAlignment = Alignment.Center) {
                 Text("•", color = MomentaGreenAlpha, fontSize = 20.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyProfileMoments() {
+    MomentaCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 22.dp)
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            MomentaLogoMark(size = 54)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Пока нет моментов",
+                color = MomentaText,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Первый снимок появится здесь красивой галереей.",
+                color = MomentaTextSecondary,
+                fontSize = 13.sp,
+                lineHeight = 17.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecentPostPreviewDialog(post: Post, onDismiss: () -> Unit) {
+    val imageUrl = post.previewUrl.ifBlank { post.thumbUrl.orEmpty() }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(MomentaLargeShape),
+            color = MomentaSurface
+        ) {
+            Column {
+                Image(
+                    painter = rememberAsyncImagePainter(model = imageUrl),
+                    contentDescription = post.caption ?: "Момент",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    contentScale = ContentScale.Crop
+                )
+                if (!post.caption.isNullOrBlank()) {
+                    Text(
+                        text = post.caption,
+                        color = MomentaText,
+                        fontSize = 14.sp,
+                        lineHeight = 19.sp,
+                        modifier = Modifier.padding(14.dp)
+                    )
+                }
             }
         }
     }

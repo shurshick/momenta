@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
@@ -41,7 +40,7 @@ enum class BottomNavItem(
 ) {
     TODAY("today", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt, "Момент"),
     FEED("feed", Icons.Filled.Language, Icons.Outlined.Language, "Мир сейчас"),
-    CREATE("camera", Icons.Filled.Add, Icons.Filled.Add, "Создать"),
+    CREATE("camera", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt, "Создать"),
     PROFILE("profile", Icons.Filled.Person, Icons.Outlined.Person, "Профиль")
 }
 
@@ -57,7 +56,7 @@ fun MomentaBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
                 .navigationBarsPadding(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -70,7 +69,7 @@ fun MomentaBottomBar(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(58.dp)
+                                .size(52.dp)
                                 .clip(CircleShape)
                                 .background(MomentaGreen),
                             contentAlignment = Alignment.Center
@@ -79,14 +78,14 @@ fun MomentaBottomBar(
                                 imageVector = item.selectedIcon,
                                 contentDescription = item.label,
                                 tint = MomentaBackground,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(3.dp))
                         Text(
                             text = item.label,
                             color = MomentaGreen,
-                            fontSize = 10.sp,
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -96,19 +95,19 @@ fun MomentaBottomBar(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .clickable { onNavigate(item.route) }
-                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                            .padding(horizontal = 2.dp, vertical = 3.dp)
                     ) {
                         Icon(
                             imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
                             contentDescription = item.label,
                             tint = if (selected) MomentaGreen else MomentaTextSecondary,
-                            modifier = Modifier.size(23.dp)
+                            modifier = Modifier.size(22.dp)
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(3.dp))
                         Text(
                             text = item.label,
                             color = if (selected) MomentaGreen else MomentaTextSecondary,
-                            fontSize = 10.sp,
+                            fontSize = 9.sp,
                             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                         )
                     }

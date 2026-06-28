@@ -28,7 +28,7 @@ Hilt: `@HiltAndroidApp`, `@AndroidEntryPoint`, `@HiltViewModel`, `@Module @Insta
 - При отсутствии сети показывается закэшированные данные
 - Ошибки сети не скрывают кэш
 
-## v0.2.31 Notes
+## v0.2.32 Notes
 
 - Today screen loads the daily challenge and the best moment as independent states.
 - Android never generates the daily challenge locally; it always asks `/api/v1/challenges/today`.

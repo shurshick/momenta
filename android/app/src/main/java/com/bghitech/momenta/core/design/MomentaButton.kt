@@ -45,7 +45,7 @@ fun MomentaPrimaryButton(
         } else {
             Text(
                 text = text,
-                fontSize = 16.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -78,7 +78,7 @@ fun MomentaSecondaryButton(
         Text(
             text = text,
             modifier = Modifier.fillMaxWidth(),
-            fontSize = 16.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center
         )

@@ -46,11 +46,12 @@ import coil.compose.rememberAsyncImagePainter
 import com.bghitech.momenta.R
 import com.bghitech.momenta.core.design.MomentaCard
 import com.bghitech.momenta.core.design.MomentaGreen
+import com.bghitech.momenta.core.design.MomentaGreenAlpha
 import com.bghitech.momenta.core.design.MomentaLargeShape
-import com.bghitech.momenta.core.design.MomentaLoading
 import com.bghitech.momenta.core.design.MomentaPrimaryButton
 import com.bghitech.momenta.core.design.MomentaScreen
 import com.bghitech.momenta.core.design.MomentaSecondaryButton
+import com.bghitech.momenta.core.design.MomentaSurfaceAlt
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
 import com.bghitech.momenta.core.design.MomentaWarm
@@ -172,20 +173,34 @@ private fun ChallengeCard(
 ) {
     MomentaCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+        contentPadding = PaddingValues(0.dp)
     ) {
         Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .background(MomentaGreen)
+            )
+            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Задание дня",
-                    color = MomentaGreen,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Box(
+                    modifier = Modifier
+                        .clip(MomentaLargeShape)
+                        .background(MomentaGreenAlpha)
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "Задание дня",
+                        color = MomentaGreen,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
                 Text(
                     text = "${challenge.participantsCount} участвуют",
                     color = MomentaTextSecondary,
@@ -193,23 +208,23 @@ private fun ChallengeCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = challenge.title.ifBlank { stringResource(R.string.default_challenge_title) },
                 color = MomentaText,
-                fontSize = 18.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 21.sp
+                lineHeight = 20.sp
             )
 
-            Spacer(modifier = Modifier.height(3.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             Text(
                 text = challenge.prompt ?: challenge.description ?: stringResource(R.string.default_challenge_description),
                 color = MomentaTextSecondary,
-                fontSize = 13.sp,
-                lineHeight = 16.sp
+                fontSize = 12.sp,
+                lineHeight = 15.sp
             )
 
             if (challenge.endsAt != null) {
@@ -242,10 +257,10 @@ private fun ChallengeCard(
                         modifier = Modifier.weight(1f)
                     )
                     MomentaSecondaryButton(
-                        text = stringResource(R.string.watch_world_now),
+                        text = "Смотреть",
                         onClick = onOpenFeed,
-                        modifier = Modifier.width(172.dp),
-                        height = 42.dp
+                        modifier = Modifier.width(132.dp),
+                        height = 40.dp
                     )
                 }
             } else {
@@ -254,6 +269,7 @@ private fun ChallengeCard(
                     onClick = onCaptureClick,
                     height = 44.dp
                 )
+            }
             }
         }
     }
@@ -315,7 +331,7 @@ private fun BestMomentSkeleton() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1.18f)
-                    .background(com.bghitech.momenta.core.design.MomentaSurfaceAlt)
+                    .background(MomentaSurfaceAlt)
             )
             Column(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -337,7 +353,7 @@ private fun SkeletonLine(width: androidx.compose.ui.unit.Dp, height: androidx.co
             .clip(MomentaLargeShape)
             .background(
                 if (warm) MomentaWarm.copy(alpha = 0.24f)
-                else com.bghitech.momenta.core.design.MomentaSurfaceAlt
+                else MomentaSurfaceAlt
             )
     )
 }
