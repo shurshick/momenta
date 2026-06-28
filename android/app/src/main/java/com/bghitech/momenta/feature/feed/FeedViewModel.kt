@@ -55,35 +55,7 @@ class FeedViewModel @Inject constructor(
         if (_state.value.isLoading && !force) return
         if (force) loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null)
-
-            val cached = getTodayFeedUseCase.getCached()
-            if (showCached && cached.isNotEmpty()) {
-                _state.value = _state.value.copy(
-                    items = cached,
-                    suggestedUsers = _state.value.suggestedUsers.ifEmpty { cached.suggestedUsers() }
-                )
-            }
-
-            when (val result = getTodayFeedUseCase()) {
-                is AppResult.Success -> {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        items = result.data,
-                        suggestedUsers = _state.value.suggestedUsers.ifEmpty { result.data.suggestedUsers() },
-                        isOffline = false,
-                        scrollToTopSignal = if (scrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
-                    )
-                }
-                is AppResult.Error -> {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        isOffline = cached.isEmpty(),
-                        error = if (cached.isEmpty()) "Не удалось загрузить ленту" else null,
-                        scrollToTopSignal = if (scrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
-                    )
-                }
-            }
+            loadFeedNow(showCached = showCached, scrollToTop = scrollToTop)
         }
     }
 
@@ -92,12 +64,13 @@ class FeedViewModel @Inject constructor(
     fun refreshAfterPublish() {
         publishRefreshJob?.cancel()
         userScrolledAfterPublish = false
+        loadJob?.cancel()
         publishRefreshJob = viewModelScope.launch {
-            loadFeed(showCached = false, scrollToTop = true, force = true)
-            listOf(1500L, 3500L, 7000L).forEach { delayMs ->
-                if (delayMs > 0) delay(delayMs)
+            loadFeedNow(showCached = false, scrollToTop = true)
+            listOf(1000L, 2500L, 5000L, 8500L).forEach { delayMs ->
+                delay(delayMs)
                 if (userScrolledAfterPublish) return@launch
-                loadFeed(showCached = false, scrollToTop = false, force = true)
+                loadFeedNow(showCached = false, scrollToTop = false)
             }
         }
     }
@@ -105,8 +78,38 @@ class FeedViewModel @Inject constructor(
     fun onUserScrolledAfterPublish() {
         if (publishRefreshJob?.isActive == true) {
             userScrolledAfterPublish = true
-            publishRefreshJob?.cancel()
-            publishRefreshJob = null
+        }
+    }
+
+    private suspend fun loadFeedNow(showCached: Boolean, scrollToTop: Boolean) {
+        _state.value = _state.value.copy(isLoading = true, error = null)
+
+        val cached = getTodayFeedUseCase.getCached()
+        if (showCached && cached.isNotEmpty()) {
+            _state.value = _state.value.copy(
+                items = cached,
+                suggestedUsers = _state.value.suggestedUsers.ifEmpty { cached.suggestedUsers() }
+            )
+        }
+
+        when (val result = getTodayFeedUseCase()) {
+            is AppResult.Success -> {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    items = result.data,
+                    suggestedUsers = _state.value.suggestedUsers.ifEmpty { result.data.suggestedUsers() },
+                    isOffline = false,
+                    scrollToTopSignal = if (scrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
+                )
+            }
+            is AppResult.Error -> {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    isOffline = cached.isEmpty(),
+                    error = if (cached.isEmpty()) "Не удалось загрузить ленту" else null,
+                    scrollToTopSignal = if (scrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
+                )
+            }
         }
     }
 
