@@ -1,49 +1,49 @@
-﻿# Momenta / РњРѕРјРµРЅС‚Р°
+# Momenta / Момент
 
-**РњРѕРјРµРЅС‚Р°** вЂ” СЃРѕС†РёР°Р»СЊРЅРѕРµ camera-РїСЂРёР»РѕР¶РµРЅРёРµ РґР»СЏ РµР¶РµРґРЅРµРІРЅС‹С… С„РѕС‚Рѕ-РјРѕРјРµРЅС‚РѕРІ.
+**Момент** — социальное camera-приложение для ежедневных фото-моментов.
 
-> РћРґРёРЅ РјРѕРјРµРЅС‚. РћРґРёРЅ РґРµРЅСЊ. Р’РµСЃСЊ РјРёСЂ.
+> Один момент. Все вместе.
 
-РљР°Р¶РґС‹Р№ РґРµРЅСЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РїРѕР»СѓС‡Р°РµС‚ РѕР±С‰СѓСЋ "РњРѕРјРµРЅС‚Сѓ РґРЅСЏ", РґРµР»Р°РµС‚ РѕРґРёРЅ СЃРЅРёРјРѕРє, РїСѓР±Р»РёРєСѓРµС‚ РµРіРѕ Рё СЃРјРѕС‚СЂРёС‚ Р¶РёРІСѓСЋ Р»РµРЅС‚Сѓ РјРѕРјРµРЅС‚РѕРІ РґСЂСѓРіРёС… Р»СЋРґРµР№. Р‘РµР· Р°Р»РіРѕСЂРёС‚РјРёС‡РµСЃРєРѕР№ РіРѕРЅРєРё Рё Р±РµСЃРєРѕРЅРµС‡РЅРѕРіРѕ СЃРєСЂРѕР»Р»Р°: РѕРґРёРЅ РґРµРЅСЊ, РѕРґРёРЅ РјРѕРјРµРЅС‚, РѕРґРёРЅ РѕР±С‰РёР№ РєРѕРЅС‚РµРєСЃС‚.
+Каждый день пользователь получает общее задание дня, делает снимок, публикует его и смотрит живую ленту моментов других людей. Без гонки алгоритмов и бесконечного скролла: один день, один момент, один общий контекст.
 
 ## Current Status
 
-РўРµРєСѓС‰Р°СЏ СЃС‚Р°Р±РёР»СЊРЅР°СЏ РІРµСЂСЃРёСЏ: **v0.2.28**.
+Текущая стабильная версия: **v0.2.28**.
 
-РўРµРєСѓС‰РёР№ РІРёР·СѓР°Р»СЊРЅС‹Р№ СЃС‚Р°РЅРґР°СЂС‚ Android: **Momenta Design Concept v1**.
+Текущий визуальный стандарт Android: **Momenta Design Concept v1**.
 
 Reference: [docs/design/momenta_visual_concept.png](docs/design/momenta_visual_concept.png)
 
-Р§С‚Рѕ СѓР¶Рµ СЂР°Р±РѕС‚Р°РµС‚:
+Что уже работает:
 
-- FastAPI backend СЃ auth, posts, feed, challenges, reactions, reports Рё РїСЂРѕС„РёР»СЏРјРё.
-- Admin panel РґР»СЏ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№, С‡РµР»Р»РµРЅРґР¶РµР№, РїРѕСЃС‚РѕРІ, Р¶Р°Р»РѕР±, РјРµРґРёР°, РЅР°СЃС‚СЂРѕРµРє Рё audit log.
+- FastAPI backend с auth, posts, feed, challenges, reactions, reports и профилями.
+- Admin panel для пользователей, заданий дня, постов, жалоб, медиа, настроек и audit log.
 - Docker/TrueNAS deploy: API, worker, PostgreSQL, Redis, MinIO.
-- Android APK РЅР° Kotlin + Jetpack Compose.
-- Р—Р°РіСЂСѓР·РєР° С„РѕС‚Рѕ РёР· Android, РѕР±СЂР°Р±РѕС‚РєР° РјРµРґРёР° worker'РѕРј, РѕС‚РѕР±СЂР°Р¶РµРЅРёРµ РїРѕСЃС‚РѕРІ РІ Р»РµРЅС‚Рµ.
-- Pull-to-refresh Р»РµРЅС‚С‹, РєРѕРјРјРµРЅС‚Р°СЂРёРё, РєРѕСЂСЂРµРєС‚РЅС‹Рµ Р»Р°Р№РєРё, Р¶Р°Р»РѕР±С‹ Рё СѓРґР°Р»РµРЅРёРµ СЃРІРѕРёС… РїРѕСЃС‚РѕРІ РІ С‚РµС‡РµРЅРёРµ 24 С‡Р°СЃРѕРІ.
-- РџСЂРµРґРѕРїСЂРµРґРµР»РµРЅРЅС‹Рµ Р°РІР°С‚Р°СЂРєРё, СЃР»СѓС‡Р°Р№РЅС‹Р№ Р»СѓС‡С€РёР№ РјРѕРјРµРЅС‚ РґРЅСЏ РёР· С‚РѕРїР° Рё СЂРµР°Р»СЊРЅРѕ РїСЂРёРјРµРЅСЏРµРјС‹Рµ С„РѕС‚Рѕ-СЌС„С„РµРєС‚С‹.
-- CI: backend tests, Android debug build, Docker image publish РІ GHCR.
+- Android APK на Kotlin + Jetpack Compose.
+- Загрузка фото из Android, обработка медиа worker'ом, отображение постов в ленте.
+- Pull-to-refresh ленты, комментарии, лайки, жалобы и удаление своих постов в течение 24 часов.
+- Предопределенные аватарки, лучший момент дня из топа и применяемые фото-эффекты.
+- CI: backend tests, Android debug build, Docker image publish в GHCR.
 
-Р§С‚Рѕ РµС‰С‘ РЅРµ СЃС‚РѕРёС‚ СЃС‡РёС‚Р°С‚СЊ production-ready:
+Что еще не production-ready:
 
-- РџСЂРѕРґРѕРІР°СЏ СѓСЃС‚Р°РЅРѕРІРєР° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ С‡РёСЃС‚РѕР№, СЃ РЅРѕРІС‹РјРё СЃРµРєСЂРµС‚Р°РјРё.
-- РќСѓР¶РµРЅ РїРѕР»РЅС‹Р№ СЂСѓС‡РЅРѕР№ E2E-РїСЂРѕРіРѕРЅ РїРµСЂРµРґ РїСѓР±Р»РёС‡РЅС‹Рј Р·Р°РїСѓСЃРєРѕРј.
-- Р’РёРґРµРѕ, С€Р°СЂРёРЅРі, invite/privacy flow Рё РїРѕР»РЅРѕС†РµРЅРЅР°СЏ РјРѕРґРµСЂР°С†РёСЏ РµС‰С‘ РІРїРµСЂРµРґРё.
+- Продовая установка должна быть чистой, с новыми секретами.
+- Перед публичным запуском нужен полный ручной E2E-прогон.
+- Видео, шаринг, invite/privacy flow и полноценная модерация еще впереди.
 
 ## Repository Layout
 
 ```text
 /
-в”њв”Ђв”Ђ app/                    # FastAPI backend
-в”њв”Ђв”Ђ alembic/                # Database migrations
-в”њв”Ђв”Ђ tests/                  # Backend tests
-в”њв”Ђв”Ђ docs/                   # Backend/deploy docs
-в”њв”Ђв”Ђ deploy/truenas/         # TrueNAS compose YAML
-в”њв”Ђв”Ђ android/                # Android app
-в”њв”Ђв”Ђ Dockerfile
-в”њв”Ђв”Ђ docker-compose.yml
-в””в”Ђв”Ђ pyproject.toml
+├── app/                    # FastAPI backend
+├── alembic/                # Database migrations
+├── tests/                  # Backend tests
+├── docs/                   # Backend/deploy docs
+├── deploy/truenas/         # TrueNAS compose YAML
+├── android/                # Android app
+├── Dockerfile
+├── docker-compose.yml
+└── pyproject.toml
 ```
 
 ## Quick Start
@@ -166,6 +166,6 @@ Release artifacts:
 
 ## Roadmap
 
-- **v0.2.x** вЂ” stabilize Android/backend/TrueNAS flow.
-- **v0.3.0** вЂ” video moments, better feed UX, sharing, invites.
-- **v1.0.0** вЂ” production hardening: secrets, moderation, privacy, analytics, store-ready release.
+- **v0.2.x** — stabilize Android/backend/TrueNAS flow.
+- **v0.3.0** — video moments, better feed UX, sharing, invites.
+- **v1.0.0** — production hardening: secrets, moderation, privacy, analytics, store-ready release.
