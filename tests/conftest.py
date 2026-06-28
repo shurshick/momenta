@@ -32,8 +32,15 @@ async def cleanup_db(engine):
     yield
     async with engine.begin() as conn:
         for table in (
-            "audit_logs", "media_assets", "reactions", "reports",
-            "posts", "user_streaks", "challenges", "users",
+            "audit_logs",
+            "media_assets",
+            "comments",
+            "reactions",
+            "reports",
+            "posts",
+            "user_streaks",
+            "challenges",
+            "users",
         ):
             await conn.execute(text(f"DELETE FROM {table}"))
 
@@ -65,24 +72,16 @@ def mock_external_services(monkeypatch):
     async def empty_feed(*args, **kwargs):
         return []
 
-    async def no_cached_challenge(*args, **kwargs):
-        return None
-
     async def user_has_not_posted(*args, **kwargs):
         return False
 
     def fake_upload(fileobj, object_key: str, content_type: str) -> str:
         return f"https://media.test/{object_key}"
 
-    monkeypatch.setattr("app.services.redis_service.set_today_challenge", noop_async)
-    monkeypatch.setattr("app.services.redis_service.get_today_challenge", no_cached_challenge)
     monkeypatch.setattr("app.services.redis_service.add_to_feed", noop_async)
-    monkeypatch.setattr("app.services.redis_service.get_feed", empty_feed)
     monkeypatch.setattr("app.services.redis_service.mark_user_posted", noop_async)
     monkeypatch.setattr("app.services.redis_service.check_user_posted", user_has_not_posted)
     monkeypatch.setattr("app.services.redis_service.flush_feed_cache", noop_async)
-    monkeypatch.setattr("app.services.challenge_service.set_today_challenge", noop_async)
-    monkeypatch.setattr("app.services.challenge_service.get_today_challenge", no_cached_challenge)
     monkeypatch.setattr("app.services.post_service.add_to_feed", noop_async)
     monkeypatch.setattr("app.services.post_service.mark_user_posted", noop_async)
     monkeypatch.setattr("app.api.v1.posts.upload_fileobj", fake_upload)
@@ -129,7 +128,9 @@ async def test_challenge(db_session):
         challenge_date=date.today(),
         title_ru="Тестовый челлендж",
         description_ru="Описание",
+        prompt_ru="Сделай тестовый момент",
         status="active",
+        source="manual",
     )
     db_session.add(challenge)
     await db_session.commit()
@@ -139,9 +140,12 @@ async def test_challenge(db_session):
 
 @pytest.fixture
 async def auth_headers(client, test_user):
-    response = await client.post("/api/v1/auth/login", json={
-        "username_or_email": "testuser",
-        "password": "password123",
-    })
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "username_or_email": "testuser",
+            "password": "password123",
+        },
+    )
     data = response.json()
     return {"Authorization": f"Bearer {data['access_token']}"}

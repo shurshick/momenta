@@ -56,7 +56,7 @@ class ProfileRepositoryImpl @Inject constructor(
         return try {
             AppResult.Success(api.getAvatars().items.map { it.key })
         } catch (e: Exception) {
-            AppResult.Success((1..25).map { index -> "avatar_%02d".format(index) })
+            AppResult.Success((1..40).map { index -> "avatar_%02d".format(index) })
         }
     }
 

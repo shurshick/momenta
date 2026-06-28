@@ -12,7 +12,7 @@ from app.models.reaction import Reaction
 
 router = APIRouter(prefix="/api/v1", tags=["users"])
 
-AVATAR_KEYS = [f"avatar_{index:02d}" for index in range(1, 26)]
+AVATAR_KEYS = [f"avatar_{index:02d}" for index in range(1, 41)]
 
 
 async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -> UserProfile:

@@ -24,7 +24,7 @@ data class ProfileUiState(
     val streakCount: Int = 0,
     val likesCount: Int = 0,
     val recentPosts: List<Post> = emptyList(),
-    val avatarOptions: List<String> = (1..25).map { index -> "avatar_%02d".format(index) },
+    val avatarOptions: List<String> = (1..40).map { index -> "avatar_%02d".format(index) },
     val isSaving: Boolean = false,
     val error: String? = null
 )

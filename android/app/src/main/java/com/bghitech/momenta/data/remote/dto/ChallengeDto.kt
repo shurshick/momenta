@@ -6,12 +6,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ChallengeDto(
     val id: String,
-    @SerialName("challenge_date")
+    @SerialName("date")
     val date: String,
-    @SerialName("title_ru")
     val title: String,
-    @SerialName("description_ru")
     val description: String? = null,
+    val prompt: String? = null,
+    val source: String = "manual",
     @SerialName("ends_at")
     val endsAt: String? = null,
     @SerialName("user_posted")

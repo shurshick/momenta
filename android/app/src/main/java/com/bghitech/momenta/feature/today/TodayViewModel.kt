@@ -6,8 +6,8 @@ import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.domain.model.Challenge
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.repository.FeedRepository
-import com.bghitech.momenta.domain.usecase.GetTodayFeedUseCase
 import com.bghitech.momenta.domain.usecase.GetTodayChallengeUseCase
+import com.bghitech.momenta.domain.usecase.GetTodayFeedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,14 +15,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class TodayUiState(
-    val isLoading: Boolean = true,
+    val isChallengeLoading: Boolean = false,
     val challenge: Challenge? = null,
     val bestPost: Post? = null,
     val isBestMomentLoading: Boolean = false,
     val feedLoaded: Boolean = false,
     val userPostedToday: Boolean = false,
     val isOffline: Boolean = false,
-    val error: String? = null
+    val challengeError: String? = null,
+    val bestMomentError: String? = null
 )
 
 @HiltViewModel
@@ -41,34 +42,33 @@ class TodayViewModel @Inject constructor(
     }
 
     fun loadChallenge() {
-        if (_state.value.isLoading && _state.value.challenge != null) return
+        if (_state.value.isChallengeLoading) return
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null)
+            _state.value = _state.value.copy(isChallengeLoading = true, challengeError = null)
 
             val cached = getTodayChallengeUseCase.getCached()
-            if (cached != null) {
-                _state.value = _state.value.copy(challenge = cached)
+            if (cached != null && _state.value.challenge == null) {
+                _state.value = _state.value.copy(challenge = cached, userPostedToday = cached.userPosted)
             }
 
             when (val result = getTodayChallengeUseCase()) {
                 is AppResult.Success -> {
                     _state.value = _state.value.copy(
-                        isLoading = false,
+                        isChallengeLoading = false,
                         challenge = result.data,
                         userPostedToday = result.data.userPosted,
-                        isOffline = false
+                        isOffline = false,
+                        challengeError = null
                     )
                 }
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(
-                        isLoading = false,
+                        isChallengeLoading = false,
                         isOffline = cached == null,
-                        error = if (cached == null) "Не удалось загрузить задание" else null
+                        challengeError = if (cached == null) "Не удалось загрузить задание дня" else null
                     )
                 }
             }
-
-            loadBestPost()
         }
     }
 
@@ -80,7 +80,7 @@ class TodayViewModel @Inject constructor(
     }
 
     private suspend fun loadBestPost() {
-        _state.value = _state.value.copy(isBestMomentLoading = true)
+        _state.value = _state.value.copy(isBestMomentLoading = true, bestMomentError = null)
         val cached = getTodayFeedUseCase.getCached()
         if (cached.isNotEmpty() && _state.value.bestPost == null) {
             _state.value = _state.value.copy(bestPost = cached.bestMoment(), feedLoaded = true)
@@ -93,7 +93,8 @@ class TodayViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     bestPost = fallbackPost,
                     feedLoaded = true,
-                    isBestMomentLoading = false
+                    isBestMomentLoading = false,
+                    bestMomentError = null
                 )
             }
             is AppResult.Error -> {
@@ -101,7 +102,8 @@ class TodayViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     bestPost = fallbackPost,
                     feedLoaded = fallbackPost != null || cached.isNotEmpty(),
-                    isBestMomentLoading = false
+                    isBestMomentLoading = false,
+                    bestMomentError = if (fallbackPost == null) "Лучший момент дня пока не найден" else null
                 )
             }
         }

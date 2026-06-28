@@ -55,6 +55,11 @@ fun FeedScreen(
     var pullOffset by remember { mutableFloatStateOf(0f) }
     val isRefreshing = state.isLoading && state.items.isNotEmpty()
     var handledForcedRefresh by remember { mutableStateOf(false) }
+    val userScrolledFromTop by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 80
+        }
+    }
 
     LaunchedEffect(forceRefreshOnOpen, state.isLoading) {
         if (forceRefreshOnOpen && !handledForcedRefresh && !state.isLoading) {
@@ -66,6 +71,12 @@ fun FeedScreen(
     LaunchedEffect(state.scrollToTopSignal) {
         if (state.scrollToTopSignal > 0) {
             listState.scrollToItem(0)
+        }
+    }
+
+    LaunchedEffect(userScrolledFromTop) {
+        if (userScrolledFromTop) {
+            viewModel.onUserScrolledAfterPublish()
         }
     }
 

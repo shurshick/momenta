@@ -1,49 +1,101 @@
+import logging
+import random
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timezone
 from typing import Optional
-from sqlalchemy import select, func
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from sqlalchemy import desc, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
 from app.models.challenge import Challenge
 from app.models.post import Post
-from app.services.redis_service import set_today_challenge, get_today_challenge
+from app.services.challenge_templates import AUTO_CHALLENGE_TEMPLATES, FALLBACK_CHALLENGE, ChallengeTemplate
+
+logger = logging.getLogger(__name__)
+
+
+def current_app_date() -> date:
+    try:
+        tz = ZoneInfo(settings.app_timezone)
+    except ZoneInfoNotFoundError:
+        tz = timezone.utc
+    return datetime.now(tz).date()
+
+
+def end_of_app_day(d: date) -> datetime:
+    try:
+        tz = ZoneInfo(settings.app_timezone)
+    except ZoneInfoNotFoundError:
+        tz = timezone.utc
+    return datetime.combine(d, time(23, 59, 59), tzinfo=tz)
 
 
 async def get_today_challenge_data(db: AsyncSession, user_id: Optional[str] = None) -> dict:
-    today = date.today()
-    cached = await get_today_challenge(today)
-    if cached:
-        if user_id:
-            cached["user_posted"] = await _has_user_posted(db, user_id, today)
-        return cached
-    result = await db.execute(
-        select(Challenge).where(Challenge.challenge_date == today, Challenge.status == "active")
-    )
-    challenge = result.scalar_one_or_none()
-    if not challenge:
-        challenge = await _create_fallback_challenge(db, today)
+    today = current_app_date()
+    challenge = await get_or_create_today_challenge(db, today)
+
     participants = await db.execute(
         select(func.count(Post.id)).where(Post.challenge_date == today, Post.status == "active")
     )
     participants_count = participants.scalar() or 0
-    ends_at = datetime(today.year, today.month, today.day, 23, 59, 59, tzinfo=timezone.utc)
-    data = {
-        "id": str(challenge.id),
-        "date": today.isoformat(),
-        "title": challenge.title_ru,
-        "description": challenge.description_ru,
-        "ends_at": ends_at.isoformat(),
-        "user_posted": False,
-        "participants_count": participants_count,
-    }
-    if user_id:
-        data["user_posted"] = await _has_user_posted(db, user_id, today)
-    ttl = int((ends_at - datetime.now(timezone.utc)).total_seconds()) + 3600
-    await set_today_challenge(today, data, ttl)
-    return data
+    user_posted = await _has_user_posted(db, user_id, today) if user_id else False
+    ends_at = end_of_app_day(today)
+
+    return _challenge_to_today_payload(
+        challenge=challenge,
+        today=today,
+        participants_count=participants_count,
+        user_posted=user_posted,
+        ends_at=ends_at,
+    )
+
+
+async def get_or_create_today_challenge(db: AsyncSession, challenge_date: date | None = None) -> Challenge:
+    today = challenge_date or current_app_date()
+    existing = await get_active_challenge_by_date(db, today)
+    if existing:
+        return existing
+
+    challenge = await generate_auto_challenge_for_date(db, today)
+    db.add(challenge)
+    try:
+        await db.commit()
+        await db.refresh(challenge)
+        logger.info("Auto challenge created for %s: %s", today.isoformat(), challenge.title_ru)
+        return challenge
+    except IntegrityError:
+        await db.rollback()
+        raced = await get_active_challenge_by_date(db, today) or await get_challenge_by_date(db, today)
+        if raced:
+            return raced
+        raise
+
+
+async def generate_auto_challenge_for_date(db: AsyncSession, challenge_date: date) -> Challenge:
+    template = await _select_template(db, challenge_date)
+    return Challenge(
+        id=uuid.uuid4(),
+        challenge_date=challenge_date,
+        title_ru=template.title,
+        description_ru=template.description,
+        prompt_ru=template.prompt,
+        status="active",
+        source="auto",
+    )
 
 
 async def get_challenge_by_id(db: AsyncSession, challenge_id: uuid.UUID) -> Optional[Challenge]:
     result = await db.execute(select(Challenge).where(Challenge.id == challenge_id))
+    return result.scalar_one_or_none()
+
+
+async def get_active_challenge_by_date(db: AsyncSession, d: date) -> Optional[Challenge]:
+    result = await db.execute(
+        select(Challenge).where(Challenge.challenge_date == d, Challenge.status == "active")
+    )
     return result.scalar_one_or_none()
 
 
@@ -52,10 +104,17 @@ async def get_challenge_by_date(db: AsyncSession, d: date) -> Optional[Challenge
     return result.scalar_one_or_none()
 
 
-async def create_challenge(db: AsyncSession, challenge_date: date, title_ru: str, description_ru: Optional[str] = None,
-                           title_en: Optional[str] = None, description_en: Optional[str] = None,
-                           cover_url: Optional[str] = None, status: str = "draft",
-                           created_by: Optional[uuid.UUID] = None) -> Challenge:
+async def create_challenge(
+    db: AsyncSession,
+    challenge_date: date,
+    title_ru: str,
+    description_ru: Optional[str] = None,
+    title_en: Optional[str] = None,
+    description_en: Optional[str] = None,
+    cover_url: Optional[str] = None,
+    status: str = "draft",
+    created_by: Optional[uuid.UUID] = None,
+) -> Challenge:
     existing = await get_challenge_by_date(db, challenge_date)
     if existing:
         raise ValueError(f"Challenge for {challenge_date} already exists")
@@ -68,6 +127,7 @@ async def create_challenge(db: AsyncSession, challenge_date: date, title_ru: str
         description_en=description_en,
         cover_url=cover_url,
         status=status,
+        source="manual",
         created_by=created_by,
     )
     db.add(challenge)
@@ -76,28 +136,55 @@ async def create_challenge(db: AsyncSession, challenge_date: date, title_ru: str
     return challenge
 
 
-async def _create_fallback_challenge(db: AsyncSession, today: date) -> Challenge:
-    existing = await get_challenge_by_date(db, today)
-    if existing:
-        return existing
-    challenge = Challenge(
-        id=uuid.uuid4(),
-        challenge_date=today,
-        title_ru="Момент дня",
-        description_ru="Запечатли свой момент сегодня",
-        status="active",
+async def _select_template(db: AsyncSession, challenge_date: date) -> ChallengeTemplate:
+    if not AUTO_CHALLENGE_TEMPLATES:
+        return FALLBACK_CHALLENGE
+
+    result = await db.execute(
+        select(Challenge.title_ru)
+        .where(
+            Challenge.source == "auto",
+            Challenge.challenge_date < challenge_date,
+        )
+        .order_by(desc(Challenge.challenge_date))
+        .limit(7)
     )
-    db.add(challenge)
-    await db.commit()
-    await db.refresh(challenge)
-    return challenge
+    recent_titles = {row[0] for row in result.all()}
+    candidates = [template for template in AUTO_CHALLENGE_TEMPLATES if template.title not in recent_titles]
+    return random.choice(candidates or AUTO_CHALLENGE_TEMPLATES)
+
+
+def _challenge_to_today_payload(
+    challenge: Challenge,
+    today: date,
+    participants_count: int,
+    user_posted: bool,
+    ends_at: datetime,
+) -> dict:
+    return {
+        "id": str(challenge.id),
+        "date": today.isoformat(),
+        "challenge_date": today.isoformat(),
+        "title": challenge.title_ru,
+        "description": challenge.description_ru,
+        "prompt": challenge.prompt_ru,
+        "source": challenge.source,
+        "ends_at": ends_at.isoformat(),
+        "user_posted": user_posted,
+        "participants_count": participants_count,
+    }
 
 
 async def _has_user_posted(db: AsyncSession, user_id: str, d: date) -> bool:
     from app.services.redis_service import check_user_posted
+
     if await check_user_posted(user_id, d):
         return True
     result = await db.execute(
-        select(Post).where(Post.user_id == uuid.UUID(user_id), Post.challenge_date == d, Post.status.in_(["active", "processing"]))
+        select(Post).where(
+            Post.user_id == uuid.UUID(user_id),
+            Post.challenge_date == d,
+            Post.status.in_(["active", "processing"]),
+        )
     )
     return result.scalar_one_or_none() is not None

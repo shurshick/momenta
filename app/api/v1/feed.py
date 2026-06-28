@@ -9,6 +9,7 @@ from app.models.post import Post
 from app.models.user import User
 from app.models.reaction import Reaction
 from app.schemas.post import BestMomentResponse, FeedResponse, PostFeedItem
+from app.services.challenge_service import current_app_date
 from app.services.post_service import can_delete_post, get_feed_posts
 from app.api.v1.auth import get_current_user_id
 
@@ -18,14 +19,14 @@ router = APIRouter(prefix="/api/v1/feed", tags=["feed"])
 @router.get("/today", response_model=FeedResponse)
 async def today_feed(cursor: str = Query(None), limit: int = Query(default=20, le=50),
                      user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
-    posts, next_cursor = await get_feed_posts(db, date.today(), cursor=cursor, limit=limit)
+    posts, next_cursor = await get_feed_posts(db, current_app_date(), cursor=cursor, limit=limit)
     items = await _build_feed_items(db, posts, user_id)
     return {"items": items, "next_cursor": next_cursor}
 
 
 @router.get("/today/best-random", response_model=BestMomentResponse)
 async def today_best_random(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
-    posts = await _top_active_posts(db, challenge_date=date.today())
+    posts = await _top_active_posts(db, challenge_date=current_app_date())
     if not posts:
         posts = await _top_recent_active_posts(db, hours=48)
     if not posts:
@@ -60,7 +61,7 @@ async def _top_recent_active_posts(db: AsyncSession, hours: int = 48) -> list[Po
 @router.get("/country/{country_code}", response_model=FeedResponse)
 async def country_feed(country_code: str, cursor: str = Query(None), limit: int = Query(default=20, le=50),
                        user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
-    posts, next_cursor = await get_feed_posts(db, date.today(), cursor=cursor, limit=limit, country=country_code.upper())
+    posts, next_cursor = await get_feed_posts(db, current_app_date(), cursor=cursor, limit=limit, country=country_code.upper())
     items = await _build_feed_items(db, posts, user_id)
     return {"items": items, "next_cursor": next_cursor}
 

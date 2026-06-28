@@ -1,19 +1,19 @@
 import uuid
-from datetime import date, datetime, timezone
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
+
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
+
 from app.config import settings
-from app.db import engine, async_session_factory
+from app.db import async_session_factory, engine
 from app.models.base import Base
-from app.models.user import User
-from app.models.challenge import Challenge
 from app.models.setting import Setting
+from app.models.user import User
 from app.security import get_password_hash
-from app.services.s3_service import ensure_bucket
 from app.services.redis_service import close_redis
+from app.services.s3_service import ensure_bucket
 
 
 @asynccontextmanager
@@ -21,26 +21,26 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         from sqlalchemy import text
-        await conn.execute(text("INSERT INTO alembic_version (version_num) VALUES ('003') ON CONFLICT DO NOTHING"))
+
+        await conn.execute(
+            text(
+                "CREATE TABLE IF NOT EXISTS alembic_version "
+                "(version_num VARCHAR(32) NOT NULL PRIMARY KEY)"
+            )
+        )
+        current_revision = await conn.execute(text("SELECT version_num FROM alembic_version LIMIT 1"))
+        if current_revision.scalar_one_or_none() is None:
+            await conn.execute(text("INSERT INTO alembic_version (version_num) VALUES ('004')"))
+
     async with async_session_factory() as db:
         try:
             ensure_bucket()
         except Exception:
             pass
         try:
-            from app.services.challenge_service import get_challenge_by_date
-            today = date.today()
-            existing = await get_challenge_by_date(db, today)
-            if not existing:
-                challenge = Challenge(
-                    id=uuid.uuid4(),
-                    challenge_date=today,
-                    title_ru="Момент дня",
-                    description_ru="Запечатли свой момент сегодня",
-                    status="active",
-                )
-                db.add(challenge)
-                await db.commit()
+            from app.services.challenge_service import get_or_create_today_challenge
+
+            await get_or_create_today_challenge(db)
         except Exception:
             pass
         try:
@@ -98,6 +98,7 @@ app.include_router(admin_router)
 async def http_exception_handler(request: Request, exc: HTTPException):
     if exc.status_code == 303:
         from fastapi.responses import RedirectResponse
+
         location = exc.headers.get("Location", "/admin/login") if exc.headers else "/admin/login"
         return RedirectResponse(url=location, status_code=303)
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
@@ -119,6 +120,7 @@ async def ready():
         status["status"] = "degraded"
     try:
         from app.services.redis_service import get_redis
+
         r = await get_redis()
         await r.ping()
         status["redis"] = True
@@ -126,6 +128,7 @@ async def ready():
         status["status"] = "degraded"
     try:
         from app.services.s3_service import get_s3
+
         s3 = get_s3()
         s3.list_buckets()
         status["s3"] = True

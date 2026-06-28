@@ -1,32 +1,32 @@
-# Deploy Momenta on TrueNAS SCALE
+﻿# Deploy Momenta on TrueNAS SCALE
 
-## 1. Требования
+## 1. РўСЂРµР±РѕРІР°РЅРёСЏ
 
-- TrueNAS SCALE 24.04+ (Electric Eel) или новее
-- Включён сервис **Apps**
-- Минимум 4 GB RAM, 20 GB свободного места на pool
-- Загруженный образ `ghcr.io/shurshick/momenta:latest`
+- TrueNAS SCALE 24.04+ (Electric Eel) РёР»Рё РЅРѕРІРµРµ
+- Р’РєР»СЋС‡С‘РЅ СЃРµСЂРІРёСЃ **Apps**
+- РњРёРЅРёРјСѓРј 4 GB RAM, 20 GB СЃРІРѕР±РѕРґРЅРѕРіРѕ РјРµСЃС‚Р° РЅР° pool
+- Р—Р°РіСЂСѓР¶РµРЅРЅС‹Р№ РѕР±СЂР°Р· `ghcr.io/shurshick/momenta:latest`
 
 ---
 
-## 2. Создание Dataset'ов
+## 2. РЎРѕР·РґР°РЅРёРµ Dataset'РѕРІ
 
-Создайте dataset'ы для хранения данных приложения. Это обязательно, потому что контейнеры используют bind mounts.
+РЎРѕР·РґР°Р№С‚Рµ dataset'С‹ РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РґР°РЅРЅС‹С… РїСЂРёР»РѕР¶РµРЅРёСЏ. Р­С‚Рѕ РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ, РїРѕС‚РѕРјСѓ С‡С‚Рѕ РєРѕРЅС‚РµР№РЅРµСЂС‹ РёСЃРїРѕР»СЊР·СѓСЋС‚ bind mounts.
 
-### Через веб-интерфейс
+### Р§РµСЂРµР· РІРµР±-РёРЅС‚РµСЂС„РµР№СЃ
 
-**Storage → Create Dataset** для каждого:
+**Storage в†’ Create Dataset** РґР»СЏ РєР°Р¶РґРѕРіРѕ:
 
-| Dataset | Путь | Назначение |
+| Dataset | РџСѓС‚СЊ | РќР°Р·РЅР°С‡РµРЅРёРµ |
 |---|---|---|
-| `momenta/postgres` | `/mnt/pool/app/momenta/postgres` | PostgreSQL данные |
+| `momenta/postgres` | `/mnt/pool/app/momenta/postgres` | PostgreSQL РґР°РЅРЅС‹Рµ |
 | `momenta/redis` | `/mnt/pool/app/momenta/redis` | Redis RDB/append-only |
-| `momenta/minio` | `/mnt/pool/app/momenta/minio` | MinIO объекты |
+| `momenta/minio` | `/mnt/pool/app/momenta/minio` | MinIO РѕР±СЉРµРєС‚С‹ |
 | `momenta/api` | `/mnt/pool/app/momenta/api` | API temp/logs |
 
-Где `pool` — имя вашего storage pool (например, `tank`, `storage`).
+Р“РґРµ `pool` вЂ” РёРјСЏ РІР°С€РµРіРѕ storage pool (РЅР°РїСЂРёРјРµСЂ, `tank`, `storage`).
 
-### Через CLI (Shell)
+### Р§РµСЂРµР· CLI (Shell)
 
 ```bash
 zfs create pool/app/momenta
@@ -38,54 +38,54 @@ zfs create pool/app/momenta/api
 
 ---
 
-## 3. Настройка доступа к ghcr.io
+## 3. РќР°СЃС‚СЂРѕР№РєР° РґРѕСЃС‚СѓРїР° Рє ghcr.io
 
-Образ приложения хранится в GitHub Container Registry (`ghcr.io/shurshick/momenta`).
-Перед развёртыванием нужно сделать его публичным, иначе TrueNAS не сможет его загрузить.
+РћР±СЂР°Р· РїСЂРёР»РѕР¶РµРЅРёСЏ С…СЂР°РЅРёС‚СЃСЏ РІ GitHub Container Registry (`ghcr.io/shurshick/momenta`).
+РџРµСЂРµРґ СЂР°Р·РІС‘СЂС‚С‹РІР°РЅРёРµРј РЅСѓР¶РЅРѕ СЃРґРµР»Р°С‚СЊ РµРіРѕ РїСѓР±Р»РёС‡РЅС‹Рј, РёРЅР°С‡Рµ TrueNAS РЅРµ СЃРјРѕР¶РµС‚ РµРіРѕ Р·Р°РіСЂСѓР·РёС‚СЊ.
 
-### 3.1. Сделать образ публичным (обязательно)
+### 3.1. РЎРґРµР»Р°С‚СЊ РѕР±СЂР°Р· РїСѓР±Р»РёС‡РЅС‹Рј (РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)
 
-1. Откройте страницу пакетов GitHub:
+1. РћС‚РєСЂРѕР№С‚Рµ СЃС‚СЂР°РЅРёС†Сѓ РїР°РєРµС‚РѕРІ GitHub:
    https://github.com/users/shurshick/packages/container/momenta
 
-   Если ссылка не открывается — зайдите в **GitHub → Profile → Packages** и выберите `momenta`.
+   Р•СЃР»Рё СЃСЃС‹Р»РєР° РЅРµ РѕС‚РєСЂС‹РІР°РµС‚СЃСЏ вЂ” Р·Р°Р№РґРёС‚Рµ РІ **GitHub в†’ Profile в†’ Packages** Рё РІС‹Р±РµСЂРёС‚Рµ `momenta`.
 
-2. Нажмите **Package settings** (шестерёнка справа).
+2. РќР°Р¶РјРёС‚Рµ **Package settings** (С€РµСЃС‚РµСЂС‘РЅРєР° СЃРїСЂР°РІР°).
 
-3. В разделе **Danger Zone** нажмите **Change visibility** → выберите **Public**.
+3. Р’ СЂР°Р·РґРµР»Рµ **Danger Zone** РЅР°Р¶РјРёС‚Рµ **Change visibility** в†’ РІС‹Р±РµСЂРёС‚Рµ **Public**.
 
-4. Подтвердите изменение.
+4. РџРѕРґС‚РІРµСЂРґРёС‚Рµ РёР·РјРµРЅРµРЅРёРµ.
 
-После этого образ можно будет скачать без аутентификации:
+РџРѕСЃР»Рµ СЌС‚РѕРіРѕ РѕР±СЂР°Р· РјРѕР¶РЅРѕ Р±СѓРґРµС‚ СЃРєР°С‡Р°С‚СЊ Р±РµР· Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёРё:
 
 ```bash
 docker pull ghcr.io/shurshick/momenta:latest
 ```
 
-> Если по каким-то причинам вы не хотите делать образ публичным, настройте в TrueNAS
-> **Apps → Settings → Registry Credentials**, добавьте `ghcr.io` с вашим GitHub
-> username и PAT-токеном (scope: `read:packages`).
+> Р•СЃР»Рё РїРѕ РєР°РєРёРј-С‚Рѕ РїСЂРёС‡РёРЅР°Рј РІС‹ РЅРµ С…РѕС‚РёС‚Рµ РґРµР»Р°С‚СЊ РѕР±СЂР°Р· РїСѓР±Р»РёС‡РЅС‹Рј, РЅР°СЃС‚СЂРѕР№С‚Рµ РІ TrueNAS
+> **Apps в†’ Settings в†’ Registry Credentials**, РґРѕР±Р°РІСЊС‚Рµ `ghcr.io` СЃ РІР°С€РёРј GitHub
+> username Рё PAT-С‚РѕРєРµРЅРѕРј (scope: `read:packages`).
 
 ---
 
-## 4. Развёртывание через TrueNAS Custom App
+## 4. Р Р°Р·РІС‘СЂС‚С‹РІР°РЅРёРµ С‡РµСЂРµР· TrueNAS Custom App
 
-### 4.1. Откройте Apps
+### 4.1. РћС‚РєСЂРѕР№С‚Рµ Apps
 
-**Apps → Discover Apps → Custom App**
+**Apps в†’ Discover Apps в†’ Custom App**
 
-### 4.2. Настройка Application Name
+### 4.2. РќР°СЃС‚СЂРѕР№РєР° Application Name
 
-| Поле | Значение |
+| РџРѕР»Рµ | Р—РЅР°С‡РµРЅРёРµ |
 |---|---|
 | Application Name | `momenta` |
-| Version | `0.2.25` |
+| Version | `0.2.26` |
 
-### 4.3. Вставьте YAML конфигурацию
+### 4.3. Р’СЃС‚Р°РІСЊС‚Рµ YAML РєРѕРЅС„РёРіСѓСЂР°С†РёСЋ
 
-Переключитесь на **Custom YAML** и вставьте содержимое файла [`deploy/truenas/docker-compose.truenas.yml`](../deploy/truenas/docker-compose.truenas.yml).
+РџРµСЂРµРєР»СЋС‡РёС‚РµСЃСЊ РЅР° **Custom YAML** Рё РІСЃС‚Р°РІСЊС‚Рµ СЃРѕРґРµСЂР¶РёРјРѕРµ С„Р°Р№Р»Р° [`deploy/truenas/docker-compose.truenas.yml`](../deploy/truenas/docker-compose.truenas.yml).
 
-Полный YAML:
+РџРѕР»РЅС‹Р№ YAML:
 
 ```yaml
 services:
@@ -103,7 +103,8 @@ services:
     environment:
       APP_NAME: Momenta
       APP_ENV: production
-      APP_VERSION: 0.2.25
+
+      APP_TIMEZONE: Europe/Moscow
       API_HOST: 0.0.0.0
       API_PORT: 8000
       PUBLIC_BASE_URL: https://momenta.example.com
@@ -207,73 +208,73 @@ services:
       retries: 5
 ```
 
-### 4.4. Обязательные замены
+### 4.4. РћР±СЏР·Р°С‚РµР»СЊРЅС‹Рµ Р·Р°РјРµРЅС‹
 
-Перед запуском замените все `CHANGE_ME_*` на реальные значения:
+РџРµСЂРµРґ Р·Р°РїСѓСЃРєРѕРј Р·Р°РјРµРЅРёС‚Рµ РІСЃРµ `CHANGE_ME_*` РЅР° СЂРµР°Р»СЊРЅС‹Рµ Р·РЅР°С‡РµРЅРёСЏ:
 
-| Переменная | Где используется | Рекомендация |
+| РџРµСЂРµРјРµРЅРЅР°СЏ | Р“РґРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ | Р РµРєРѕРјРµРЅРґР°С†РёСЏ |
 |---|---|---|
-| `CHANGE_ME_DB_PASSWORD` | postgres, api, worker | 32+ символа, буквы+цифры |
-| `CHANGE_ME_JWT_SECRET` | api | 64+ символа, рандом |
-| `CHANGE_ME_MINIO_ACCESS` | minio, api, worker | логин для S3 |
-| `CHANGE_ME_MINIO_SECRET` | minio, api, worker | 32+ символа |
-| `CHANGE_ME_ADMIN_PASSWORD` | api | 16+ символов |
+| `CHANGE_ME_DB_PASSWORD` | postgres, api, worker | 32+ СЃРёРјРІРѕР»Р°, Р±СѓРєРІС‹+С†РёС„СЂС‹ |
+| `CHANGE_ME_JWT_SECRET` | api | 64+ СЃРёРјРІРѕР»Р°, СЂР°РЅРґРѕРј |
+| `CHANGE_ME_MINIO_ACCESS` | minio, api, worker | Р»РѕРіРёРЅ РґР»СЏ S3 |
+| `CHANGE_ME_MINIO_SECRET` | minio, api, worker | 32+ СЃРёРјРІРѕР»Р° |
+| `CHANGE_ME_ADMIN_PASSWORD` | api | 16+ СЃРёРјРІРѕР»РѕРІ |
 
-Сгенерировать пароли можно командой в TrueNAS Shell:
+РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ РїР°СЂРѕР»Рё РјРѕР¶РЅРѕ РєРѕРјР°РЅРґРѕР№ РІ TrueNAS Shell:
 
 ```bash
 openssl rand -base64 32
 ```
 
-### 4.5. Настройка доменов
+### 4.5. РќР°СЃС‚СЂРѕР№РєР° РґРѕРјРµРЅРѕРІ
 
-Замените `momenta.example.com` и `momenta-media.example.com` на ваши реальные домены.
+Р—Р°РјРµРЅРёС‚Рµ `momenta.example.com` Рё `momenta-media.example.com` РЅР° РІР°С€Рё СЂРµР°Р»СЊРЅС‹Рµ РґРѕРјРµРЅС‹.
 
-| Переменная | Значение |
+| РџРµСЂРµРјРµРЅРЅР°СЏ | Р—РЅР°С‡РµРЅРёРµ |
 |---|---|
 | `PUBLIC_BASE_URL` | `https://momenta.example.com` |
 | `CORS_ORIGINS` | `https://momenta.example.com` |
 | `S3_PUBLIC_ENDPOINT` | `https://momenta-media.example.com` |
 
-### 4.6. Запуск
+### 4.6. Р—Р°РїСѓСЃРє
 
-Нажмите **Install**. TrueNAS запустит все 5 контейнеров в порядке зависимостей.
+РќР°Р¶РјРёС‚Рµ **Install**. TrueNAS Р·Р°РїСѓСЃС‚РёС‚ РІСЃРµ 5 РєРѕРЅС‚РµР№РЅРµСЂРѕРІ РІ РїРѕСЂСЏРґРєРµ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№.
 
-Проверка статуса:
+РџСЂРѕРІРµСЂРєР° СЃС‚Р°С‚СѓСЃР°:
 
 ```
-Apps → Installed → momenta → показан статус 5/5 контейнеров (green)
+Apps в†’ Installed в†’ momenta в†’ РїРѕРєР°Р·Р°РЅ СЃС‚Р°С‚СѓСЃ 5/5 РєРѕРЅС‚РµР№РЅРµСЂРѕРІ (green)
 ```
 
-### 4.7. Если YAML не подходит
+### 4.7. Р•СЃР»Рё YAML РЅРµ РїРѕРґС…РѕРґРёС‚
 
-Если в вашей версии TrueNAS Custom App использует другой формат (не Docker Compose), разверните каждый сервис по отдельности через **Launch Docker Image**, используя параметры из YAML как руководство.
+Р•СЃР»Рё РІ РІР°С€РµР№ РІРµСЂСЃРёРё TrueNAS Custom App РёСЃРїРѕР»СЊР·СѓРµС‚ РґСЂСѓРіРѕР№ С„РѕСЂРјР°С‚ (РЅРµ Docker Compose), СЂР°Р·РІРµСЂРЅРёС‚Рµ РєР°Р¶РґС‹Р№ СЃРµСЂРІРёСЃ РїРѕ РѕС‚РґРµР»СЊРЅРѕСЃС‚Рё С‡РµСЂРµР· **Launch Docker Image**, РёСЃРїРѕР»СЊР·СѓСЏ РїР°СЂР°РјРµС‚СЂС‹ РёР· YAML РєР°Рє СЂСѓРєРѕРІРѕРґСЃС‚РІРѕ.
 
 ---
 
-## 5. Пост-деплой проверка
+## 5. РџРѕСЃС‚-РґРµРїР»РѕР№ РїСЂРѕРІРµСЂРєР°
 
 ### 5.1. Health Check API
 
 ```bash
 curl http://<trueNAS-IP>:8010/health
-# → {"status": "ok"}
+# в†’ {"status": "ok"}
 ```
 
 ### 5.2. Ready Check
 
 ```bash
 curl http://<trueNAS-IP>:8010/ready
-# → {"status":"ok","postgres":true,"redis":true,"s3":true}
+# в†’ {"status":"ok","postgres":true,"redis":true,"s3":true}
 ```
 
-### 5.3. Админ-панель
+### 5.3. РђРґРјРёРЅ-РїР°РЅРµР»СЊ
 
 ```
 http://<trueNAS-IP>:8010/admin
 ```
 
-Логин: `admin`, пароль: тот, что указали в `ADMIN_PASSWORD`.
+Р›РѕРіРёРЅ: `admin`, РїР°СЂРѕР»СЊ: С‚РѕС‚, С‡С‚Рѕ СѓРєР°Р·Р°Р»Рё РІ `ADMIN_PASSWORD`.
 
 ### 5.4. MinIO Console
 
@@ -281,168 +282,174 @@ http://<trueNAS-IP>:8010/admin
 http://<trueNAS-IP>:9011
 ```
 
-Логин/пароль: `MINIO_ROOT_USER` / `MINIO_ROOT_SECRET`.
+Р›РѕРіРёРЅ/РїР°СЂРѕР»СЊ: `MINIO_ROOT_USER` / `MINIO_ROOT_SECRET`.
 
-### 5.5. Инициализация S3 Bucket
+### 5.5. РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ S3 Bucket
 
-В админ-панели: **System → Init S3 Bucket** (однократно).
+Р’ Р°РґРјРёРЅ-РїР°РЅРµР»Рё: **System в†’ Init S3 Bucket** (РѕРґРЅРѕРєСЂР°С‚РЅРѕ).
 
-Либо через MinIO Console: создайте bucket `momenta-media` руками.
+Р›РёР±Рѕ С‡РµСЂРµР· MinIO Console: СЃРѕР·РґР°Р№С‚Рµ bucket `momenta-media` СЂСѓРєР°РјРё.
 
 ---
 
 ## 6. Reverse Proxy (Nginx Proxy Manager)
 
-### 6.1. Установка NPM
+### 6.1. РЈСЃС‚Р°РЅРѕРІРєР° NPM
 
-Установите **Nginx Proxy Manager** из каталога Apps TrueNAS.
+РЈСЃС‚Р°РЅРѕРІРёС‚Рµ **Nginx Proxy Manager** РёР· РєР°С‚Р°Р»РѕРіР° Apps TrueNAS.
 
-### 6.2. Прокси для API
+### 6.2. РџСЂРѕРєСЃРё РґР»СЏ API
 
-| Поле | Значение |
+| РџРѕР»Рµ | Р—РЅР°С‡РµРЅРёРµ |
 |---|---|
 | Domain | `momenta.example.com` |
 | Scheme | `http` |
-| Forward IP | IP вашей TrueNAS |
+| Forward IP | IP РІР°С€РµР№ TrueNAS |
 | Forward Port | `8010` |
 | Cache Assets | `No` |
 | Block Common Exploits | `Yes` |
 | Websockets Support | `No` |
 | SSL | Let's Encrypt |
 
-### 6.3. Прокси для MinIO Media
+### 6.3. РџСЂРѕРєСЃРё РґР»СЏ MinIO Media
 
-| Поле | Значение |
+| РџРѕР»Рµ | Р—РЅР°С‡РµРЅРёРµ |
 |---|---|
 | Domain | `momenta-media.example.com` |
 | Scheme | `http` |
-| Forward IP | IP вашей TrueNAS |
+| Forward IP | IP РІР°С€РµР№ TrueNAS |
 | Forward Port | `9010` |
 | Cache Assets | `Yes` |
 | SSL | Let's Encrypt |
 
-После настройки NPM обновите в API:
+РџРѕСЃР»Рµ РЅР°СЃС‚СЂРѕР№РєРё NPM РѕР±РЅРѕРІРёС‚Рµ РІ API:
 
-| Переменная | Новое значение |
+| РџРµСЂРµРјРµРЅРЅР°СЏ | РќРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ |
 |---|---|
 | `PUBLIC_BASE_URL` | `https://momenta.example.com` |
 | `S3_PUBLIC_ENDPOINT` | `https://momenta-media.example.com` |
 
-Для этого остановите app, отредактируйте переменные окружения и запустите снова.
+Р”Р»СЏ СЌС‚РѕРіРѕ РѕСЃС‚Р°РЅРѕРІРёС‚Рµ app, РѕС‚СЂРµРґР°РєС‚РёСЂСѓР№С‚Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ РѕРєСЂСѓР¶РµРЅРёСЏ Рё Р·Р°РїСѓСЃС‚РёС‚Рµ СЃРЅРѕРІР°.
 
 ---
 
-## 7. Обновление
+## 7. РћР±РЅРѕРІР»РµРЅРёРµ
 
-### 7.1. Остановите приложение
+### 7.1. РћСЃС‚Р°РЅРѕРІРёС‚Рµ РїСЂРёР»РѕР¶РµРЅРёРµ
 
-**Apps → Installed → momenta → Stop**
+**Apps в†’ Installed в†’ momenta в†’ Stop**
 
-### 7.2. Обновите образ
+### 7.2. РћР±РЅРѕРІРёС‚Рµ РѕР±СЂР°Р·
 
-Для тестового стенда можно оставить `latest`. Для production лучше заменить `latest` на конкретную версию:
+Р”Р»СЏ С‚РµСЃС‚РѕРІРѕРіРѕ СЃС‚РµРЅРґР° РјРѕР¶РЅРѕ РѕСЃС‚Р°РІРёС‚СЊ `latest`. Р”Р»СЏ production Р»СѓС‡С€Рµ Р·Р°РјРµРЅРёС‚СЊ `latest` РЅР° РєРѕРЅРєСЂРµС‚РЅСѓСЋ РІРµСЂСЃРёСЋ:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.25
+image: ghcr.io/shurshick/momenta:v0.2.26
 ```
 
-### 7.3. Запустите
+### 7.3. Р—Р°РїСѓСЃС‚РёС‚Рµ
 
-**Start**. TrueNAS перезапустит контейнеры с новым образом.
+**Start**. TrueNAS РїРµСЂРµР·Р°РїСѓСЃС‚РёС‚ РєРѕРЅС‚РµР№РЅРµСЂС‹ СЃ РЅРѕРІС‹Рј РѕР±СЂР°Р·РѕРј.
 
 ---
 
-## 8. Бэкап
+## 8. Р‘СЌРєР°Рї
 
 ### 8.1. PostgreSQL
 
-Через TrueNAS Shell:
+Р§РµСЂРµР· TrueNAS Shell:
 
 ```bash
 docker exec momenta-postgres pg_dump -U momenta momenta > /mnt/pool/backups/momenta-$(date +%F).sql
 ```
 
-### 8.2. Данные
+### 8.2. Р”Р°РЅРЅС‹Рµ
 
-Достаточно бекапить dataset'ы:
+Р”РѕСЃС‚Р°С‚РѕС‡РЅРѕ Р±РµРєР°РїРёС‚СЊ dataset'С‹:
 
 ```bash
 zfs snapshot pool/app/momenta@$(date +%F)
 ```
 
-### 8.3. Redis и MinIO
+### 8.3. Redis Рё MinIO
 
-Redis — AOF файл в `/mnt/pool/app/momenta/redis/`.
-MinIO — все объекты в `/mnt/pool/app/momenta/minio/`.
+Redis вЂ” AOF С„Р°Р№Р» РІ `/mnt/pool/app/momenta/redis/`.
+MinIO вЂ” РІСЃРµ РѕР±СЉРµРєС‚С‹ РІ `/mnt/pool/app/momenta/minio/`.
 
-Бекап через ZFS snapshot покрывает всё.
+Р‘РµРєР°Рї С‡РµСЂРµР· ZFS snapshot РїРѕРєСЂС‹РІР°РµС‚ РІСЃС‘.
 
 ---
 
-## 9. Устранение проблем
+## 9. РЈСЃС‚СЂР°РЅРµРЅРёРµ РїСЂРѕР±Р»РµРј
 
-### 9.1. Ошибка unauthorized при запуске
+### 9.1. РћС€РёР±РєР° unauthorized РїСЂРё Р·Р°РїСѓСЃРєРµ
 
-**Ошибка:** `Failed 'up' action for 'momenta' app ... unauthorized`
+**РћС€РёР±РєР°:** `Failed 'up' action for 'momenta' app ... unauthorized`
 
-**Причина:** образ на `ghcr.io` приватный, TrueNAS не может его скачать.
+**РџСЂРёС‡РёРЅР°:** РѕР±СЂР°Р· РЅР° `ghcr.io` РїСЂРёРІР°С‚РЅС‹Р№, TrueNAS РЅРµ РјРѕР¶РµС‚ РµРіРѕ СЃРєР°С‡Р°С‚СЊ.
 
-**Решение:** 
-1. Сделайте образ публичным (см. раздел 3.1).
-2. В TrueNAS: **Apps → Installed → нажмите на момент → Stop → Start** для повторной попытки.
+**Р РµС€РµРЅРёРµ:**
+1. РЎРґРµР»Р°Р№С‚Рµ РѕР±СЂР°Р· РїСѓР±Р»РёС‡РЅС‹Рј (СЃРј. СЂР°Р·РґРµР» 3.1).
+2. Р’ TrueNAS: **Apps в†’ Installed в†’ РЅР°Р¶РјРёС‚Рµ РЅР° РјРѕРјРµРЅС‚ в†’ Stop в†’ Start** РґР»СЏ РїРѕРІС‚РѕСЂРЅРѕР№ РїРѕРїС‹С‚РєРё.
 
-Если не хотите делать образ публичным — настройте Registry Credentials в TrueNAS:
-**Apps → Settings → Registry Credentials → Add**, укажите `ghcr.io`, ваш GitHub username и PAT-токен (scope: `read:packages`).
+Р•СЃР»Рё РЅРµ С…РѕС‚РёС‚Рµ РґРµР»Р°С‚СЊ РѕР±СЂР°Р· РїСѓР±Р»РёС‡РЅС‹Рј вЂ” РЅР°СЃС‚СЂРѕР№С‚Рµ Registry Credentials РІ TrueNAS:
+**Apps в†’ Settings в†’ Registry Credentials в†’ Add**, СѓРєР°Р¶РёС‚Рµ `ghcr.io`, РІР°С€ GitHub username Рё PAT-С‚РѕРєРµРЅ (scope: `read:packages`).
 
-### 9.2. Контейнеры не стартуют
+### 9.2. РљРѕРЅС‚РµР№РЅРµСЂС‹ РЅРµ СЃС‚Р°СЂС‚СѓСЋС‚
 
-Проверьте логи:
+РџСЂРѕРІРµСЂСЊС‚Рµ Р»РѕРіРё:
 
 ```
-Apps → Installed → momenta → Logs (выберите контейнер)
+Apps в†’ Installed в†’ momenta в†’ Logs (РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅС‚РµР№РЅРµСЂ)
 ```
 
-### 9.3. PostgreSQL не отвечает
+### 9.3. PostgreSQL РЅРµ РѕС‚РІРµС‡Р°РµС‚
 
 ```bash
 docker exec momenta-postgres pg_isready -U momenta
 ```
 
-Если нет — проверьте, нет ли другого Postgres на порту 5432.
+Р•СЃР»Рё РЅРµС‚ вЂ” РїСЂРѕРІРµСЂСЊС‚Рµ, РЅРµС‚ Р»Рё РґСЂСѓРіРѕРіРѕ Postgres РЅР° РїРѕСЂС‚Сѓ 5432.
 
-### 9.4. Ошибка S3 bucket not found
+### 9.4. РћС€РёР±РєР° S3 bucket not found
 
-Перейдите в админ-панель `/admin/system` и нажмите **Init S3 Bucket**, либо создайте bucket `momenta-media` в MinIO Console.
+РџРµСЂРµР№РґРёС‚Рµ РІ Р°РґРјРёРЅ-РїР°РЅРµР»СЊ `/admin/system` Рё РЅР°Р¶РјРёС‚Рµ **Init S3 Bucket**, Р»РёР±Рѕ СЃРѕР·РґР°Р№С‚Рµ bucket `momenta-media` РІ MinIO Console.
 
-### 9.5. Медиа не грузятся
+### 9.5. РњРµРґРёР° РЅРµ РіСЂСѓР·СЏС‚СЃСЏ
 
-Проверьте `S3_ENDPOINT` в API — должен указывать на `http://momenta-minio:9000` (внутренний), а `S3_PUBLIC_ENDPOINT` — на внешний URL.
+РџСЂРѕРІРµСЂСЊС‚Рµ `S3_ENDPOINT` РІ API вЂ” РґРѕР»Р¶РµРЅ СѓРєР°Р·С‹РІР°С‚СЊ РЅР° `http://momenta-minio:9000` (РІРЅСѓС‚СЂРµРЅРЅРёР№), Р° `S3_PUBLIC_ENDPOINT` вЂ” РЅР° РІРЅРµС€РЅРёР№ URL.
 
-### 9.6. Rate limit срабатывает
+### 9.6. Rate limit СЃСЂР°Р±Р°С‚С‹РІР°РµС‚
 
-Настройки в API:
+РќР°СЃС‚СЂРѕР№РєРё РІ API:
 
 ```
 RATE_LIMIT_LOGIN_PER_MINUTE=10
 RATE_LIMIT_UPLOAD_PER_HOUR=20
 ```
 
-Увеличьте при необходимости, затем перезапустите app.
+РЈРІРµР»РёС‡СЊС‚Рµ РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё, Р·Р°С‚РµРј РїРµСЂРµР·Р°РїСѓСЃС‚РёС‚Рµ app.
 
 ---
 
-## 10. Порты (сводка)
+## 10. РџРѕСЂС‚С‹ (СЃРІРѕРґРєР°)
 
-| Контейнер | Внутренний порт | Внешний порт | Доступ |
+| РљРѕРЅС‚РµР№РЅРµСЂ | Р’РЅСѓС‚СЂРµРЅРЅРёР№ РїРѕСЂС‚ | Р’РЅРµС€РЅРёР№ РїРѕСЂС‚ | Р”РѕСЃС‚СѓРї |
 |---|---:|---:|---|
-| momenta-api | 8000 | 8010 | Да |
-| momenta-postgres | 5432 | — | Нет, только внутри compose-сети |
-| momenta-redis | 6379 | — | Нет, только внутри compose-сети |
-| momenta-minio | 9000 | 9010 | Да, S3 API |
-| momenta-minio | 9001 | 9011 | Да, MinIO Console |
+| momenta-api | 8000 | 8010 | Р”Р° |
+| momenta-postgres | 5432 | вЂ” | РќРµС‚, С‚РѕР»СЊРєРѕ РІРЅСѓС‚СЂРё compose-СЃРµС‚Рё |
+| momenta-redis | 6379 | вЂ” | РќРµС‚, С‚РѕР»СЊРєРѕ РІРЅСѓС‚СЂРё compose-СЃРµС‚Рё |
+| momenta-minio | 9000 | 9010 | Р”Р°, S3 API |
+| momenta-minio | 9001 | 9011 | Р”Р°, MinIO Console |
 
-**Важно:** PostgreSQL и Redis не публикуются наружу — к ним подключаются только контейнеры API и Worker через внутреннюю Docker-сеть.
+**Р’Р°Р¶РЅРѕ:** PostgreSQL Рё Redis РЅРµ РїСѓР±Р»РёРєСѓСЋС‚СЃСЏ РЅР°СЂСѓР¶Сѓ вЂ” Рє РЅРёРј РїРѕРґРєР»СЋС‡Р°СЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РєРѕРЅС‚РµР№РЅРµСЂС‹ API Рё Worker С‡РµСЂРµР· РІРЅСѓС‚СЂРµРЅРЅСЋСЋ Docker-СЃРµС‚СЊ.
 
-> Если какой-либо порт уже занят (ошибка `port is already allocated`), измените
-> внешний порт в секции `ports` YAML-конфигурации. Например, для MinIO Console:
-> `"9011:9001"` → `"9012:9001"` (меняется только левая часть — внешний порт).
+> Р•СЃР»Рё РєР°РєРѕР№-Р»РёР±Рѕ РїРѕСЂС‚ СѓР¶Рµ Р·Р°РЅСЏС‚ (РѕС€РёР±РєР° `port is already allocated`), РёР·РјРµРЅРёС‚Рµ
+> РІРЅРµС€РЅРёР№ РїРѕСЂС‚ РІ СЃРµРєС†РёРё `ports` YAML-РєРѕРЅС„РёРіСѓСЂР°С†РёРё. РќР°РїСЂРёРјРµСЂ, РґР»СЏ MinIO Console:
+> `"9011:9001"` в†’ `"9012:9001"` (РјРµРЅСЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ Р»РµРІР°СЏ С‡Р°СЃС‚СЊ вЂ” РІРЅРµС€РЅРёР№ РїРѕСЂС‚).
+
+
+
+## APP_TIMEZONE
+
+APP_TIMEZONE controls the day boundary for automatic daily challenges. Default: Europe/Moscow. After changing it, restart momenta-api and momenta-worker.

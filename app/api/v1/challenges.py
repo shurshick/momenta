@@ -35,8 +35,11 @@ async def get_challenge_by_date_endpoint(challenge_date: str, db: AsyncSession =
     return {
         "id": str(challenge.id),
         "date": challenge.challenge_date,
+        "challenge_date": challenge.challenge_date,
         "title_ru": challenge.title_ru,
         "description_ru": challenge.description_ru,
+        "prompt_ru": challenge.prompt_ru,
+        "source": challenge.source,
         "status": challenge.status,
     }
 
@@ -49,7 +52,10 @@ async def get_challenge(challenge_id: str, db: AsyncSession = Depends(get_db)):
     return {
         "id": str(challenge.id),
         "date": challenge.challenge_date,
+        "challenge_date": challenge.challenge_date,
         "title_ru": challenge.title_ru,
         "description_ru": challenge.description_ru,
+        "prompt_ru": challenge.prompt_ru,
+        "source": challenge.source,
         "status": challenge.status,
     }

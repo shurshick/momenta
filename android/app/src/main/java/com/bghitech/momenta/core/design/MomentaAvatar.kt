@@ -81,5 +81,20 @@ private fun avatarResourceFor(avatarKey: String?): Int? = when (avatarKey) {
     "avatar_23" -> R.drawable.avatar_23
     "avatar_24" -> R.drawable.avatar_24
     "avatar_25" -> R.drawable.avatar_25
+    "avatar_26" -> R.drawable.avatar_26
+    "avatar_27" -> R.drawable.avatar_27
+    "avatar_28" -> R.drawable.avatar_28
+    "avatar_29" -> R.drawable.avatar_29
+    "avatar_30" -> R.drawable.avatar_30
+    "avatar_31" -> R.drawable.avatar_31
+    "avatar_32" -> R.drawable.avatar_32
+    "avatar_33" -> R.drawable.avatar_33
+    "avatar_34" -> R.drawable.avatar_34
+    "avatar_35" -> R.drawable.avatar_35
+    "avatar_36" -> R.drawable.avatar_36
+    "avatar_37" -> R.drawable.avatar_37
+    "avatar_38" -> R.drawable.avatar_38
+    "avatar_39" -> R.drawable.avatar_39
+    "avatar_40" -> R.drawable.avatar_40
     else -> null
 }

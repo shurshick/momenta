@@ -9,6 +9,8 @@ data class CachedChallengeEntity(
     val date: String,
     val title: String,
     val description: String?,
+    val prompt: String? = null,
+    val source: String = "manual",
     val endsAt: String?,
     val userPosted: Boolean,
     val participantsCount: Int,

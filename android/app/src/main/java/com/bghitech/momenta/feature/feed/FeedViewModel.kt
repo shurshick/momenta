@@ -44,6 +44,7 @@ class FeedViewModel @Inject constructor(
     val state = _state.asStateFlow()
     private var loadJob: Job? = null
     private var publishRefreshJob: Job? = null
+    private var userScrolledAfterPublish = false
 
     init {
         loadFeed()
@@ -90,11 +91,22 @@ class FeedViewModel @Inject constructor(
 
     fun refreshAfterPublish() {
         publishRefreshJob?.cancel()
+        userScrolledAfterPublish = false
         publishRefreshJob = viewModelScope.launch {
-            listOf(0L, 1500L, 3500L, 7000L, 12000L).forEach { delayMs ->
+            loadFeed(showCached = false, scrollToTop = true, force = true)
+            listOf(1500L, 3500L, 7000L).forEach { delayMs ->
                 if (delayMs > 0) delay(delayMs)
-                loadFeed(showCached = false, scrollToTop = true, force = true)
+                if (userScrolledAfterPublish) return@launch
+                loadFeed(showCached = false, scrollToTop = false, force = true)
             }
+        }
+    }
+
+    fun onUserScrolledAfterPublish() {
+        if (publishRefreshJob?.isActive == true) {
+            userScrolledAfterPublish = true
+            publishRefreshJob?.cancel()
+            publishRefreshJob = null
         }
     }
 

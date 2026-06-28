@@ -17,6 +17,6 @@ async def test_avatar_list_contains_reference_set(client):
 
     assert response.status_code == 200
     data = response.json()
-    assert len(data["items"]) == 25
+    assert len(data["items"]) == 40
     assert data["items"][0]["key"] == "avatar_01"
-    assert data["items"][-1]["key"] == "avatar_25"
+    assert data["items"][-1]["key"] == "avatar_40"
