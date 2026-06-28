@@ -1,7 +1,9 @@
 package com.bghitech.momenta.feature.today
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,10 +23,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -31,7 +41,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import coil.compose.rememberAsyncImagePainter
 import com.bghitech.momenta.R
+import com.bghitech.momenta.core.design.MomentaAvatar
 import com.bghitech.momenta.core.design.MomentaCard
 import com.bghitech.momenta.core.design.MomentaGreen
 import com.bghitech.momenta.core.design.MomentaGreenAlpha
@@ -102,6 +116,10 @@ fun TodayScreen(
                 onCaptureClick = onCaptureClick,
                 onOpenFeed = onOpenFeed
             )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            FeedCallToAction(onClick = onOpenFeed)
 
             Spacer(modifier = Modifier.height(20.dp))
         }
@@ -171,108 +189,237 @@ private fun ChallengeCard(
     onCaptureClick: () -> Unit,
     onOpenFeed: () -> Unit
 ) {
-    MomentaCard(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(0.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MomentaLargeShape),
+        shape = MomentaLargeShape,
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, MomentaGreen.copy(alpha = 0.55f))
     ) {
-        Column {
+        Box(
+            modifier = Modifier.background(
+                Brush.radialGradient(
+                    colors = listOf(
+                        MomentaGreen.copy(alpha = 0.16f),
+                        MomentaSurfaceAlt.copy(alpha = 0.96f),
+                        MomentaSurfaceAlt
+                    ),
+                    radius = 760f
+                )
+            )
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(3.dp)
                     .background(MomentaGreen)
             )
-            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .clip(MomentaLargeShape)
-                        .background(MomentaGreenAlpha)
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "Задание дня",
-                        color = MomentaGreen,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                Text(
-                    text = "${challenge.participantsCount} участвуют",
-                    color = MomentaTextSecondary,
-                    fontSize = 11.sp
-                )
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = challenge.title.ifBlank { stringResource(R.string.default_challenge_title) },
-                color = MomentaText,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 20.sp
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = challenge.prompt ?: challenge.description ?: stringResource(R.string.default_challenge_description),
-                color = MomentaTextSecondary,
-                fontSize = 12.sp,
-                lineHeight = 15.sp
-            )
-
-            if (challenge.endsAt != null) {
-                val timeLeft = rememberCountdownTime(challenge.endsAt)
-                if (timeLeft.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Text(
-                        text = "До конца дня $timeLeft",
-                        color = MomentaWarm,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (userPostedToday) {
+            Column(modifier = Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = stringResource(R.string.already_posted),
-                        color = MomentaText,
-                        fontSize = 13.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    MomentaSecondaryButton(
-                        text = "Смотреть",
-                        onClick = onOpenFeed,
-                        modifier = Modifier.width(132.dp),
-                        height = 40.dp
-                    )
+                    ChallengeBadge()
+                    ParticipantsBadge(count = challenge.participantsCount)
                 }
-            } else {
-                MomentaPrimaryButton(
-                    text = stringResource(R.string.capture_moment),
-                    onClick = onCaptureClick,
-                    height = 44.dp
-                )
-            }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Column(modifier = Modifier.weight(1.1f)) {
+                        Text(
+                            text = challenge.title.ifBlank { stringResource(R.string.default_challenge_title) },
+                            color = MomentaText,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 27.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(5.dp))
+
+                        Text(
+                            text = challenge.prompt ?: challenge.description ?: stringResource(R.string.default_challenge_description),
+                            color = MomentaTextSecondary,
+                            fontSize = 13.sp,
+                            lineHeight = 17.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        if (challenge.endsAt != null) {
+                            val timeLeft = rememberCountdownTime(challenge.endsAt)
+                            if (timeLeft.isNotBlank()) {
+                                TimeLeftPanel(timeLeft = timeLeft)
+                                Spacer(modifier = Modifier.height(10.dp))
+                            }
+                        }
+
+                        PostedStatePanel(userPostedToday = userPostedToday)
+                    }
+
+                    Column(
+                        modifier = Modifier.weight(0.9f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ChallengeIllustration()
+                        Spacer(modifier = Modifier.height(12.dp))
+                        MomentaPrimaryButton(
+                            text = if (userPostedToday) "Смотреть" else stringResource(R.string.capture_moment),
+                            onClick = if (userPostedToday) onOpenFeed else onCaptureClick,
+                            height = 42.dp
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+private fun ChallengeBadge() {
+    Row(
+        modifier = Modifier
+            .clip(MomentaLargeShape)
+            .background(MomentaGreen.copy(alpha = 0.18f))
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .border(2.dp, MomentaGreen, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .clip(CircleShape)
+                    .background(MomentaGreen)
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "Задание дня",
+            color = MomentaGreen,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun ParticipantsBadge(count: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = Icons.Filled.Groups,
+            contentDescription = null,
+            tint = MomentaTextSecondary,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = "$count участвуют",
+            color = MomentaTextSecondary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun TimeLeftPanel(timeLeft: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MomentaLargeShape)
+            .background(MomentaSurfaceAlt.copy(alpha = 0.72f))
+            .border(1.dp, MomentaTextSecondary.copy(alpha = 0.12f), MomentaLargeShape)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Filled.AccessTime,
+                contentDescription = null,
+                tint = MomentaWarm,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "До конца дня",
+                color = MomentaWarm,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Spacer(modifier = Modifier.height(3.dp))
+        Text(
+            text = timeLeft,
+            color = MomentaWarm,
+            fontSize = 23.sp,
+            fontWeight = FontWeight.Bold,
+            lineHeight = 25.sp
+        )
+    }
+}
+
+@Composable
+private fun PostedStatePanel(userPostedToday: Boolean) {
+    val text = if (userPostedToday) {
+        stringResource(R.string.already_posted)
+    } else {
+        "Поймай момент и задай тон этому дню"
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MomentaLargeShape)
+            .background(MomentaSurfaceAlt.copy(alpha = 0.62f))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(MomentaGreen.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Star,
+                contentDescription = null,
+                tint = MomentaGreen,
+                modifier = Modifier.size(19.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = text,
+            color = MomentaText,
+            fontSize = 13.sp,
+            lineHeight = 17.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
+private fun ChallengeIllustration() {
+    Image(
+        painter = painterResource(id = R.drawable.challenge_camera_art),
+        contentDescription = null,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp),
+        contentScale = ContentScale.Fit
+    )
 }
 
 @Composable
@@ -282,12 +429,29 @@ private fun BestMomentSection(
     onOpenFeed: () -> Unit
 ) {
     Column {
-        Text(
-            text = "Лучший момент дня",
-            color = MomentaText,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.SemiBold
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(MomentaWarm.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = null,
+                    tint = MomentaWarm,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Лучший момент дня",
+                color = MomentaText,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
 
         when {
@@ -366,54 +530,139 @@ private fun BestMomentCard(post: Post, onClick: () -> Unit) {
             .clickable(onClick = onClick),
         contentPadding = PaddingValues(0.dp)
     ) {
-        Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Image(
                 painter = rememberAsyncImagePainter(model = post.thumbUrl ?: post.previewUrl),
-                contentDescription = "Лучший момент дня",
+                contentDescription = post.caption ?: "Лучший момент дня",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1.18f)
+                    .weight(1.25f)
+                    .aspectRatio(1.05f)
                     .clip(MomentaLargeShape),
                 contentScale = ContentScale.Crop
             )
-            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = post.user.displayName ?: "@${post.user.username}",
-                        color = MomentaText,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold
+
+            Column(
+                modifier = Modifier
+                    .weight(0.9f)
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    MomentaAvatar(
+                        avatarUrl = post.user.avatarUrl,
+                        avatarKey = post.user.avatarKey,
+                        username = post.user.username,
+                        size = 38.dp
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.Favorite,
-                            contentDescription = null,
-                            tint = MomentaWarm,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.size(6.dp))
+                    Spacer(modifier = Modifier.width(9.dp))
+                    Column {
                         Text(
-                            text = post.likesCount.toString(),
+                            text = post.user.displayName ?: post.user.username,
                             color = MomentaText,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = "сегодня",
+                            color = MomentaTextSecondary,
+                            fontSize = 11.sp
                         )
                     }
                 }
-                if (!post.caption.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = post.caption,
-                        color = MomentaTextSecondary,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = post.caption?.takeIf { it.isNotBlank() } ?: "Момент, который сегодня поймал больше всего тепла.",
+                    color = MomentaTextSecondary,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp,
+                    maxLines = 4
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Favorite,
+                        contentDescription = null,
+                        tint = MomentaWarm,
+                        modifier = Modifier.size(20.dp)
                     )
+                    Spacer(modifier = Modifier.width(7.dp))
+                    Text(
+                        text = post.likesCount.toString(),
+                        color = MomentaText,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(MomentaSurfaceAlt),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ChevronRight,
+                            contentDescription = null,
+                            tint = MomentaTextSecondary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FeedCallToAction(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MomentaLargeShape)
+            .clickable(onClick = onClick),
+        color = MomentaSurfaceAlt,
+        shape = MomentaLargeShape,
+        border = BorderStroke(1.dp, MomentaTextSecondary.copy(alpha = 0.12f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(MomentaGreen.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Groups,
+                    contentDescription = null,
+                    tint = MomentaGreen,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "Смотреть мир сейчас",
+                color = MomentaTextSecondary,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.Filled.ChevronRight,
+                contentDescription = null,
+                tint = MomentaTextSecondary,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.bghitech.momenta.feature.profile
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,7 +24,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -43,6 +46,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -71,6 +76,7 @@ import com.bghitech.momenta.core.design.MomentaSurface
 import com.bghitech.momenta.core.design.MomentaSurfaceAlt
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
+import com.bghitech.momenta.core.design.MomentaWarm
 import com.bghitech.momenta.domain.model.Post
 
 @Composable
@@ -197,89 +203,72 @@ private fun ProfileContent(
         )
     }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.Start
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(78.dp)
-                    .clickable(onClick = onAvatarClick),
-                contentAlignment = Alignment.TopStart
-            ) {
-                MomentaAvatar(
-                    avatarUrl = state.avatarUrl,
-                    avatarKey = state.avatarKey,
-                    username = state.username,
-                    size = 78.dp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = state.displayName,
-                    color = MomentaText,
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
-                IconButton(
-                    onClick = onEditClick,
-                    modifier = Modifier.size(30.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Редактировать профиль",
-                        tint = MomentaGreen,
-                        modifier = Modifier.size(17.dp)
-                    )
-                }
-            }
-
-            Text(
-                text = state.username,
-                color = MomentaTextSecondary,
-                fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+            ProfileIdentityBlock(
+                state = state,
+                onEditClick = onEditClick,
+                onAvatarClick = onAvatarClick,
+                modifier = Modifier.weight(1.05f)
             )
 
-            if (!state.bio.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = state.bio,
-                    color = MomentaTextSecondary,
-                    fontSize = 13.sp,
-                    lineHeight = 17.sp,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            ProfileStreakCard(
+                streakCount = state.streakCount,
+                modifier = Modifier.weight(0.95f)
+            )
         }
 
-        ProfileStatsBlock(
-            state = state,
-            modifier = Modifier.weight(1.25f)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ProfileMetricCard(
+                value = state.momentsCount,
+                label = momentWord(state.momentsCount),
+                icon = "M",
+                accent = MomentaGreen,
+                modifier = Modifier.weight(1f)
+            )
+            ProfileMetricCard(
+                value = state.likesCount,
+                label = likeWord(state.likesCount),
+                icon = "♡",
+                accent = MomentaWarm,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(20.dp))
 
-    Text(
-        text = "Недавние моменты",
-        color = MomentaText,
-        fontSize = 17.sp,
-        fontWeight = FontWeight.SemiBold
-    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            MomentaLogoMark(size = 28)
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = "Недавние моменты",
+                color = MomentaText,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        if (state.recentPosts.size > 9) {
+            Text(
+                text = "Смотреть все ›",
+                color = MomentaGreen,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
 
     Spacer(modifier = Modifier.height(7.dp))
 
@@ -312,30 +301,165 @@ private fun ProfileContent(
 }
 
 @Composable
-private fun ProfileStatsBlock(state: ProfileUiState, modifier: Modifier = Modifier) {
+private fun ProfileIdentityBlock(
+    state: ProfileUiState,
+    onEditClick: () -> Unit,
+    onAvatarClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalAlignment = Alignment.Start
     ) {
-        StatItem(
-            value = "${state.streakCount}",
-            label = "${dayWord(state.streakCount)}\nподряд",
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 9.dp)
+        Surface(
+            modifier = Modifier
+                .size(114.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onAvatarClick),
+            color = Color.Transparent,
+            shape = CircleShape,
+            border = BorderStroke(2.dp, MomentaGreen.copy(alpha = 0.82f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                MomentaGreen.copy(alpha = 0.22f),
+                                MomentaWarm.copy(alpha = 0.10f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+                    .padding(5.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                MomentaAvatar(
+                    avatarUrl = state.avatarUrl,
+                    avatarKey = state.avatarKey,
+                    username = state.username,
+                    size = 100.dp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = state.displayName,
+                color = MomentaText,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Редактировать профиль",
+                    tint = MomentaGreen,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
+        Text(
+            text = state.username,
+            color = MomentaTextSecondary,
+            fontSize = 16.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatItem(
-                value = "${state.momentsCount}",
-                label = momentWord(state.momentsCount),
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 9.dp)
+
+        if (!state.bio.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = state.bio,
+                color = MomentaTextSecondary,
+                fontSize = 17.sp,
+                lineHeight = 21.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
             )
-            StatItem(
-                value = "${state.likesCount}",
-                label = likeWord(state.likesCount),
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 9.dp)
+        }
+    }
+}
+
+@Composable
+private fun ProfileStreakCard(streakCount: Int, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.height(128.dp),
+        color = MomentaSurface.copy(alpha = 0.88f),
+        shape = MomentaLargeShape,
+        border = BorderStroke(1.dp, MomentaGreen.copy(alpha = 0.18f))
+    ) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "$streakCount",
+                    color = MomentaGreen,
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${dayWord(streakCount)}\nподряд",
+                    color = MomentaTextSecondary,
+                    fontSize = 15.sp,
+                    lineHeight = 19.sp
+                )
+            }
+            MomentaLogoMark(size = 62)
+        }
+    }
+}
+
+@Composable
+private fun ProfileMetricCard(
+    value: Int,
+    label: String,
+    icon: String,
+    accent: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.height(72.dp),
+        color = MomentaSurface.copy(alpha = 0.9f),
+        shape = MomentaLargeShape,
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.20f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = icon,
+                color = accent,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.size(14.dp))
+            Column {
+                Text(
+                    text = "$value",
+                    color = MomentaText,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = label.lowercase(),
+                    color = MomentaTextSecondary,
+                    fontSize = 14.sp
+                )
+            }
         }
     }
 }

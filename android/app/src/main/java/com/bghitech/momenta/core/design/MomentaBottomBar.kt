@@ -1,6 +1,7 @@
 package com.bghitech.momenta.core.design
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Language
@@ -50,69 +52,94 @@ fun MomentaBottomBar(
     onNavigate: (String) -> Unit
 ) {
     Surface(
-        color = MomentaBackground.copy(alpha = 0.98f),
+        color = MomentaBackground.copy(alpha = 0.96f),
         tonalElevation = 0.dp
     ) {
-        Row(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp)
+                .padding(horizontal = 14.dp, vertical = 8.dp)
                 .navigationBarsPadding(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            color = MomentaSurface.copy(alpha = 0.92f),
+            shape = RoundedCornerShape(30.dp),
+            border = BorderStroke(1.dp, MomentaTextSecondary.copy(alpha = 0.14f))
         ) {
-            BottomNavItem.entries.forEach { item ->
-                if (item == BottomNavItem.CREATE) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { onNavigate(item.route) }
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .clip(CircleShape)
-                                .background(MomentaGreen),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = item.selectedIcon,
-                                contentDescription = item.label,
-                                tint = MomentaBackground,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(3.dp))
-                        Text(
-                            text = item.label,
-                            color = MomentaGreen,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                } else {
-                    val selected = currentRoute == item.route
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .clickable { onNavigate(item.route) }
-                            .padding(horizontal = 2.dp, vertical = 3.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = item.label,
-                            tint = if (selected) MomentaGreen else MomentaTextSecondary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.height(3.dp))
-                        Text(
-                            text = item.label,
-                            color = if (selected) MomentaGreen else MomentaTextSecondary,
-                            fontSize = 9.sp,
-                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                        )
-                    }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BottomNavItem.entries.forEach { item ->
+                    BottomBarItem(
+                        item = item,
+                        selected = currentRoute == item.route,
+                        onClick = { onNavigate(item.route) }
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BottomBarItem(
+    item: BottomNavItem,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val isCreate = item == BottomNavItem.CREATE
+    val active = selected || isCreate
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(if (isCreate) 54.dp else 36.dp)
+                .clip(CircleShape)
+                .background(
+                    when {
+                        isCreate -> MomentaGreen.copy(alpha = 0.22f)
+                        selected -> MomentaGreen.copy(alpha = 0.12f)
+                        else -> MomentaBackground.copy(alpha = 0f)
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isCreate) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(MomentaGreen),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = item.selectedIcon,
+                        contentDescription = item.label,
+                        tint = MomentaBackground,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                    contentDescription = item.label,
+                    tint = if (active) MomentaGreen else MomentaTextSecondary,
+                    modifier = Modifier.size(23.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = item.label,
+            color = if (active) MomentaGreen else MomentaTextSecondary,
+            fontSize = 10.sp,
+            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal
+        )
     }
 }

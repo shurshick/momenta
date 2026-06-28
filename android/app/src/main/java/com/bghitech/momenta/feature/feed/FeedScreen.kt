@@ -2,6 +2,7 @@ package com.bghitech.momenta.feature.feed
 
 import android.content.Intent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -122,9 +124,9 @@ fun FeedScreen(
         Text(
             text = "Мир сейчас",
             color = MomentaText,
-            fontSize = 23.sp,
+            fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp)
         )
 
         Row(
@@ -143,15 +145,15 @@ fun FeedScreen(
                     Text(
                         text = title,
                         color = if (selectedTab == index) MomentaGreen else MomentaTextSecondary,
-                        fontSize = 14.sp,
+                        fontSize = 17.sp,
                         fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
                     )
                     if (selectedTab == index) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Box(
                             modifier = Modifier
-                                .width(24.dp)
-                                .height(2.dp)
+                                .width(54.dp)
+                                .height(3.dp)
                                 .background(MomentaGreen, MomentaSmallShape)
                         )
                     }
@@ -160,8 +162,8 @@ fun FeedScreen(
         }
 
         LazyRow(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             item {
                 Column(
@@ -170,7 +172,7 @@ fun FeedScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(50.dp)
+                            .size(64.dp)
                             .clip(CircleShape)
                             .background(MomentaGreen)
                             .padding(2.dp),
@@ -192,26 +194,26 @@ fun FeedScreen(
                         }
                     }
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Ваш момент", color = MomentaTextSecondary, fontSize = 10.sp)
+                    Text("Ваш момент", color = MomentaTextSecondary, fontSize = 13.sp)
                 }
             }
 
             items(state.suggestedUsers, key = { it.id.ifBlank { it.username } }) { user ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(62.dp)
+                    modifier = Modifier.width(72.dp)
                 ) {
                     MomentaAvatar(
                         avatarUrl = user.avatarUrl,
                         avatarKey = user.avatarKey,
                         username = user.username,
-                        size = 50.dp
+                        size = 64.dp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = user.displayName ?: user.username,
                         color = MomentaTextSecondary,
-                        fontSize = 10.sp,
+                        fontSize = 13.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -440,36 +442,34 @@ private fun FeedPostCard(
         )
     }
 
-    MomentaCard(contentPadding = PaddingValues(0.dp)) {
-        Column {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MomentaSurface.copy(alpha = 0.92f),
+        shape = MomentaLargeShape,
+        border = BorderStroke(1.dp, MomentaGreen.copy(alpha = 0.16f))
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                    .padding(bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 MomentaAvatar(
                     avatarUrl = post.user.avatarUrl,
                     avatarKey = post.user.avatarKey,
                     username = post.user.username,
-                    size = 38.dp
+                    size = 52.dp
                 )
-                Box(modifier = Modifier.size(0.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
-                    Surface(modifier = Modifier.fillMaxSize(), color = MomentaSurfaceAlt, shape = CircleShape) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text("•", color = MomentaGreen, fontSize = 16.sp)
-                        }
-                    }
-                }
 
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = post.user.displayName ?: post.user.username,
                         color = MomentaText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -477,29 +477,36 @@ private fun FeedPostCard(
                         if (post.city != null || post.country != null) {
                             Text(
                                 text = listOfNotNull(post.city, post.country).joinToString(", "),
-                                color = MomentaTextSecondary, fontSize = 11.sp
+                                color = MomentaTextSecondary, fontSize = 13.sp
                             )
-                            Text(" · ", color = MomentaTextSecondary, fontSize = 11.sp)
+                            Text(" · ", color = MomentaTextSecondary, fontSize = 13.sp)
                         }
                         Text(
                             text = DateUtils.formatRelativeTime(post.createdAt),
-                            color = MomentaTextSecondary, fontSize = 11.sp
+                            color = MomentaTextSecondary, fontSize = 13.sp
                         )
                     }
                 }
 
                 if (post.canDelete) {
                     IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.DeleteOutline, contentDescription = "Удалить", tint = MomentaTextSecondary, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.DeleteOutline, contentDescription = "Удалить", tint = MomentaTextSecondary, modifier = Modifier.size(22.dp))
                     }
                 }
 
                 IconButton(onClick = { showReportDialog = true }) {
-                    Icon(Icons.Default.Flag, contentDescription = "Пожаловаться", tint = MomentaTextSecondary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Flag, contentDescription = "Пожаловаться", tint = MomentaTextSecondary, modifier = Modifier.size(24.dp))
                 }
             }
 
-            Surface(modifier = Modifier.fillMaxWidth().aspectRatio(1.04f), color = MomentaSurfaceAlt) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.04f)
+                    .clip(RoundedCornerShape(18.dp)),
+                color = MomentaSurfaceAlt,
+                shape = RoundedCornerShape(18.dp)
+            ) {
                 Image(
                     painter = rememberAsyncImagePainter(model = post.previewUrl),
                     contentDescription = null,
@@ -512,53 +519,78 @@ private fun FeedPostCard(
                 Text(
                     text = post.caption,
                     color = MomentaText,
-                    fontSize = 14.sp,
-                    lineHeight = 19.sp,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                    fontSize = 17.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 12.dp)
                 )
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onLikeClick, modifier = Modifier.size(32.dp)) {
+                FeedActionPill(onClick = onLikeClick) {
                     Icon(
                         imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Лайк",
                         tint = if (post.isLiked) MomentaError else MomentaTextSecondary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(22.dp)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = post.likesCount.toString(), color = MomentaTextSecondary, fontSize = 14.sp)
                 }
-                Text(text = post.likesCount.toString(), color = MomentaTextSecondary, fontSize = 12.sp)
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
-                IconButton(onClick = onCommentsClick, modifier = Modifier.size(32.dp)) {
+                FeedActionPill(onClick = onCommentsClick) {
                     Icon(
                         Icons.Default.ChatBubbleOutline,
                         contentDescription = "Комментарии",
                         tint = MomentaTextSecondary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(22.dp)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = post.commentsCount.toString(), color = MomentaTextSecondary, fontSize = 14.sp)
                 }
-                Text(text = post.commentsCount.toString(), color = MomentaTextSecondary, fontSize = 12.sp)
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                IconButton(onClick = {
+                FeedActionPill(onClick = {
                     val intent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, "Момент от ${post.user.displayName ?: post.user.username} в Момента: ${post.previewUrl}")
                     }
                     context.startActivity(Intent.createChooser(intent, "Поделиться моментом"))
-                }, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.Share, contentDescription = "Поделиться", tint = MomentaTextSecondary, modifier = Modifier.size(20.dp))
+                }) {
+                    Icon(Icons.Default.Share, contentDescription = "Поделиться", tint = MomentaTextSecondary, modifier = Modifier.size(22.dp))
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun FeedActionPill(
+    onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .height(42.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        color = MomentaBackground.copy(alpha = 0.24f),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, MomentaTextSecondary.copy(alpha = 0.16f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            content = content
+        )
     }
 }
 
