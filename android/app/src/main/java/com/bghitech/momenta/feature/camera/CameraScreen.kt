@@ -205,15 +205,15 @@ private fun CameraContent(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .background(MomentaBackground.copy(alpha = 0.52f))
+                .background(MomentaBackground.copy(alpha = 0.68f))
                 .navigationBarsPadding()
-                .padding(bottom = 18.dp, top = 18.dp),
+                .padding(bottom = 16.dp, top = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                    .padding(horizontal = 30.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -243,7 +243,7 @@ private fun CameraContent(
             }
 
             if (showEffects) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 EffectsPanel(
                     selected = selectedEffect,
                     onSelect = {
@@ -252,7 +252,7 @@ private fun CameraContent(
                 )
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 listOf("Фото", "Видео", "История").forEach { mode ->
@@ -282,14 +282,29 @@ private fun CameraToolButton(
 ) {
     Column(
         modifier = Modifier
-            .size(width = 74.dp, height = 64.dp)
+            .size(width = 76.dp, height = 62.dp)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(icon, contentDescription = label, tint = MomentaText, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(text = label, color = MomentaText, fontSize = 12.sp)
+        Surface(
+            modifier = Modifier.size(38.dp),
+            shape = CircleShape,
+            color = MomentaSurface.copy(alpha = 0.82f),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MomentaDivider)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = label, tint = MomentaText, modifier = Modifier.size(21.dp))
+            }
+        }
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(
+            text = label,
+            color = MomentaTextSecondary,
+            fontSize = 11.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -300,7 +315,7 @@ private fun CaptureButton(
 ) {
     Box(
         modifier = Modifier
-            .size(82.dp)
+            .size(80.dp)
             .clip(CircleShape)
             .background(MomentaGreen.copy(alpha = 0.18f))
             .border(3.dp, if (enabled) MomentaGreen else MomentaDivider, CircleShape),
@@ -323,16 +338,16 @@ private fun EffectsPanel(
     onSelect: (PhotoEffect) -> Unit
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp),
         color = MomentaSurface.copy(alpha = 0.95f),
-        shape = RoundedCornerShape(18.dp)
+        shape = RoundedCornerShape(20.dp)
     ) {
-        Column(modifier = Modifier.padding(vertical = 12.dp)) {
+        Column(modifier = Modifier.padding(vertical = 10.dp)) {
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
                 items(PhotoEffect.entries) { effect ->
                     EffectChip(
@@ -342,14 +357,14 @@ private fun EffectsPanel(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = selected.subtitle,
                 color = MomentaTextSecondary,
                 fontSize = 12.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = 14.dp)
             )
         }
     }
@@ -363,8 +378,8 @@ private fun EffectChip(
 ) {
     Surface(
         modifier = Modifier
-            .height(44.dp)
-            .widthIn(min = 104.dp)
+            .height(42.dp)
+            .widthIn(min = 98.dp)
             .clickable(onClick = onClick),
         color = if (selected) MomentaGreen.copy(alpha = 0.20f) else MomentaBackground,
         shape = RoundedCornerShape(22.dp),

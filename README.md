@@ -8,7 +8,7 @@
 
 ## Current Status
 
-Текущая стабильная версия: **v0.2.29**.
+Текущая стабильная версия: **v0.2.30**.
 
 Текущий визуальный стандарт Android: **Momenta Design Concept v1**.
 
@@ -111,7 +111,7 @@ Production-like ports used by the current deploy:
 For test/dev deploys `ghcr.io/shurshick/momenta:latest` is convenient. For production use a fixed tag, for example:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.29
+image: ghcr.io/shurshick/momenta:v0.2.30
 ```
 
 Full guide: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
@@ -156,11 +156,11 @@ GitHub Actions:
 
 ## Releases
 
-Latest release: [v0.2.29](https://github.com/shurshick/momenta/releases/tag/v0.2.29)
+Latest release: [v0.2.30](https://github.com/shurshick/momenta/releases/tag/v0.2.30)
 
 Release artifacts:
 
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.29`
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.30`
 - Docker image: `ghcr.io/shurshick/momenta:latest`
 - Android APK: attached to the GitHub release and workflow artifacts
 

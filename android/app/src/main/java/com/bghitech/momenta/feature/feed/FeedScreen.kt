@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
@@ -19,7 +20,6 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -118,13 +118,13 @@ fun FeedScreen(
     }
 
     MomentaScreen {
-    Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
         Text(
             text = "Мир сейчас",
             color = MomentaText,
-            fontSize = 24.sp,
+            fontSize = 23.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)
         )
 
         Row(
@@ -137,7 +137,7 @@ fun FeedScreen(
                     modifier = Modifier
                         .weight(1f)
                         .clickable { selectedTab = index }
-                        .padding(bottom = 12.dp),
+                        .padding(bottom = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -160,8 +160,8 @@ fun FeedScreen(
         }
 
         LazyRow(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
                 Column(
@@ -170,7 +170,7 @@ fun FeedScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(52.dp)
+                            .size(50.dp)
                             .clip(CircleShape)
                             .background(MomentaGreen)
                             .padding(2.dp),
@@ -199,13 +199,13 @@ fun FeedScreen(
             items(state.suggestedUsers, key = { it.id.ifBlank { it.username } }) { user ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(64.dp)
+                    modifier = Modifier.width(62.dp)
                 ) {
                     MomentaAvatar(
                         avatarUrl = user.avatarUrl,
                         avatarKey = user.avatarKey,
                         username = user.username,
-                        size = 52.dp
+                        size = 50.dp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -226,7 +226,7 @@ fun FeedScreen(
         ) {
             when {
                 state.isLoading && state.items.isEmpty() -> {
-                    MomentaLoading()
+                    FeedLoadingSkeleton()
                 }
                 state.error != null && state.items.isEmpty() -> {
                     Box(
@@ -249,14 +249,18 @@ fun FeedScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        MomentaCard(modifier = Modifier.padding(24.dp)) {
+                        MomentaCard(
+                            modifier = Modifier.padding(24.dp),
+                            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 20.dp)
+                        ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 MomentaLogoMark(size = 64)
-                                Spacer(modifier = Modifier.height(14.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
                                 Text(
                                     text = "Пока никто не поделился моментом. Стань первым.",
                                     color = MomentaText,
-                                    fontSize = 15.sp,
+                                    fontSize = 14.sp,
+                                    lineHeight = 19.sp,
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                 )
                             }
@@ -294,7 +298,7 @@ fun FeedScreen(
                                 }
                             },
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         items(state.items, key = { it.id }) { post ->
                             FeedPostCard(
@@ -332,7 +336,59 @@ fun FeedScreen(
                 }
             }
         }
+        }
     }
+}
+
+@Composable
+private fun FeedLoadingSkeleton() {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        items(3) {
+            MomentaCard(contentPadding = PaddingValues(0.dp)) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(MomentaSurfaceAlt)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .width(110.dp)
+                                    .height(12.dp)
+                                    .clip(MomentaSmallShape)
+                                    .background(MomentaSurfaceAlt)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .width(72.dp)
+                                    .height(10.dp)
+                                    .clip(MomentaSmallShape)
+                                    .background(MomentaSurfaceAlt.copy(alpha = 0.7f))
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1.05f)
+                            .background(MomentaSurfaceAlt)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -387,14 +443,16 @@ private fun FeedPostCard(
     MomentaCard(contentPadding = PaddingValues(0.dp)) {
         Column {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 MomentaAvatar(
                     avatarUrl = post.user.avatarUrl,
                     avatarKey = post.user.avatarKey,
                     username = post.user.username,
-                    size = 36.dp
+                    size = 38.dp
                 )
                 Box(modifier = Modifier.size(0.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
                     Surface(modifier = Modifier.fillMaxSize(), color = MomentaSurfaceAlt, shape = CircleShape) {
@@ -406,10 +464,14 @@ private fun FeedPostCard(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = post.user.displayName ?: post.user.username,
-                        color = MomentaText, fontSize = 14.sp, fontWeight = FontWeight.Medium
+                        color = MomentaText,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Row {
                         if (post.city != null || post.country != null) {
@@ -426,8 +488,6 @@ private fun FeedPostCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-
                 if (post.canDelete) {
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(Icons.Default.DeleteOutline, contentDescription = "Удалить", tint = MomentaTextSecondary, modifier = Modifier.size(20.dp))
@@ -439,7 +499,7 @@ private fun FeedPostCard(
                 }
             }
 
-            Surface(modifier = Modifier.fillMaxWidth().height(300.dp), color = MomentaSurfaceAlt) {
+            Surface(modifier = Modifier.fillMaxWidth().aspectRatio(1.04f), color = MomentaSurfaceAlt) {
                 Image(
                     painter = rememberAsyncImagePainter(model = post.previewUrl),
                     contentDescription = null,
@@ -448,15 +508,20 @@ private fun FeedPostCard(
                 )
             }
 
-            if (post.caption != null) {
+            if (!post.caption.isNullOrBlank()) {
                 Text(
-                    text = post.caption, color = MomentaText, fontSize = 13.sp,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                    text = post.caption,
+                    color = MomentaText,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
                 )
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onLikeClick, modifier = Modifier.size(32.dp)) {
@@ -560,13 +625,22 @@ private fun CommentsDialog(
                         onValueChange = { text = it.take(500) },
                         modifier = Modifier.weight(1f),
                         placeholder = { Text("Ваш комментарий") },
-                        maxLines = 3
+                        maxLines = 3,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = MomentaText,
+                            unfocusedTextColor = MomentaText,
+                            cursorColor = MomentaGreen,
+                            focusedBorderColor = MomentaGreen,
+                            unfocusedBorderColor = MomentaDivider,
+                            focusedPlaceholderColor = MomentaTextSecondary,
+                            unfocusedPlaceholderColor = MomentaTextSecondary
+                        )
                     )
                     IconButton(onClick = {
                         onSend(text)
                         text = ""
                     }) {
-                        Icon(Icons.Default.Send, contentDescription = "Отправить", tint = MomentaGreen)
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Отправить", tint = MomentaGreen)
                     }
                 }
             }

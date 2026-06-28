@@ -1,6 +1,8 @@
 package com.bghitech.momenta.feature.profile
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -138,7 +141,7 @@ fun ProfileScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp),
+                    .padding(top = 8.dp, bottom = 2.dp),
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(onClick = onSettingsClick) {
@@ -149,6 +152,15 @@ fun ProfileScreen(
             if (state.isLoading) {
                 MomentaLoading()
             } else {
+                val error = state.error
+                if (error != null) {
+                    Text(
+                        text = error,
+                        color = MomentaError,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
                 ProfileContent(
                     state = state,
                     onEditClick = { showEditDialog = true },
@@ -174,13 +186,35 @@ private fun ProfileContent(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
         ) {
-            MomentaAvatar(
-                avatarUrl = state.avatarUrl,
-                avatarKey = state.avatarKey,
-                username = state.username,
-                size = 78.dp,
-                modifier = Modifier.clickable(onClick = onAvatarClick)
-            )
+            Box(
+                modifier = Modifier
+                    .size(84.dp)
+                    .clickable(onClick = onAvatarClick),
+                contentAlignment = Alignment.TopStart
+            ) {
+                MomentaAvatar(
+                    avatarUrl = state.avatarUrl,
+                    avatarKey = state.avatarKey,
+                    username = state.username,
+                    size = 78.dp
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(MomentaSurface)
+                        .border(1.dp, MomentaGreen, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Выбрать аватар",
+                        tint = MomentaGreen,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -227,16 +261,16 @@ private fun ProfileContent(
         )
     }
 
-    Spacer(modifier = Modifier.height(18.dp))
+    Spacer(modifier = Modifier.height(14.dp))
 
     Text(
         text = "Недавние моменты",
-        color = MomentaTextSecondary,
-        fontSize = 14.sp,
+        color = MomentaText,
+        fontSize = 17.sp,
         fontWeight = FontWeight.SemiBold
     )
 
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(7.dp))
 
     if (state.recentPosts.isEmpty()) {
         MomentaCard(modifier = Modifier.fillMaxWidth()) {
@@ -251,12 +285,12 @@ private fun ProfileContent(
     } else {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             state.recentPosts.take(9).chunked(3).forEach { rowPosts ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     rowPosts.forEach { post ->
                         RecentPostTile(
@@ -277,26 +311,26 @@ private fun ProfileContent(
 private fun ProfileStatsBlock(state: ProfileUiState, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         StatItem(
             value = "${state.streakCount}",
             label = "${dayWord(state.streakCount)}\nподряд",
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp)
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 9.dp)
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             StatItem(
                 value = "${state.momentsCount}",
                 label = momentWord(state.momentsCount),
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp)
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 9.dp)
             )
             StatItem(
                 value = "${state.likesCount}",
                 label = likeWord(state.likesCount),
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp)
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 9.dp)
             )
         }
     }
@@ -431,7 +465,7 @@ private fun StatItem(
             Text(
                 text = value,
                 color = MomentaText,
-                fontSize = 20.sp,
+                fontSize = 19.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(

@@ -107,15 +107,15 @@ fun PublishScreen(
                     modifier = Modifier
                         .weight(1f)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Image(
                         painter = rememberAsyncImagePainter(model = imagePath),
                         contentDescription = "Preview",
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(390.dp)
-                            .clip(RoundedCornerShape(28.dp)),
+                            .height(360.dp)
+                            .clip(RoundedCornerShape(24.dp)),
                         contentScale = ContentScale.Crop
                     )
 
@@ -131,7 +131,7 @@ fun PublishScreen(
                 MomentaCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 18.dp),
+                        .padding(bottom = 14.dp),
                     containerColor = MomentaSurface.copy(alpha = 0.96f)
                 ) {
                     Row(
@@ -158,7 +158,7 @@ fun PublishScreen(
                         )
 
                         Surface(
-                            modifier = Modifier.size(54.dp),
+                            modifier = Modifier.size(50.dp),
                             shape = CircleShape,
                             color = if (state.isUploading) MomentaDivider else MomentaGreen,
                             shadowElevation = 0.dp

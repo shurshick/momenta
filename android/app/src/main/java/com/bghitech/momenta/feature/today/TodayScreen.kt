@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -93,7 +94,7 @@ fun TodayScreen(
                 onOpenFeed = onOpenFeed
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             BestMomentSection(
                 state = state,
@@ -101,7 +102,7 @@ fun TodayScreen(
                 onOpenFeed = onOpenFeed
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -111,7 +112,7 @@ private fun Header(onSettingsClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 18.dp),
+            .padding(top = 14.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -119,7 +120,7 @@ private fun Header(onSettingsClick: () -> Unit) {
             Text(
                 text = stringResource(R.string.today_title),
                 color = MomentaText,
-                fontSize = 24.sp,
+                fontSize = 23.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
@@ -173,7 +174,7 @@ private fun ChallengeCard(
 ) {
     MomentaCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
     ) {
         Column {
             Row(
@@ -184,67 +185,76 @@ private fun ChallengeCard(
                 Text(
                     text = "Задание дня",
                     color = MomentaGreen,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = "${challenge.participantsCount} участвуют",
                     color = MomentaTextSecondary,
-                    fontSize = 12.sp
+                    fontSize = 11.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(7.dp))
+            Spacer(modifier = Modifier.height(5.dp))
 
             Text(
                 text = challenge.title.ifBlank { stringResource(R.string.default_challenge_title) },
                 color = MomentaText,
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 23.sp
+                lineHeight = 21.sp
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(3.dp))
 
             Text(
                 text = challenge.prompt ?: challenge.description ?: stringResource(R.string.default_challenge_description),
                 color = MomentaTextSecondary,
-                fontSize = 14.sp,
-                lineHeight = 17.sp
+                fontSize = 13.sp,
+                lineHeight = 16.sp
             )
 
             if (challenge.endsAt != null) {
                 val timeLeft = rememberCountdownTime(challenge.endsAt)
                 if (timeLeft.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(5.dp))
                     Text(
                         text = "До конца дня $timeLeft",
                         color = MomentaWarm,
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(9.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (userPostedToday) {
-                Text(
-                    text = stringResource(R.string.already_posted),
-                    color = MomentaText,
-                    fontSize = 14.sp,
-                    lineHeight = 17.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(7.dp))
-                MomentaSecondaryButton(
-                    text = stringResource(R.string.watch_world_now),
-                    onClick = onOpenFeed
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.already_posted),
+                        color = MomentaText,
+                        fontSize = 13.sp,
+                        lineHeight = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    MomentaSecondaryButton(
+                        text = stringResource(R.string.watch_world_now),
+                        onClick = onOpenFeed,
+                        modifier = Modifier.width(172.dp),
+                        height = 42.dp
+                    )
+                }
             } else {
                 MomentaPrimaryButton(
                     text = stringResource(R.string.capture_moment),
-                    onClick = onCaptureClick
+                    onClick = onCaptureClick,
+                    height = 44.dp
                 )
             }
         }
@@ -261,7 +271,7 @@ private fun BestMomentSection(
         Text(
             text = "Лучший момент дня",
             color = MomentaText,
-            fontSize = 16.sp,
+            fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -271,7 +281,7 @@ private fun BestMomentSection(
             state.isBestMomentLoading -> MomentaCard(modifier = Modifier.fillMaxWidth()) {
                 MomentaLoading(message = "Ищем лучший момент...")
             }
-            else -> EmptyBestMoment(onCaptureClick = onCaptureClick, onOpenFeed = onOpenFeed)
+            else -> EmptyBestMoment(onCaptureClick = onCaptureClick)
         }
     }
 }
@@ -290,11 +300,11 @@ private fun BestMomentCard(post: Post, onClick: () -> Unit) {
                 contentDescription = "Лучший момент дня",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1.12f)
+                    .aspectRatio(1.18f)
                     .clip(MomentaLargeShape),
                 contentScale = ContentScale.Crop
             )
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -328,7 +338,7 @@ private fun BestMomentCard(post: Post, onClick: () -> Unit) {
                         text = post.caption,
                         color = MomentaTextSecondary,
                         fontSize = 14.sp,
-                        lineHeight = 20.sp
+                        lineHeight = 18.sp
                     )
                 }
             }
@@ -337,7 +347,7 @@ private fun BestMomentCard(post: Post, onClick: () -> Unit) {
 }
 
 @Composable
-private fun EmptyBestMoment(onCaptureClick: () -> Unit, onOpenFeed: () -> Unit) {
+private fun EmptyBestMoment(onCaptureClick: () -> Unit) {
     MomentaCard(modifier = Modifier.fillMaxWidth()) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
@@ -354,25 +364,27 @@ private fun EmptyBestMoment(onCaptureClick: () -> Unit, onOpenFeed: () -> Unit) 
                         .background(MomentaWarm)
                 )
             }
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "Сегодняшний лучший момент еще впереди",
                 color = MomentaText,
-                fontSize = 18.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "Сделай снимок и задай тон этому дню.",
                 color = MomentaTextSecondary,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(18.dp))
-            MomentaPrimaryButton(text = stringResource(R.string.capture_moment), onClick = onCaptureClick)
-            Spacer(modifier = Modifier.height(10.dp))
-            MomentaSecondaryButton(text = stringResource(R.string.watch_world_now), onClick = onOpenFeed)
+            Spacer(modifier = Modifier.height(14.dp))
+            MomentaPrimaryButton(
+                text = stringResource(R.string.capture_moment),
+                onClick = onCaptureClick,
+                height = 46.dp
+            )
         }
     }
 }

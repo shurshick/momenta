@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -16,13 +17,14 @@ fun MomentaPrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    loading: Boolean = false
+    loading: Boolean = false,
+    height: Dp = 52.dp
 ) {
     Button(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp),
+            .height(height),
         enabled = enabled && !loading,
         shape = MomentaLargeShape,
         colors = ButtonDefaults.buttonColors(
@@ -53,13 +55,14 @@ fun MomentaSecondaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    height: Dp = 52.dp
 ) {
     OutlinedButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp),
+            .height(height),
         enabled = enabled,
         shape = MomentaLargeShape,
         colors = ButtonDefaults.outlinedButtonColors(
