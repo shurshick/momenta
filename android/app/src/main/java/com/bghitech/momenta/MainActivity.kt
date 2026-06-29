@@ -1,4 +1,4 @@
-package com.bghitech.momenta
+﻿package com.bghitech.momenta
 
 import android.os.Bundle
 import android.widget.Toast
@@ -64,10 +64,16 @@ fun MomentaNavGraph() {
 
     LaunchedEffect(isLoggedIn, backStackEntry?.destination?.route) {
         val route = backStackEntry?.destination?.route
-        val publicRoute = route in setOf(NavRoutes.SPLASH, NavRoutes.ONBOARDING, NavRoutes.AUTH)
+        val publicRoute = route in setOf(
+            NavRoutes.SPLASH,
+            NavRoutes.ONBOARDING,
+            NavRoutes.AUTH,
+            NavRoutes.AUTH_LOGIN,
+            NavRoutes.AUTH_REGISTER
+        )
         if (!isLoggedIn && !publicRoute) {
             Toast.makeText(context, "Сессия истекла. Войдите снова.", Toast.LENGTH_LONG).show()
-            navController.navigate(NavRoutes.AUTH) {
+            navController.navigate(NavRoutes.AUTH_LOGIN) {
                 popUpTo(0)
                 launchSingleTop = true
             }
@@ -95,11 +101,8 @@ fun MomentaNavGraph() {
 
         composable(NavRoutes.ONBOARDING) {
             OnboardingScreen(
-                onGetStarted = {
-                    navController.navigate(NavRoutes.AUTH) {
-                        popUpTo(NavRoutes.ONBOARDING) { inclusive = true }
-                    }
-                }
+                onCreateAccount = { navController.navigate(NavRoutes.AUTH_REGISTER) },
+                onLogin = { navController.navigate(NavRoutes.AUTH_LOGIN) }
             )
         }
 
@@ -108,6 +111,28 @@ fun MomentaNavGraph() {
                 onAuthSuccess = {
                     navController.navigate(NavRoutes.MAIN) {
                         popUpTo(NavRoutes.AUTH) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(NavRoutes.AUTH_LOGIN) {
+            AuthScreen(
+                initialLoginMode = true,
+                onAuthSuccess = {
+                    navController.navigate(NavRoutes.MAIN) {
+                        popUpTo(NavRoutes.AUTH_LOGIN) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(NavRoutes.AUTH_REGISTER) {
+            AuthScreen(
+                initialLoginMode = false,
+                onAuthSuccess = {
+                    navController.navigate(NavRoutes.MAIN) {
+                        popUpTo(NavRoutes.AUTH_REGISTER) { inclusive = true }
                     }
                 }
             )
@@ -122,7 +147,7 @@ fun MomentaNavGraph() {
                     navController.navigate(NavRoutes.SETTINGS)
                 },
                 onLogout = {
-                    navController.navigate(NavRoutes.AUTH) {
+                    navController.navigate(NavRoutes.AUTH_LOGIN) {
                         popUpTo(NavRoutes.MAIN) { inclusive = true }
                     }
                 }
@@ -140,7 +165,7 @@ fun MomentaNavGraph() {
                     navController.navigate(NavRoutes.SETTINGS)
                 },
                 onLogout = {
-                    navController.navigate(NavRoutes.AUTH) {
+                    navController.navigate(NavRoutes.AUTH_LOGIN) {
                         popUpTo(NavRoutes.MAIN_FEED) { inclusive = true }
                     }
                 }
@@ -151,7 +176,7 @@ fun MomentaNavGraph() {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 onLogout = {
-                    navController.navigate(NavRoutes.AUTH) {
+                    navController.navigate(NavRoutes.AUTH_LOGIN) {
                         popUpTo(NavRoutes.MAIN) { inclusive = true }
                     }
                 }

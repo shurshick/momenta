@@ -6,6 +6,8 @@ object NavRoutes {
     const val SPLASH = "splash"
     const val ONBOARDING = "onboarding"
     const val AUTH = "auth"
+    const val AUTH_LOGIN = "auth/login"
+    const val AUTH_REGISTER = "auth/register"
     const val MAIN = "main"
     const val MAIN_FEED = "main_feed"
     const val TODAY = "today"

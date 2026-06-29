@@ -27,9 +27,14 @@ import com.bghitech.momenta.core.design.*
 @Composable
 fun AuthScreen(
     onAuthSuccess: () -> Unit,
+    initialLoginMode: Boolean = true,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(initialLoginMode) {
+        viewModel.setLoginMode(initialLoginMode)
+    }
 
     var usernameOrEmail by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }

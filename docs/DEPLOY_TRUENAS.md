@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.37
+image: ghcr.io/shurshick/momenta:v0.2.38
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -152,7 +152,7 @@ docker exec -it momenta-api alembic upgrade head
 
 Текущий head: `004`.
 
-Для `v0.2.37` новых миграций нет.
+Для `v0.2.38` новых миграций нет.
 
 ## 9. Обновление
 
@@ -164,7 +164,7 @@ docker exec -it momenta-api alembic upgrade head
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.37`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.38`.
 2. Запустите app заново.
 
 После обновления проверьте:

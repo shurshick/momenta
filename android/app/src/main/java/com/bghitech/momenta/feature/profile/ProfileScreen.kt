@@ -154,17 +154,6 @@ fun ProfileScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 2.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, "Настройки", tint = MomentaTextSecondary)
-                }
-            }
-
             if (state.isLoading) {
                 ProfileLoadingSkeleton()
             } else {
@@ -179,6 +168,7 @@ fun ProfileScreen(
                 }
                 ProfileContent(
                     state = state,
+                    onSettingsClick = onSettingsClick,
                     onEditClick = { showEditDialog = true },
                     onAvatarClick = { showAvatarDialog = true }
                 )
@@ -190,6 +180,7 @@ fun ProfileScreen(
 @Composable
 private fun ProfileContent(
     state: ProfileUiState,
+    onSettingsClick: () -> Unit,
     onEditClick: () -> Unit,
     onAvatarClick: () -> Unit
 ) {
@@ -213,6 +204,20 @@ private fun ProfileContent(
             onAvatarClick = onAvatarClick,
             modifier = Modifier.weight(1f)
         )
+
+        IconButton(
+            onClick = onSettingsClick,
+            modifier = Modifier
+                .padding(top = 14.dp)
+                .size(34.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Настройки",
+                tint = MomentaTextSecondary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
 
         ProfileStatsColumn(
             streakCount = state.streakCount,

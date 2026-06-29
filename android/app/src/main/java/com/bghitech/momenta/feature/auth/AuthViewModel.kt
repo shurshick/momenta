@@ -27,6 +27,12 @@ class AuthViewModel @Inject constructor(
     private val _state = MutableStateFlow(AuthUiState())
     val state = _state.asStateFlow()
 
+    fun setLoginMode(isLoginMode: Boolean) {
+        if (_state.value.isLoginMode != isLoginMode) {
+            _state.value = _state.value.copy(isLoginMode = isLoginMode, error = null)
+        }
+    }
+
     fun toggleMode() {
         _state.value = _state.value.copy(isLoginMode = !_state.value.isLoginMode, error = null)
     }
