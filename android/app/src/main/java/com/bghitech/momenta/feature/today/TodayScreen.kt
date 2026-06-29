@@ -263,12 +263,10 @@ private fun ChallengeCard(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         ChallengeIllustration()
+                        Spacer(modifier = Modifier.height(8.dp))
+                        PostedStatePanel(userPostedToday = userPostedToday)
                     }
                 }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                PostedStatePanel(userPostedToday = userPostedToday)
 
                 Spacer(modifier = Modifier.height(10.dp))
 

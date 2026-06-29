@@ -219,7 +219,7 @@ private fun ProfileContent(
             streakCount = state.streakCount,
             momentsCount = state.momentsCount,
             likesCount = state.likesCount,
-            modifier = Modifier.width(132.dp)
+            modifier = Modifier.width(152.dp)
         )
     }
 
@@ -391,14 +391,7 @@ private fun ProfileStatsColumn(
             value = momentsCount,
             label = momentWord(momentsCount).lowercase(),
             accent = MomentaGreen,
-            icon = {
-                Text(
-                    text = "M",
-                    color = MomentaGreen,
-                    fontSize = 27.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            icon = { ProfileMomentGlyph() }
         )
         ProfileStatTile(
             value = likesCount,
@@ -426,7 +419,7 @@ private fun ProfileStatTile(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(68.dp),
+            .height(78.dp),
         color = MomentaSurface.copy(alpha = 0.9f),
         shape = MomentaLargeShape,
         border = BorderStroke(1.dp, accent.copy(alpha = 0.22f))
@@ -446,18 +439,41 @@ private fun ProfileStatTile(
                 Text(
                     text = "$value",
                     color = MomentaText,
-                    fontSize = 24.sp,
-                    lineHeight = 24.sp,
+                    fontSize = 25.sp,
+                    lineHeight = 25.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = label,
                     color = MomentaTextSecondary,
-                    fontSize = 12.sp,
-                    lineHeight = 15.sp
+                    fontSize = 13.sp,
+                    lineHeight = 16.sp
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ProfileMomentGlyph() {
+    Box(
+        modifier = Modifier.size(36.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "M",
+            color = MomentaGreen,
+            fontSize = 29.sp,
+            lineHeight = 29.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(MomentaWarm)
+        )
     }
 }
 
