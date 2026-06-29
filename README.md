@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия: **v0.2.36**.
+Текущая стабильная версия: **v0.2.37**.
 
 ## Что уже есть
 
@@ -58,17 +58,17 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.36
+image: ghcr.io/shurshick/momenta:v0.2.37
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-Для **v0.2.36** новых миграций БД нет.
+Для **v0.2.37** новых миграций БД нет.
 
 ## Релизы
 
-- Release: [v0.2.36](https://github.com/shurshick/momenta/releases/tag/v0.2.36)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.36`
+- Release: [v0.2.37](https://github.com/shurshick/momenta/releases/tag/v0.2.37)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.37`
 - Android APK: `app-prod-debug.apk`
 
 ## Документы

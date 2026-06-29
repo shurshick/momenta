@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
@@ -101,8 +102,7 @@ fun TodayScreen(
             ChallengeSection(
                 state = state,
                 onRetry = viewModel::loadChallenge,
-                onCaptureClick = onCaptureClick,
-                onOpenFeed = onOpenFeed
+                onCaptureClick = onCaptureClick
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -158,15 +158,13 @@ private fun Header(onSettingsClick: () -> Unit) {
 private fun ChallengeSection(
     state: TodayUiState,
     onRetry: () -> Unit,
-    onCaptureClick: () -> Unit,
-    onOpenFeed: () -> Unit
+    onCaptureClick: () -> Unit
 ) {
     when {
         state.challenge != null -> ChallengeCard(
             challenge = state.challenge,
             userPostedToday = state.userPostedToday || state.challenge.userPosted,
-            onCaptureClick = onCaptureClick,
-            onOpenFeed = onOpenFeed
+            onCaptureClick = onCaptureClick
         )
         state.isChallengeLoading -> ChallengeSkeleton()
         else -> SmallErrorCard(
@@ -182,8 +180,7 @@ private fun ChallengeSection(
 private fun ChallengeCard(
     challenge: Challenge,
     userPostedToday: Boolean,
-    onCaptureClick: () -> Unit,
-    onOpenFeed: () -> Unit
+    onCaptureClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -246,38 +243,45 @@ private fun ChallengeCard(
                             fontSize = 13.sp,
                             lineHeight = 17.sp
                         )
+                    }
 
+                    ChallengeIllustration(
+                        modifier = Modifier.weight(0.92f)
+                    )
+                }
+
+                if (challenge.endsAt != null) {
+                    val timeLeft = rememberCountdownTime(challenge.endsAt)
+                    if (timeLeft.isNotBlank()) {
                         Spacer(modifier = Modifier.height(14.dp))
-
-                        if (challenge.endsAt != null) {
-                            val timeLeft = rememberCountdownTime(challenge.endsAt)
-                            if (timeLeft.isNotBlank()) {
-                                TimeLeftPanel(timeLeft = timeLeft, modifier = Modifier.height(84.dp))
-                                Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            TimeLeftPanel(
+                                timeLeft = timeLeft,
+                                modifier = Modifier
+                                    .weight(1.1f)
+                                    .height(82.dp)
+                            )
+                            if (userPostedToday) {
+                                PostedStatePanel(
+                                    modifier = Modifier
+                                        .weight(0.92f)
+                                        .height(82.dp)
+                                )
+                            } else {
+                                CaptureIconButton(
+                                    modifier = Modifier
+                                        .weight(0.92f)
+                                        .height(82.dp),
+                                    onClick = onCaptureClick
+                                )
                             }
                         }
                     }
-
-                    Column(
-                        modifier = Modifier.weight(0.92f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        ChallengeIllustration()
-                        Spacer(modifier = Modifier.height(8.dp))
-                        PostedStatePanel(
-                            userPostedToday = userPostedToday,
-                            modifier = Modifier.height(84.dp)
-                        )
-                    }
                 }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                MomentaPrimaryButton(
-                    text = if (userPostedToday) "Смотреть" else stringResource(R.string.capture_moment),
-                    onClick = if (userPostedToday) onOpenFeed else onCaptureClick,
-                    height = 42.dp
-                )
             }
         }
     }
@@ -373,33 +377,28 @@ private fun TimeLeftPanel(timeLeft: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PostedStatePanel(userPostedToday: Boolean, modifier: Modifier = Modifier) {
-    val text = if (userPostedToday) {
-        stringResource(R.string.already_posted)
-    } else {
-        "Поймай момент и задай тон этому дню"
-    }
+private fun PostedStatePanel(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(MomentaLargeShape)
             .background(MomentaSurfaceAlt.copy(alpha = 0.62f))
-            .padding(horizontal = 12.dp, vertical = 9.dp),
+            .padding(horizontal = 10.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.Star,
             contentDescription = null,
-            tint = MomentaGreen.copy(alpha = 0.16f),
+            tint = MomentaGreen.copy(alpha = 0.14f),
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .size(68.dp)
+                .size(62.dp)
         )
         Text(
-            text = text,
+            text = "Ты уже поделился\nмоментом сегодня",
             color = MomentaText,
-            fontSize = 12.sp,
-            lineHeight = 15.sp,
+            fontSize = 11.sp,
+            lineHeight = 13.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -408,11 +407,35 @@ private fun PostedStatePanel(userPostedToday: Boolean, modifier: Modifier = Modi
 }
 
 @Composable
-private fun ChallengeIllustration() {
+private fun CaptureIconButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MomentaLargeShape)
+            .clickable(onClick = onClick),
+        color = MomentaGreen,
+        shape = MomentaLargeShape
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = Icons.Filled.CameraAlt,
+                contentDescription = stringResource(R.string.capture_moment),
+                tint = Color(0xFF07100B),
+                modifier = Modifier.size(30.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChallengeIllustration(modifier: Modifier = Modifier) {
     Image(
         painter = painterResource(id = R.drawable.challenge_camera_art),
         contentDescription = null,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(108.dp),
         contentScale = ContentScale.Fit

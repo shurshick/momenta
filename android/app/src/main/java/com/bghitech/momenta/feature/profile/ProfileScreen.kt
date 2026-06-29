@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -384,27 +383,17 @@ private fun ProfileStatsColumn(
         ProfileStatTile(
             value = streakCount,
             label = "${dayWord(streakCount)}\nподряд",
-            accent = MomentaGreen,
-            icon = { ProfileStreakGlyph() }
+            accent = MomentaGreen
         )
         ProfileStatTile(
             value = momentsCount,
             label = momentWord(momentsCount).lowercase(),
-            accent = MomentaGreen,
-            icon = { ProfileMomentGlyph() }
+            accent = MomentaGreen
         )
         ProfileStatTile(
             value = likesCount,
             label = likeWord(likesCount).lowercase(),
-            accent = MomentaWarm,
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.FavoriteBorder,
-                    contentDescription = null,
-                    tint = MomentaWarm,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
+            accent = MomentaWarm
         )
     }
 }
@@ -413,96 +402,40 @@ private fun ProfileStatsColumn(
 private fun ProfileStatTile(
     value: Int,
     label: String,
-    accent: Color,
-    icon: @Composable () -> Unit
+    accent: Color
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(78.dp),
+            .height(72.dp),
         color = MomentaSurface.copy(alpha = 0.9f),
         shape = MomentaLargeShape,
         border = BorderStroke(1.dp, accent.copy(alpha = 0.22f))
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 10.dp, vertical = 7.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier.size(36.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                icon()
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "$value",
-                    color = MomentaText,
-                    fontSize = 25.sp,
-                    lineHeight = 25.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = label,
-                    color = MomentaTextSecondary,
-                    fontSize = 13.sp,
-                    lineHeight = 16.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-            Spacer(modifier = Modifier.size(36.dp))
+            Text(
+                text = "$value",
+                color = accent,
+                fontSize = 27.sp,
+                lineHeight = 27.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = label,
+                color = MomentaTextSecondary,
+                fontSize = 12.sp,
+                lineHeight = 14.sp,
+                textAlign = TextAlign.Center
+            )
         }
-    }
-}
-
-@Composable
-private fun ProfileStreakGlyph() {
-    Box(
-        modifier = Modifier.size(34.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .border(3.dp, MomentaGreen, CircleShape)
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .size(12.dp)
-                .clip(CircleShape)
-                .background(MomentaGreen)
-        )
-    }
-}
-
-@Composable
-private fun ProfileMomentGlyph() {
-    Box(
-        modifier = Modifier.size(36.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "M",
-            color = MomentaGreen,
-            fontSize = 29.sp,
-            lineHeight = 29.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .size(6.dp)
-                .clip(CircleShape)
-                .background(MomentaWarm)
-        )
     }
 }
 
