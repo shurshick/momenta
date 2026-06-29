@@ -385,7 +385,7 @@ private fun ProfileStatsColumn(
             value = streakCount,
             label = "${dayWord(streakCount)}\nподряд",
             accent = MomentaGreen,
-            icon = { MomentaLogoMark(size = 34) }
+            icon = { ProfileStreakGlyph() }
         )
         ProfileStatTile(
             value = momentsCount,
@@ -425,9 +425,10 @@ private fun ProfileStatTile(
         border = BorderStroke(1.dp, accent.copy(alpha = 0.22f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier.size(36.dp),
@@ -435,22 +436,50 @@ private fun ProfileStatTile(
             ) {
                 icon()
             }
-            Column {
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = "$value",
                     color = MomentaText,
                     fontSize = 25.sp,
                     lineHeight = 25.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
                 Text(
                     text = label,
                     color = MomentaTextSecondary,
                     fontSize = 13.sp,
-                    lineHeight = 16.sp
+                    lineHeight = 16.sp,
+                    textAlign = TextAlign.Center
                 )
             }
+            Spacer(modifier = Modifier.size(36.dp))
         }
+    }
+}
+
+@Composable
+private fun ProfileStreakGlyph() {
+    Box(
+        modifier = Modifier.size(34.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .border(3.dp, MomentaGreen, CircleShape)
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(12.dp)
+                .clip(CircleShape)
+                .background(MomentaGreen)
+        )
     }
 }
 

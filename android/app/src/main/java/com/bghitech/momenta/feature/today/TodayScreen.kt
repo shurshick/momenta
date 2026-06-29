@@ -252,7 +252,7 @@ private fun ChallengeCard(
                         if (challenge.endsAt != null) {
                             val timeLeft = rememberCountdownTime(challenge.endsAt)
                             if (timeLeft.isNotBlank()) {
-                                TimeLeftPanel(timeLeft = timeLeft)
+                                TimeLeftPanel(timeLeft = timeLeft, modifier = Modifier.height(84.dp))
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
                         }
@@ -264,7 +264,10 @@ private fun ChallengeCard(
                     ) {
                         ChallengeIllustration()
                         Spacer(modifier = Modifier.height(8.dp))
-                        PostedStatePanel(userPostedToday = userPostedToday)
+                        PostedStatePanel(
+                            userPostedToday = userPostedToday,
+                            modifier = Modifier.height(84.dp)
+                        )
                     }
                 }
 
@@ -333,14 +336,15 @@ private fun ParticipantsBadge(count: Int) {
 }
 
 @Composable
-private fun TimeLeftPanel(timeLeft: String) {
+private fun TimeLeftPanel(timeLeft: String, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(MomentaLargeShape)
             .background(MomentaSurfaceAlt.copy(alpha = 0.72f))
             .border(1.dp, MomentaTextSecondary.copy(alpha = 0.12f), MomentaLargeShape)
-            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .padding(horizontal = 12.dp, vertical = 9.dp),
+        verticalArrangement = Arrangement.Center
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -357,53 +361,48 @@ private fun TimeLeftPanel(timeLeft: String) {
                 fontWeight = FontWeight.SemiBold
             )
         }
-        Spacer(modifier = Modifier.height(3.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = timeLeft,
             color = MomentaWarm,
-            fontSize = 23.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            lineHeight = 25.sp
+            lineHeight = 23.sp
         )
     }
 }
 
 @Composable
-private fun PostedStatePanel(userPostedToday: Boolean) {
+private fun PostedStatePanel(userPostedToday: Boolean, modifier: Modifier = Modifier) {
     val text = if (userPostedToday) {
         stringResource(R.string.already_posted)
     } else {
         "Поймай момент и задай тон этому дню"
     }
-    Row(
-        modifier = Modifier
+    Box(
+        modifier = modifier
             .fillMaxWidth()
             .clip(MomentaLargeShape)
             .background(MomentaSurfaceAlt.copy(alpha = 0.62f))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 12.dp, vertical = 9.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = null,
+            tint = MomentaGreen.copy(alpha = 0.16f),
             modifier = Modifier
-                .size(32.dp)
-                .clip(CircleShape)
-                .background(MomentaGreen.copy(alpha = 0.16f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = null,
-                tint = MomentaGreen,
-                modifier = Modifier.size(19.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(10.dp))
+                .align(Alignment.CenterStart)
+                .size(68.dp)
+        )
         Text(
             text = text,
             color = MomentaText,
-            fontSize = 13.sp,
-            lineHeight = 17.sp,
-            fontWeight = FontWeight.SemiBold
+            fontSize = 12.sp,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
@@ -415,7 +414,7 @@ private fun ChallengeIllustration() {
         contentDescription = null,
         modifier = Modifier
             .fillMaxWidth()
-            .height(118.dp),
+            .height(108.dp),
         contentScale = ContentScale.Fit
     )
 }
