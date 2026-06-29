@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,11 +23,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -60,7 +57,6 @@ import com.bghitech.momenta.R
 import com.bghitech.momenta.core.design.MomentaAvatar
 import com.bghitech.momenta.core.design.MomentaCard
 import com.bghitech.momenta.core.design.MomentaGreen
-import com.bghitech.momenta.core.design.MomentaGreenAlpha
 import com.bghitech.momenta.core.design.MomentaLargeShape
 import com.bghitech.momenta.core.design.MomentaPrimaryButton
 import com.bghitech.momenta.core.design.MomentaScreen
@@ -231,7 +227,7 @@ private fun ChallengeCard(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalAlignment = Alignment.Bottom
+                    verticalAlignment = Alignment.Top
                 ) {
                     Column(modifier = Modifier.weight(1.1f)) {
                         Text(
@@ -260,23 +256,27 @@ private fun ChallengeCard(
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
                         }
-
-                        PostedStatePanel(userPostedToday = userPostedToday)
                     }
 
                     Column(
-                        modifier = Modifier.weight(0.9f),
+                        modifier = Modifier.weight(0.92f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         ChallengeIllustration()
-                        Spacer(modifier = Modifier.height(12.dp))
-                        MomentaPrimaryButton(
-                            text = if (userPostedToday) "Смотреть" else stringResource(R.string.capture_moment),
-                            onClick = if (userPostedToday) onOpenFeed else onCaptureClick,
-                            height = 42.dp
-                        )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                PostedStatePanel(userPostedToday = userPostedToday)
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                MomentaPrimaryButton(
+                    text = if (userPostedToday) "Смотреть" else stringResource(R.string.capture_moment),
+                    onClick = if (userPostedToday) onOpenFeed else onCaptureClick,
+                    height = 42.dp
+                )
             }
         }
     }
@@ -417,7 +417,7 @@ private fun ChallengeIllustration() {
         contentDescription = null,
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp),
+            .height(118.dp),
         contentScale = ContentScale.Fit
     )
 }

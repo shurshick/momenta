@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,7 +25,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Settings
@@ -203,47 +203,27 @@ private fun ProfileContent(
         )
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(18.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ProfileIdentityBlock(
-                state = state,
-                onEditClick = onEditClick,
-                onAvatarClick = onAvatarClick,
-                modifier = Modifier.weight(1.05f)
-            )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        ProfileIdentityBlock(
+            state = state,
+            onEditClick = onEditClick,
+            onAvatarClick = onAvatarClick,
+            modifier = Modifier.weight(1f)
+        )
 
-            ProfileStreakCard(
-                streakCount = state.streakCount,
-                modifier = Modifier.weight(0.95f)
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            ProfileMetricCard(
-                value = state.momentsCount,
-                label = momentWord(state.momentsCount),
-                icon = "M",
-                accent = MomentaGreen,
-                modifier = Modifier.weight(1f)
-            )
-            ProfileMetricCard(
-                value = state.likesCount,
-                label = likeWord(state.likesCount),
-                icon = "♡",
-                accent = MomentaWarm,
-                modifier = Modifier.weight(1f)
-            )
-        }
+        ProfileStatsColumn(
+            streakCount = state.streakCount,
+            momentsCount = state.momentsCount,
+            likesCount = state.likesCount,
+            modifier = Modifier.width(132.dp)
+        )
     }
 
-    Spacer(modifier = Modifier.height(20.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -391,73 +371,90 @@ private fun ProfileIdentityBlock(
 }
 
 @Composable
-private fun ProfileStreakCard(streakCount: Int, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.height(128.dp),
-        color = MomentaSurface.copy(alpha = 0.88f),
-        shape = MomentaLargeShape,
-        border = BorderStroke(1.dp, MomentaGreen.copy(alpha = 0.18f))
+private fun ProfileStatsColumn(
+    streakCount: Int,
+    momentsCount: Int,
+    likesCount: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(18.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
+        ProfileStatTile(
+            value = streakCount,
+            label = "${dayWord(streakCount)}\nподряд",
+            accent = MomentaGreen,
+            icon = { MomentaLogoMark(size = 34) }
+        )
+        ProfileStatTile(
+            value = momentsCount,
+            label = momentWord(momentsCount).lowercase(),
+            accent = MomentaGreen,
+            icon = {
                 Text(
-                    text = "$streakCount",
+                    text = "M",
                     color = MomentaGreen,
-                    fontSize = 34.sp,
+                    fontSize = 27.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "${dayWord(streakCount)}\nподряд",
-                    color = MomentaTextSecondary,
-                    fontSize = 15.sp,
-                    lineHeight = 19.sp
+            }
+        )
+        ProfileStatTile(
+            value = likesCount,
+            label = likeWord(likesCount).lowercase(),
+            accent = MomentaWarm,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.FavoriteBorder,
+                    contentDescription = null,
+                    tint = MomentaWarm,
+                    modifier = Modifier.size(28.dp)
                 )
             }
-            MomentaLogoMark(size = 62)
-        }
+        )
     }
 }
 
 @Composable
-private fun ProfileMetricCard(
+private fun ProfileStatTile(
     value: Int,
     label: String,
-    icon: String,
     accent: Color,
-    modifier: Modifier = Modifier
+    icon: @Composable () -> Unit
 ) {
     Surface(
-        modifier = modifier.height(72.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(68.dp),
         color = MomentaSurface.copy(alpha = 0.9f),
         shape = MomentaLargeShape,
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.20f))
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.22f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 18.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = icon,
-                color = accent,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.size(14.dp))
+            Box(
+                modifier = Modifier.size(36.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                icon()
+            }
             Column {
                 Text(
                     text = "$value",
                     color = MomentaText,
                     fontSize = 24.sp,
+                    lineHeight = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = label.lowercase(),
+                    text = label,
                     color = MomentaTextSecondary,
-                    fontSize = 14.sp
+                    fontSize = 12.sp,
+                    lineHeight = 15.sp
                 )
             }
         }

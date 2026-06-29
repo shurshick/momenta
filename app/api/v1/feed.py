@@ -10,7 +10,7 @@ from app.models.user import User
 from app.models.reaction import Reaction
 from app.schemas.post import BestMomentResponse, FeedResponse, PostFeedItem
 from app.services.challenge_service import current_app_date
-from app.services.post_service import can_delete_post, get_feed_posts
+from app.services.post_service import can_delete_post, get_feed_posts, get_recent_feed_posts
 from app.api.v1.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/v1/feed", tags=["feed"])
@@ -20,6 +20,8 @@ router = APIRouter(prefix="/api/v1/feed", tags=["feed"])
 async def today_feed(cursor: str = Query(None), limit: int = Query(default=20, le=50),
                      user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
     posts, next_cursor = await get_feed_posts(db, current_app_date(), cursor=cursor, limit=limit)
+    if not posts and cursor is None:
+        posts, next_cursor = await get_recent_feed_posts(db, limit=limit)
     items = await _build_feed_items(db, posts, user_id)
     return {"items": items, "next_cursor": next_cursor}
 

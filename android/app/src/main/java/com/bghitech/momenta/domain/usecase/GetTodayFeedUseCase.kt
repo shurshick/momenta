@@ -10,7 +10,7 @@ class GetTodayFeedUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(cursor: String? = null, limit: Int = 20): AppResult<List<Post>> {
         val result = feedRepository.getTodayFeed(cursor, limit)
-        if (result is AppResult.Success && cursor == null) {
+        if (result is AppResult.Success && cursor == null && result.data.isNotEmpty()) {
             feedRepository.replaceCachedFeed(result.data)
         }
         return result

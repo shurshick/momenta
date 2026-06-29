@@ -75,8 +75,12 @@ class FeedViewModel @Inject constructor(
                 keepExistingWhileLoading = true,
                 scrollToTopWhenChangedFromId = previousTopId
             )
-            delay(1400L)
-            if (!userScrolledAfterPublish) {
+            for (pauseMs in listOf(900L, 1600L, 2600L, 4200L)) {
+                if (userScrolledAfterPublish) break
+                val currentTopId = _state.value.items.firstOrNull()?.id
+                if (currentTopId != null && currentTopId != previousTopId) break
+                delay(pauseMs)
+                if (userScrolledAfterPublish) break
                 loadFeedNow(
                     showCached = false,
                     scrollToTop = false,

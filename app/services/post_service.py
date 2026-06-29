@@ -115,6 +115,22 @@ async def get_feed_posts(db: AsyncSession, challenge_date: date, cursor: Optiona
     return list(posts), next_cursor
 
 
+async def get_recent_feed_posts(db: AsyncSession, cursor: Optional[str] = None, limit: int = 20, country: Optional[str] = None) -> tuple[list[Post], Optional[str]]:
+    query = select(Post).where(Post.status == "active")
+    if country:
+        query = query.where(Post.country == country)
+    if cursor:
+        query = query.where(Post.created_at < datetime.fromisoformat(cursor))
+    query = query.order_by(desc(Post.created_at)).limit(limit + 1)
+    result = await db.execute(query)
+    posts = result.scalars().all()
+    next_cursor = None
+    if len(posts) > limit:
+        posts = posts[:limit]
+        next_cursor = posts[-1].created_at.isoformat() if posts[-1].created_at else None
+    return list(posts), next_cursor
+
+
 async def like_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) -> dict:
     post = await get_post_by_id(db, post_id)
     if not post or post.status != "active":
