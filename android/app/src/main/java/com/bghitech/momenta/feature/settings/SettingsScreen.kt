@@ -1,12 +1,5 @@
 package com.bghitech.momenta.feature.settings
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.provider.Settings as AndroidSettings
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -49,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bghitech.momenta.BuildConfig
@@ -66,12 +58,10 @@ import com.bghitech.momenta.core.design.MomentaSurface
 import com.bghitech.momenta.core.design.MomentaSurfaceAlt
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
-import kotlinx.coroutines.Dispatchers
+import com.bghitech.momenta.feature.updates.AppUpdateInfo
+import com.bghitech.momenta.feature.updates.checkLatestAppRelease
+import com.bghitech.momenta.feature.updates.downloadAndOpenAppApk
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.io.File
-import java.net.URL
 
 @Composable
 fun SettingsScreen(
@@ -83,7 +73,7 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    var updateInfo by remember { mutableStateOf<AppUpdateInfo?>(null) }
     var isCheckingUpdate by remember { mutableStateOf(false) }
     var isDownloadingApk by remember { mutableStateOf(false) }
 
@@ -169,15 +159,15 @@ fun SettingsScreen(
                     onCheckUpdate = {
                         scope.launch {
                             isCheckingUpdate = true
-                            updateInfo = UpdateInfo("Проверяем обновление...")
-                            updateInfo = checkLatestRelease()
+                            updateInfo = AppUpdateInfo("Проверяем обновление...")
+                            updateInfo = checkLatestAppRelease()
                             isCheckingUpdate = false
                         }
                     },
                     onDownload = { url ->
                         scope.launch {
                             isDownloadingApk = true
-                            val message = downloadAndOpenApk(context, url)
+                            val message = downloadAndOpenAppApk(context, url)
                             updateInfo = updateInfo?.copy(message = message)
                             isDownloadingApk = false
                         }
@@ -307,7 +297,7 @@ private fun SettingsSwitchRow(
 
 @Composable
 private fun UpdateBlock(
-    updateInfo: UpdateInfo?,
+    updateInfo: AppUpdateInfo?,
     isCheckingUpdate: Boolean,
     isDownloadingApk: Boolean,
     onCheckUpdate: () -> Unit,
@@ -372,93 +362,3 @@ private fun StatusLine(message: String, positive: Boolean) {
     }
 }
 
-private data class UpdateInfo(
-    val message: String,
-    val hasUpdate: Boolean = false,
-    val downloadUrl: String? = null
-)
-
-private suspend fun checkLatestRelease(): UpdateInfo = withContext(Dispatchers.IO) {
-    runCatching {
-        val json = URL("https://api.github.com/repos/shurshick/momenta/releases/latest")
-            .openConnection()
-            .apply {
-                connectTimeout = 8000
-                readTimeout = 8000
-                setRequestProperty("Accept", "application/vnd.github+json")
-            }
-            .getInputStream()
-            .bufferedReader()
-            .use { it.readText() }
-        val release = JSONObject(json)
-        val latestTag = release.optString("tag_name")
-        val latest = latestTag.removePrefix("v")
-        val releaseUrl = release.optString("html_url").ifBlank {
-            "https://github.com/shurshick/momenta/releases/latest"
-        }
-        val assets = release.optJSONArray("assets")
-        val apkUrl = (0 until (assets?.length() ?: 0))
-            .asSequence()
-            .mapNotNull { assets?.optJSONObject(it) }
-            .firstOrNull { it.optString("name").endsWith(".apk") }
-            ?.optString("browser_download_url")
-            ?.takeIf { it.isNotBlank() }
-            ?: releaseUrl
-        if (latest.isBlank()) {
-            UpdateInfo("Не удалось определить последнюю версию.")
-        } else if (latest == BuildConfig.VERSION_NAME) {
-            UpdateInfo("Установлена актуальная версия $latest.")
-        } else {
-            UpdateInfo(
-                message = "Доступна версия $latest. Сейчас установлена ${BuildConfig.VERSION_NAME}.",
-                hasUpdate = true,
-                downloadUrl = apkUrl
-            )
-        }
-    }.getOrElse {
-        UpdateInfo("Не удалось проверить обновление. Проверь интернет и повтори.")
-    }
-}
-
-private suspend fun downloadAndOpenApk(context: Context, downloadUrl: String): String {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
-        val settingsIntent = Intent(
-            AndroidSettings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-            Uri.parse("package:${context.packageName}")
-        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(settingsIntent)
-        return "Разреши установку из этого источника, затем нажми Скачать еще раз."
-    }
-
-    return runCatching {
-        val apkFile = withContext(Dispatchers.IO) {
-            val output = File(context.externalCacheDir ?: context.cacheDir, "momenta-update.apk")
-            URL(downloadUrl).openConnection().apply {
-                connectTimeout = 15000
-                readTimeout = 30000
-                setRequestProperty("User-Agent", "Momenta/${BuildConfig.VERSION_NAME}")
-            }.getInputStream().use { input ->
-                output.outputStream().use { outputStream ->
-                    input.copyTo(outputStream)
-                }
-            }
-            output
-        }
-
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
-        val installIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        context.startActivity(installIntent)
-        "APK скачан. Подтверди установку в системном окне."
-    }.getOrElse { error ->
-        if (error is ActivityNotFoundException) {
-            Toast.makeText(context, "Не найден системный установщик APK", Toast.LENGTH_LONG).show()
-            "Не найден системный установщик APK."
-        } else {
-            "Не удалось скачать APK. Проверь интернет и повтори."
-        }
-    }
-}
