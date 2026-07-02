@@ -28,9 +28,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,7 +71,6 @@ import com.bghitech.momenta.domain.model.Post
 @Composable
 fun TodayScreen(
     onCaptureClick: () -> Unit,
-    onSettingsClick: () -> Unit,
     onOpenFeed: () -> Unit,
     viewModel: TodayViewModel = hiltViewModel()
 ) {
@@ -97,7 +94,7 @@ fun TodayScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
-            Header(onSettingsClick = onSettingsClick)
+            Header()
 
             ChallengeSection(
                 state = state,
@@ -123,34 +120,29 @@ fun TodayScreen(
 }
 
 @Composable
-private fun Header(onSettingsClick: () -> Unit) {
-    Row(
+private fun Header() {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 14.dp, bottom = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column {
-            Text(
-                text = stringResource(R.string.today_title),
-                color = MomentaText,
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = stringResource(R.string.slogan),
-                color = MomentaTextSecondary,
-                fontSize = 13.sp
-            )
-        }
-        IconButton(onClick = onSettingsClick) {
-            Icon(
-                Icons.Outlined.Settings,
-                contentDescription = stringResource(R.string.settings),
-                tint = MomentaTextSecondary
-            )
-        }
+        Text(
+            text = stringResource(R.string.today_title),
+            color = MomentaGreen,
+            fontSize = 26.sp,
+            lineHeight = 30.sp,
+            fontWeight = FontWeight.ExtraBold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(3.dp))
+        Text(
+            text = stringResource(R.string.slogan),
+            color = MomentaWarm,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

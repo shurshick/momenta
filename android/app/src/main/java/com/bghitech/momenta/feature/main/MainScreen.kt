@@ -65,7 +65,6 @@ fun MainScreen(
             composable(NavRoutes.TODAY) {
                 TodayScreen(
                     onCaptureClick = onNavigateToCamera,
-                    onSettingsClick = onNavigateToSettings,
                     onOpenFeed = {
                         navController.navigate(NavRoutes.FEED) {
                             popUpTo(startRoute) { saveState = true }
