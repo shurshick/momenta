@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.42
+image: ghcr.io/shurshick/momenta:v0.2.43
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -152,7 +152,7 @@ docker exec -it momenta-api alembic upgrade head
 
 Текущий head: `004`.
 
-Для `v0.2.42` новых миграций нет.
+Для `v0.2.43` новых миграций нет.
 
 ## 8.1. Метаданные Android-обновления
 
@@ -165,15 +165,15 @@ curl -s http://TRUENAS_IP:8010/api/v1/app/latest
 Для релиза можно задать эти переменные окружения у `momenta-api`:
 
 ```env
-APP_LATEST_ANDROID_VERSION_NAME=0.2.42
-APP_LATEST_ANDROID_VERSION_CODE=42
+APP_LATEST_ANDROID_VERSION_NAME=0.2.43
+APP_LATEST_ANDROID_VERSION_CODE=43
 APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
 APP_LATEST_ANDROID_MANDATORY=false
-APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.42/app-prod-debug.apk
+APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.43/app-prod-debug.apk
 APP_LATEST_ANDROID_APK_SHA256=
 APP_LATEST_ANDROID_APK_SIZE_BYTES=
-APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.42
-APP_LATEST_ANDROID_RELEASE_NOTES=Исправлены отступы настроек и профиля|Лента показывает активных пользователей компактнее|Стрелка лучшего момента дня открывает нужный пост
+APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.43
+APP_LATEST_ANDROID_RELEASE_NOTES=Убран лишний верхний отступ на главных вкладках|Настройки сохраняют безопасный отступ от системной строки Android
 APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-03T00:00:00Z
 ```
 
@@ -189,7 +189,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-03T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.42`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.43`.
 2. Запустите app заново.
 
 После обновления проверьте:

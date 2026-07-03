@@ -35,18 +35,17 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.42",
-  "version_code": 42,
+  "version_name": "0.2.43",
+  "version_code": 43,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.42/app-prod-debug.apk",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.43/app-prod-debug.apk",
   "apk_sha256": null,
   "apk_size_bytes": null,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.42",
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.43",
   "release_notes": [
-    "Исправлены отступы настроек и профиля",
-    "Лента показывает активных пользователей компактнее",
-    "Стрелка лучшего момента дня открывает нужный пост"
+    "Убран лишний верхний отступ на главных вкладках",
+    "Настройки сохраняют безопасный отступ от системной строки Android"
   ],
   "published_at": "2026-07-03T00:00:00Z"
 }

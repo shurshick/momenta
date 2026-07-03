@@ -7,7 +7,7 @@ Android-приложение Momenta / Момент на Kotlin + Jetpack Compos
 Текущий визуальный стандарт: **Momenta Design Concept v1**.  
 Референс: [`../docs/design/momenta_visual_concept.png`](../docs/design/momenta_visual_concept.png)
 
-## Возможности (v0.2.42)
+## Возможности (v0.2.43)
 
 - **Момент дня** — ежедневное задание и лучший момент дня.
 - **Камера** — съемка фото, выбор из галереи, вспышка, переключение камеры.
