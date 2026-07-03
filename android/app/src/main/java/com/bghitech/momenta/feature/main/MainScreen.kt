@@ -64,6 +64,7 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     var updateBanner by remember { mutableStateOf<AppUpdateInfo?>(null) }
     var isDownloadingUpdate by remember { mutableStateOf(false) }
+    var feedFocusPostId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         val update = updateViewModel.checkLatestAppRelease()
@@ -112,6 +113,15 @@ fun MainScreen(
                     TodayScreen(
                         onCaptureClick = onNavigateToCamera,
                         onOpenFeed = {
+                            feedFocusPostId = null
+                            navController.navigate(NavRoutes.FEED) {
+                                popUpTo(startRoute) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onOpenBestPost = { postId ->
+                            feedFocusPostId = postId
                             navController.navigate(NavRoutes.FEED) {
                                 popUpTo(startRoute) { saveState = true }
                                 launchSingleTop = true
@@ -124,7 +134,10 @@ fun MainScreen(
                     SearchScreen()
                 }
                 composable(NavRoutes.FEED) {
-                    FeedScreen(publishRefreshKey = feedRefreshKey)
+                    FeedScreen(
+                        publishRefreshKey = feedRefreshKey,
+                        focusPostId = feedFocusPostId
+                    )
                 }
                 composable(NavRoutes.CIRCLE) {
                     CircleScreen()

@@ -205,24 +205,11 @@ private fun ProfileContent(
             modifier = Modifier.weight(1f)
         )
 
-        IconButton(
-            onClick = onSettingsClick,
-            modifier = Modifier
-                .padding(top = 14.dp)
-                .size(34.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Настройки",
-                tint = MomentaTextSecondary,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-
         ProfileStatsColumn(
             streakCount = state.streakCount,
             momentsCount = state.momentsCount,
             likesCount = state.likesCount,
+            onSettingsClick = onSettingsClick,
             modifier = Modifier.width(152.dp)
         )
     }
@@ -379,6 +366,7 @@ private fun ProfileStatsColumn(
     streakCount: Int,
     momentsCount: Int,
     likesCount: Int,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -400,6 +388,41 @@ private fun ProfileStatsColumn(
             label = likeWord(likesCount).lowercase(),
             accent = MomentaWarm
         )
+        SettingsTile(onClick = onSettingsClick)
+    }
+}
+
+@Composable
+private fun SettingsTile(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(42.dp)
+            .clip(MomentaLargeShape)
+            .clickable(onClick = onClick),
+        color = MomentaSurface.copy(alpha = 0.72f),
+        shape = MomentaLargeShape,
+        border = BorderStroke(1.dp, MomentaTextSecondary.copy(alpha = 0.14f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Настройки",
+                tint = MomentaTextSecondary,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Настройки",
+                color = MomentaTextSecondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }
 

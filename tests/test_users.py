@@ -1,6 +1,7 @@
 import pytest
 
 from app.models.post import Post
+from app.models.user import User
 
 
 @pytest.mark.asyncio
@@ -11,6 +12,72 @@ async def test_user_suggestions_returns_active_users(client, auth_headers, test_
     data = response.json()
     assert "items" in data
     assert any(item["username"] == test_user.username for item in data["items"])
+
+
+@pytest.mark.asyncio
+async def test_user_suggestions_sort_by_post_activity(
+    client,
+    auth_headers,
+    db_session,
+    test_user,
+    test_challenge,
+):
+    quieter_user = User(
+        username="quietuser",
+        email="quiet@example.com",
+        display_name="Quiet User",
+        password_hash="test",
+        role="user",
+        status="active",
+    )
+    active_user = User(
+        username="activeuser",
+        email="active@example.com",
+        display_name="Active User",
+        password_hash="test",
+        role="user",
+        status="active",
+    )
+    db_session.add_all([quieter_user, active_user])
+    await db_session.flush()
+    db_session.add_all(
+        [
+            Post(
+                user_id=active_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=test_challenge.challenge_date,
+                media_type="image",
+                original_url="https://media.test/active-one.jpg",
+                preview_url="https://media.test/active-one-preview.jpg",
+                status="active",
+            ),
+            Post(
+                user_id=active_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=test_challenge.challenge_date,
+                media_type="image",
+                original_url="https://media.test/active-two.jpg",
+                preview_url="https://media.test/active-two-preview.jpg",
+                status="active",
+            ),
+            Post(
+                user_id=quieter_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=test_challenge.challenge_date,
+                media_type="image",
+                original_url="https://media.test/quiet-one.jpg",
+                preview_url="https://media.test/quiet-one-preview.jpg",
+                status="active",
+            ),
+        ]
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/v1/users/suggestions", headers=auth_headers)
+
+    assert response.status_code == 200
+    usernames = [item["username"] for item in response.json()["items"]]
+    assert usernames.index("activeuser") < usernames.index("quietuser")
 
 
 @pytest.mark.asyncio

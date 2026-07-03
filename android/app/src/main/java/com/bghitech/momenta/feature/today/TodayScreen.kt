@@ -57,6 +57,7 @@ import com.bghitech.momenta.core.design.MomentaAvatar
 import com.bghitech.momenta.core.design.MomentaCard
 import com.bghitech.momenta.core.design.MomentaGreen
 import com.bghitech.momenta.core.design.MomentaLargeShape
+import com.bghitech.momenta.core.design.MomentaLogoMark
 import com.bghitech.momenta.core.design.MomentaPrimaryButton
 import com.bghitech.momenta.core.design.MomentaScreen
 import com.bghitech.momenta.core.design.MomentaSecondaryButton
@@ -72,6 +73,7 @@ import com.bghitech.momenta.domain.model.Post
 fun TodayScreen(
     onCaptureClick: () -> Unit,
     onOpenFeed: () -> Unit,
+    onOpenBestPost: (String) -> Unit,
     viewModel: TodayViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -107,7 +109,7 @@ fun TodayScreen(
             BestMomentSection(
                 state = state,
                 onCaptureClick = onCaptureClick,
-                onOpenFeed = onOpenFeed
+                onOpenBestPost = onOpenBestPost
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -124,23 +126,31 @@ private fun Header() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 14.dp, bottom = 12.dp),
+            .padding(top = 10.dp, bottom = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = stringResource(R.string.today_title),
-            color = MomentaGreen,
-            fontSize = 26.sp,
-            lineHeight = 30.sp,
-            fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(3.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            MomentaLogoMark(size = 34)
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = stringResource(R.string.today_title),
+                color = MomentaGreen,
+                fontSize = 31.sp,
+                lineHeight = 33.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center
+            )
+        }
+        Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = stringResource(R.string.slogan),
             color = MomentaWarm,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
     }
@@ -438,7 +448,7 @@ private fun ChallengeIllustration(modifier: Modifier = Modifier) {
 private fun BestMomentSection(
     state: TodayUiState,
     onCaptureClick: () -> Unit,
-    onOpenFeed: () -> Unit
+    onOpenBestPost: (String) -> Unit
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -467,7 +477,10 @@ private fun BestMomentSection(
         Spacer(modifier = Modifier.height(8.dp))
 
         when {
-            state.bestPost != null -> BestMomentCard(post = state.bestPost, onClick = onOpenFeed)
+            state.bestPost != null -> {
+                val post = state.bestPost
+                BestMomentCard(post = post, onClick = { onOpenBestPost(post.id) })
+            }
             state.isBestMomentLoading -> BestMomentSkeleton()
             else -> EmptyBestMoment(onCaptureClick = onCaptureClick)
         }

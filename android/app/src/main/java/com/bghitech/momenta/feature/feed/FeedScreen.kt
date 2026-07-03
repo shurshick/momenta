@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Favorite
@@ -49,6 +48,7 @@ import kotlin.math.roundToInt
 @Composable
 fun FeedScreen(
     publishRefreshKey: Int = 0,
+    focusPostId: String? = null,
     viewModel: FeedViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -57,6 +57,7 @@ fun FeedScreen(
     var pullOffset by remember { mutableFloatStateOf(0f) }
     val isRefreshing = state.isLoading && state.items.isNotEmpty()
     var handledPublishRefreshKey by remember { mutableIntStateOf(0) }
+    var requestedFocusReloadFor by remember { mutableStateOf<String?>(null) }
     val userScrolledFromTop by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 80
@@ -73,6 +74,18 @@ fun FeedScreen(
     LaunchedEffect(state.scrollToTopSignal) {
         if (state.scrollToTopSignal > 0) {
             listState.scrollToItem(0)
+        }
+    }
+
+    LaunchedEffect(focusPostId, state.items, state.isLoading) {
+        val targetId = focusPostId ?: return@LaunchedEffect
+        val index = state.items.indexOfFirst { it.id == targetId }
+        if (index >= 0) {
+            requestedFocusReloadFor = null
+            listState.animateScrollToItem(index)
+        } else if (!state.isLoading && requestedFocusReloadFor != targetId) {
+            requestedFocusReloadFor = targetId
+            viewModel.loadFeed(showCached = false, force = true)
         }
     }
 
@@ -162,58 +175,25 @@ fun FeedScreen(
         }
 
         LazyRow(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(18.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            item {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable { }
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .background(MomentaGreen)
-                            .padding(2.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape)
-                                .background(MomentaSurface),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Ваш момент",
-                                tint = MomentaGreen,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("Ваш момент", color = MomentaTextSecondary, fontSize = 13.sp)
-                }
-            }
-
             items(state.suggestedUsers, key = { it.id.ifBlank { it.username } }) { user ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(72.dp)
+                    modifier = Modifier.width(58.dp)
                 ) {
                     MomentaAvatar(
                         avatarUrl = user.avatarUrl,
                         avatarKey = user.avatarKey,
                         username = user.username,
-                        size = 64.dp
+                        size = 50.dp
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(3.dp))
                     Text(
                         text = user.displayName ?: user.username,
                         color = MomentaTextSecondary,
-                        fontSize = 13.sp,
+                        fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
