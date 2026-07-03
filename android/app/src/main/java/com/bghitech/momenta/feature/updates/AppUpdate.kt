@@ -9,64 +9,66 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.bghitech.momenta.BuildConfig
+import com.bghitech.momenta.data.remote.MomentaApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.io.File
 import java.net.URL
+import java.security.MessageDigest
 
 data class AppUpdateInfo(
     val message: String,
     val hasUpdate: Boolean = false,
     val downloadUrl: String? = null,
-    val latestVersion: String? = null
+    val latestVersion: String? = null,
+    val latestVersionCode: Int? = null,
+    val mandatory: Boolean = false,
+    val apkSha256: String? = null
 )
 
-suspend fun checkLatestAppRelease(): AppUpdateInfo = withContext(Dispatchers.IO) {
+suspend fun checkLatestAppRelease(api: MomentaApi): AppUpdateInfo = withContext(Dispatchers.IO) {
     runCatching {
-        val json = URL("https://api.github.com/repos/shurshick/momenta/releases/latest")
-            .openConnection()
-            .apply {
-                connectTimeout = 8000
-                readTimeout = 8000
-                setRequestProperty("Accept", "application/vnd.github+json")
-            }
-            .getInputStream()
-            .bufferedReader()
-            .use { it.readText() }
-        val release = JSONObject(json)
-        val latestTag = release.optString("tag_name")
-        val latest = latestTag.removePrefix("v")
-        val releaseUrl = release.optString("html_url").ifBlank {
-            "https://github.com/shurshick/momenta/releases/latest"
-        }
-        val assets = release.optJSONArray("assets")
-        val apkUrl = (0 until (assets?.length() ?: 0))
-            .asSequence()
-            .mapNotNull { assets?.optJSONObject(it) }
-            .firstOrNull { it.optString("name").endsWith(".apk") }
-            ?.optString("browser_download_url")
-            ?.takeIf { it.isNotBlank() }
-            ?: releaseUrl
+        val latest = api.getLatestApp()
+        val isCurrentPackage = BuildConfig.APPLICATION_ID == latest.packageName ||
+            BuildConfig.APPLICATION_ID.startsWith("${latest.packageName}.")
 
         when {
-            latest.isBlank() -> AppUpdateInfo("Не удалось определить последнюю версию.")
-            !isRemoteVersionNewer(latest, BuildConfig.VERSION_NAME) -> {
-                AppUpdateInfo("Установлена актуальная версия $latest.", latestVersion = latest)
+            latest.platform.lowercase() != "android" || !isCurrentPackage -> {
+                AppUpdateInfo("Сервер вернул обновление не для этой сборки.")
             }
-            else -> AppUpdateInfo(
-                message = "Доступна версия $latest. Сейчас установлена ${BuildConfig.VERSION_NAME}.",
-                hasUpdate = true,
-                downloadUrl = apkUrl,
-                latestVersion = latest
-            )
+            latest.versionCode <= BuildConfig.VERSION_CODE -> {
+                AppUpdateInfo(
+                    message = "Установлена актуальная версия ${BuildConfig.VERSION_NAME}.",
+                    latestVersion = latest.versionName,
+                    latestVersionCode = latest.versionCode
+                )
+            }
+            latest.apkUrl.isBlank() -> {
+                AppUpdateInfo("Новая версия найдена, но ссылка на APK пока не задана.")
+            }
+            else -> {
+                val prefix = if (latest.mandatory) "Доступно важное обновление" else "Доступна версия"
+                AppUpdateInfo(
+                    message = "$prefix ${latest.versionName}. Сейчас установлена ${BuildConfig.VERSION_NAME}.",
+                    hasUpdate = true,
+                    downloadUrl = latest.apkUrl,
+                    latestVersion = latest.versionName,
+                    latestVersionCode = latest.versionCode,
+                    mandatory = latest.mandatory || BuildConfig.VERSION_CODE < latest.minSupportedVersionCode,
+                    apkSha256 = latest.apkSha256?.takeIf { it.isNotBlank() }
+                )
+            }
         }
     }.getOrElse {
         AppUpdateInfo("Не удалось проверить обновление. Проверь интернет и повтори.")
     }
 }
 
-suspend fun downloadAndOpenAppApk(context: Context, downloadUrl: String): String {
+suspend fun downloadAndOpenAppApk(
+    context: Context,
+    downloadUrl: String,
+    expectedSha256: String? = null
+): String {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
         val settingsIntent = Intent(
             Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
@@ -88,6 +90,19 @@ suspend fun downloadAndOpenAppApk(context: Context, downloadUrl: String): String
                     input.copyTo(outputStream)
                 }
             }
+
+            val normalizedExpectedHash = expectedSha256
+                ?.removePrefix("sha256:")
+                ?.trim()
+                ?.lowercase()
+                ?.takeIf { it.isNotBlank() }
+            if (normalizedExpectedHash != null) {
+                val actualHash = output.sha256()
+                if (actualHash != normalizedExpectedHash) {
+                    output.delete()
+                    error("APK checksum mismatch")
+                }
+            }
             output
         }
 
@@ -103,20 +118,23 @@ suspend fun downloadAndOpenAppApk(context: Context, downloadUrl: String): String
         if (error is ActivityNotFoundException) {
             Toast.makeText(context, "Не найден системный установщик APK", Toast.LENGTH_LONG).show()
             "Не найден системный установщик APK."
+        } else if (error.message == "APK checksum mismatch") {
+            "Файл обновления поврежден. Попробуй скачать позже."
         } else {
             "Не удалось скачать APK. Проверь интернет и повтори."
         }
     }
 }
 
-private fun isRemoteVersionNewer(remote: String, current: String): Boolean {
-    val remoteParts = remote.split(".", "-").map { it.toIntOrNull() ?: 0 }
-    val currentParts = current.split(".", "-").map { it.toIntOrNull() ?: 0 }
-    val maxSize = maxOf(remoteParts.size, currentParts.size)
-    for (index in 0 until maxSize) {
-        val remotePart = remoteParts.getOrElse(index) { 0 }
-        val currentPart = currentParts.getOrElse(index) { 0 }
-        if (remotePart != currentPart) return remotePart > currentPart
+private fun File.sha256(): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    inputStream().use { input ->
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        while (true) {
+            val read = input.read(buffer)
+            if (read <= 0) break
+            digest.update(buffer, 0, read)
+        }
     }
-    return false
+    return digest.digest().joinToString(separator = "") { byte -> "%02x".format(byte) }
 }

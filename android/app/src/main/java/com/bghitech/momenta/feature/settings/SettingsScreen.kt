@@ -59,7 +59,7 @@ import com.bghitech.momenta.core.design.MomentaSurfaceAlt
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
 import com.bghitech.momenta.feature.updates.AppUpdateInfo
-import com.bghitech.momenta.feature.updates.checkLatestAppRelease
+import com.bghitech.momenta.feature.updates.AppUpdateViewModel
 import com.bghitech.momenta.feature.updates.downloadAndOpenAppApk
 import kotlinx.coroutines.launch
 
@@ -67,7 +67,8 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     onBack: () -> Unit,
     onLogout: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    updateViewModel: AppUpdateViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -160,14 +161,14 @@ fun SettingsScreen(
                         scope.launch {
                             isCheckingUpdate = true
                             updateInfo = AppUpdateInfo("Проверяем обновление...")
-                            updateInfo = checkLatestAppRelease()
+                            updateInfo = updateViewModel.checkLatestAppRelease()
                             isCheckingUpdate = false
                         }
                     },
                     onDownload = { url ->
                         scope.launch {
                             isDownloadingApk = true
-                            val message = downloadAndOpenAppApk(context, url)
+                            val message = downloadAndOpenAppApk(context, url, updateInfo?.apkSha256)
                             updateInfo = updateInfo?.copy(message = message)
                             isDownloadingApk = false
                         }

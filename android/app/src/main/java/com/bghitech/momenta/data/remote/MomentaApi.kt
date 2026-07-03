@@ -12,6 +12,9 @@ interface MomentaApi {
     @GET("/ready")
     suspend fun ready(): ReadyDto
 
+    @GET("/api/v1/app/latest")
+    suspend fun getLatestApp(): AppLatestDto
+
     @POST("/api/v1/auth/register")
     suspend fun register(@Body request: RegisterRequest): AuthResponseDto
 

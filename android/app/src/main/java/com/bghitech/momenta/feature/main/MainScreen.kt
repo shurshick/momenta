@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -42,7 +43,7 @@ import com.bghitech.momenta.feature.profile.ProfileScreen
 import com.bghitech.momenta.feature.search.SearchScreen
 import com.bghitech.momenta.feature.today.TodayScreen
 import com.bghitech.momenta.feature.updates.AppUpdateInfo
-import com.bghitech.momenta.feature.updates.checkLatestAppRelease
+import com.bghitech.momenta.feature.updates.AppUpdateViewModel
 import com.bghitech.momenta.feature.updates.downloadAndOpenAppApk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,7 +54,8 @@ fun MainScreen(
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit,
     startRoute: String = NavRoutes.TODAY,
-    feedRefreshKey: Int = 0
+    feedRefreshKey: Int = 0,
+    updateViewModel: AppUpdateViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -64,7 +66,7 @@ fun MainScreen(
     var isDownloadingUpdate by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        val update = checkLatestAppRelease()
+        val update = updateViewModel.checkLatestAppRelease()
         if (update.hasUpdate && update.downloadUrl != null) {
             updateBanner = update
             delay(5_000)
@@ -152,7 +154,7 @@ fun MainScreen(
                         val url = update.downloadUrl ?: return@UpdateAvailableBanner
                         scope.launch {
                             isDownloadingUpdate = true
-                            downloadAndOpenAppApk(context, url)
+                            downloadAndOpenAppApk(context, url, update.apkSha256)
                             isDownloadingUpdate = false
                             updateBanner = null
                         }
@@ -188,7 +190,11 @@ private fun UpdateAvailableBanner(
                 modifier = Modifier.size(22.dp)
             )
             Text(
-                text = "Доступна версия ${update.latestVersion ?: ""}".trim(),
+                text = if (update.mandatory) {
+                    "Важное обновление ${update.latestVersion ?: ""}".trim()
+                } else {
+                    "Доступна версия ${update.latestVersion ?: ""}".trim()
+                },
                 color = MomentaText,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,

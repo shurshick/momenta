@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.40
+image: ghcr.io/shurshick/momenta:v0.2.41
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -152,7 +152,32 @@ docker exec -it momenta-api alembic upgrade head
 
 Текущий head: `004`.
 
-Для `v0.2.40` новых миграций нет.
+Для `v0.2.41` новых миграций нет.
+
+## 8.1. Метаданные Android-обновления
+
+Android-приложение проверяет обновления через backend:
+
+```bash
+curl -s http://TRUENAS_IP:8010/api/v1/app/latest
+```
+
+Для релиза можно задать эти переменные окружения у `momenta-api`:
+
+```env
+APP_LATEST_ANDROID_VERSION_NAME=0.2.41
+APP_LATEST_ANDROID_VERSION_CODE=41
+APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
+APP_LATEST_ANDROID_MANDATORY=false
+APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.41/app-prod-debug.apk
+APP_LATEST_ANDROID_APK_SHA256=
+APP_LATEST_ANDROID_APK_SIZE_BYTES=
+APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.41
+APP_LATEST_ANDROID_RELEASE_NOTES=Проверка обновлений Android теперь идет через сервер Момента|APK по-прежнему публикуется в GitHub Releases
+APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-03T00:00:00Z
+```
+
+`APP_VERSION` не используется для Android-обновлений. Версия сервера и версия APK теперь живут отдельно.
 
 ## 9. Обновление
 
@@ -164,7 +189,7 @@ docker exec -it momenta-api alembic upgrade head
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.40`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.41`.
 2. Запустите app заново.
 
 После обновления проверьте:

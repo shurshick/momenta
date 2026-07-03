@@ -8,6 +8,22 @@ class Settings(BaseSettings):
     app_env: str = "development"
     app_version: str = RELEASE_VERSION
     app_timezone: str = "Europe/Moscow"
+    app_latest_android_app_name: str = "Момент"
+    app_latest_android_package_name: str = "com.bghitech.momenta"
+    app_latest_android_channel: str = "stable"
+    app_latest_android_version_name: str = RELEASE_VERSION
+    app_latest_android_version_code: int = 41
+    app_min_supported_android_version_code: int = 1
+    app_latest_android_mandatory: bool = False
+    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.41/app-prod-debug.apk"
+    app_latest_android_apk_sha256: str = ""
+    app_latest_android_apk_size_bytes: int | None = None
+    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.41"
+    app_latest_android_release_notes: str = (
+        "Проверка обновлений Android теперь идет через сервер Момента|"
+        "APK по-прежнему публикуется в GitHub Releases"
+    )
+    app_latest_android_published_at: str = "2026-07-03T00:00:00Z"
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000
@@ -55,6 +71,10 @@ class Settings(BaseSettings):
     @property
     def allowed_video_types(self) -> List[str]:
         return [t.strip() for t in self.media_allowed_video_types.split(",") if t.strip()]
+
+    @property
+    def app_latest_android_release_note_list(self) -> List[str]:
+        return [note.strip() for note in self.app_latest_android_release_notes.split("|") if note.strip()]
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

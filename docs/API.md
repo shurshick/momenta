@@ -23,6 +23,34 @@ Authorization: Bearer <access_token>
 - `POST /api/v1/auth/refresh` — Refresh token
 - `GET /api/v1/me` — Current user info
 
+## App
+
+- `GET /api/v1/app/latest` — Public Android update metadata. Does not require auth.
+
+Example response:
+
+```json
+{
+  "app_name": "Момент",
+  "package_name": "com.bghitech.momenta",
+  "platform": "android",
+  "channel": "stable",
+  "version_name": "0.2.41",
+  "version_code": 41,
+  "min_supported_version_code": 1,
+  "mandatory": false,
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.41/app-prod-debug.apk",
+  "apk_sha256": null,
+  "apk_size_bytes": null,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.41",
+  "release_notes": [
+    "Проверка обновлений Android теперь идет через сервер Момента",
+    "APK по-прежнему публикуется в GitHub Releases"
+  ],
+  "published_at": "2026-07-03T00:00:00Z"
+}
+```
+
 ## Challenges
 
 - `GET /api/v1/challenges/today` — Today's challenge. If no active challenge exists for the current `APP_TIMEZONE` date, backend creates one automatically from local templates. Manual/admin challenge for the date has priority over auto generation.

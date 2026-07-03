@@ -1,10 +1,10 @@
 # Momenta / Момент
 
-Момент — социальное приложение для живых ежедневных моментов: задание дня, камера, лента, реакции, комментарии и профиль.
+Момент — социальное Android-приложение для живых ежедневных моментов: задание дня, камера, лента, реакции, комментарии и профиль.
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия: **v0.2.40**.
+Текущая стабильная версия: **v0.2.41**.
 
 ## Что уже есть
 
@@ -13,6 +13,7 @@
 - Админка для пользователей, постов, жалоб, настроек, аудита и версии сервера.
 - Docker/TrueNAS deployment: API, worker, PostgreSQL, Redis, MinIO.
 - APK и Docker image публикуются через GitHub Actions.
+- Проверка обновлений Android идет через публичный backend endpoint `/api/v1/app/latest`.
 
 ## Android
 
@@ -32,7 +33,7 @@ cd android
 ./gradlew verifyInstallableProdApk
 ```
 
-Готовый APK лежит в релизах GitHub:  
+Готовый APK лежит в релизах GitHub:
 [Latest release](https://github.com/shurshick/momenta/releases/latest)
 
 ## Backend
@@ -58,17 +59,27 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.40
+image: ghcr.io/shurshick/momenta:v0.2.41
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-Для **v0.2.40** новых миграций БД нет.
+Для **v0.2.41** новых миграций БД нет.
+
+## Обновления Android
+
+Android больше не ходит напрямую в GitHub Releases API. Приложение проверяет:
+
+```http
+GET /api/v1/app/latest
+```
+
+Сервер отдает `version_name`, `version_code`, `apk_url`, `apk_sha256`, `mandatory` и release notes. Метаданные задаются переменными окружения backend, отдельно от версии сервера.
 
 ## Релизы
 
-- Release: [v0.2.40](https://github.com/shurshick/momenta/releases/tag/v0.2.40)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.40`
+- Release: [v0.2.41](https://github.com/shurshick/momenta/releases/tag/v0.2.41)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.41`
 - Android APK: `app-prod-debug.apk`
 
 ## Документы
@@ -76,4 +87,5 @@ image: ghcr.io/shurshick/momenta:v0.2.40
 - Android: [android/README.md](android/README.md)
 - Android architecture: [android/docs/ANDROID_ARCHITECTURE.md](android/docs/ANDROID_ARCHITECTURE.md)
 - TrueNAS deploy: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
+- API: [docs/API.md](docs/API.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
