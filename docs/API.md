@@ -40,8 +40,8 @@ Example response:
   "min_supported_version_code": 1,
   "mandatory": false,
   "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.44/app-prod-debug.apk",
-  "apk_sha256": null,
-  "apk_size_bytes": null,
+  "apk_sha256": "272da95f752c44c6c60afa0fa1c21303fde28f282fc6f3e2e29ac05c484bdab8",
+  "apk_size_bytes": 30940845,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.44",
   "release_notes": [
     "Шестеренка профиля перенесена к аватару",
