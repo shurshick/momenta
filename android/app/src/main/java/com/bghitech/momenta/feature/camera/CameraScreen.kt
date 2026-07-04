@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -130,6 +131,7 @@ private fun CameraContent(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var camera by remember { mutableStateOf<Camera?>(null) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var selectedEffect by remember { mutableStateOf(PhotoEffect.Natural) }
     var showEffects by remember { mutableStateOf(false) }
@@ -164,11 +166,14 @@ private fun CameraContent(
 
                     try {
                         cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
+                        camera = cameraProvider.bindToLifecycle(
                             lifecycleOwner,
                             if (state.isFrontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA,
                             preview,
                             imageCapture
+                        )
+                        camera?.cameraControl?.enableTorch(
+                            state.flashMode && camera?.cameraInfo?.hasFlashUnit() == true
                         )
                     } catch (_: Exception) {
                     }
@@ -179,6 +184,9 @@ private fun CameraContent(
             update = {
                 imageCapture?.flashMode =
                     if (state.flashMode) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+                camera?.cameraControl?.enableTorch(
+                    state.flashMode && camera?.cameraInfo?.hasFlashUnit() == true
+                )
             }
         )
 
@@ -255,7 +263,7 @@ private fun CameraContent(
             Spacer(modifier = Modifier.height(14.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                listOf("Фото", "Видео", "История").forEach { mode ->
+                listOf("Фото", "Видео").forEach { mode ->
                     Text(
                         text = mode,
                         color = if (mode == "Фото") MomentaGreen else MomentaTextSecondary,
@@ -269,6 +277,7 @@ private fun CameraContent(
 
     DisposableEffect(Unit) {
         onDispose {
+            camera?.cameraControl?.enableTorch(false)
             cameraExecutor.shutdown()
         }
     }

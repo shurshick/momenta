@@ -31,8 +31,8 @@ android {
         applicationId = "com.bghitech.momenta"
         minSdk = 24
         targetSdk = 34
-        versionCode = 43
-        versionName = "0.2.43"
+        versionCode = 44
+        versionName = "0.2.44"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

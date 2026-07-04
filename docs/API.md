@@ -35,19 +35,19 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.43",
-  "version_code": 43,
+  "version_name": "0.2.44",
+  "version_code": 44,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.43/app-prod-debug.apk",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.44/app-prod-debug.apk",
   "apk_sha256": null,
   "apk_size_bytes": null,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.43",
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.44",
   "release_notes": [
-    "Убран лишний верхний отступ на главных вкладках",
-    "Настройки сохраняют безопасный отступ от системной строки Android"
+    "Шестеренка профиля перенесена к аватару",
+    "В камере убрана История и исправлено включение вспышки"
   ],
-  "published_at": "2026-07-03T00:00:00Z"
+  "published_at": "2026-07-04T00:00:00Z"
 }
 ```
 

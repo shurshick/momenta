@@ -12,18 +12,18 @@ class Settings(BaseSettings):
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
     app_latest_android_version_name: str = RELEASE_VERSION
-    app_latest_android_version_code: int = 43
+    app_latest_android_version_code: int = 44
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
-    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.43/app-prod-debug.apk"
+    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.44/app-prod-debug.apk"
     app_latest_android_apk_sha256: str = ""
     app_latest_android_apk_size_bytes: int | None = None
-    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.43"
+    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.44"
     app_latest_android_release_notes: str = (
-        "Убран лишний верхний отступ на главных вкладках|"
-        "Настройки сохраняют безопасный отступ от системной строки Android"
+        "Шестеренка профиля перенесена к аватару|"
+        "В камере убрана История и исправлено включение вспышки"
     )
-    app_latest_android_published_at: str = "2026-07-03T00:00:00Z"
+    app_latest_android_published_at: str = "2026-07-04T00:00:00Z"
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000

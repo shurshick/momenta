@@ -202,6 +202,7 @@ private fun ProfileContent(
             state = state,
             onEditClick = onEditClick,
             onAvatarClick = onAvatarClick,
+            onSettingsClick = onSettingsClick,
             modifier = Modifier.weight(1f)
         )
 
@@ -209,7 +210,6 @@ private fun ProfileContent(
             streakCount = state.streakCount,
             momentsCount = state.momentsCount,
             likesCount = state.likesCount,
-            onSettingsClick = onSettingsClick,
             modifier = Modifier.width(152.dp)
         )
     }
@@ -276,45 +276,67 @@ private fun ProfileIdentityBlock(
     state: ProfileUiState,
     onEditClick: () -> Unit,
     onAvatarClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.Start
     ) {
-        Surface(
+        Box(
             modifier = Modifier
-                .size(114.dp)
-                .clip(CircleShape)
-                .clickable(onClick = onAvatarClick),
-            color = Color.Transparent,
-            shape = CircleShape,
-            border = BorderStroke(2.dp, MomentaGreen.copy(alpha = 0.82f))
+                .width(148.dp)
+                .height(120.dp)
         ) {
-            Box(
+            Surface(
                 modifier = Modifier
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                MomentaGreen.copy(alpha = 0.22f),
-                                MomentaWarm.copy(alpha = 0.10f),
-                                Color.Transparent
+                    .size(114.dp)
+                    .align(Alignment.TopStart)
+                    .clip(CircleShape)
+                    .clickable(onClick = onAvatarClick),
+                color = Color.Transparent,
+                shape = CircleShape,
+                border = BorderStroke(2.dp, MomentaGreen.copy(alpha = 0.82f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    MomentaGreen.copy(alpha = 0.22f),
+                                    MomentaWarm.copy(alpha = 0.10f),
+                                    Color.Transparent
+                                )
                             )
                         )
+                        .padding(5.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    MomentaAvatar(
+                        avatarUrl = state.avatarUrl,
+                        avatarKey = state.avatarKey,
+                        username = state.username,
+                        size = 100.dp
                     )
-                    .padding(5.dp),
-                contentAlignment = Alignment.Center
+                }
+            }
+            IconButton(
+                onClick = onSettingsClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 2.dp)
+                    .size(34.dp)
             ) {
-                MomentaAvatar(
-                    avatarUrl = state.avatarUrl,
-                    avatarKey = state.avatarKey,
-                    username = state.username,
-                    size = 100.dp
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = MomentaTextSecondary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -366,7 +388,6 @@ private fun ProfileStatsColumn(
     streakCount: Int,
     momentsCount: Int,
     likesCount: Int,
-    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -388,41 +409,6 @@ private fun ProfileStatsColumn(
             label = likeWord(likesCount).lowercase(),
             accent = MomentaWarm
         )
-        SettingsTile(onClick = onSettingsClick)
-    }
-}
-
-@Composable
-private fun SettingsTile(onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(42.dp)
-            .clip(MomentaLargeShape)
-            .clickable(onClick = onClick),
-        color = MomentaSurface.copy(alpha = 0.72f),
-        shape = MomentaLargeShape,
-        border = BorderStroke(1.dp, MomentaTextSecondary.copy(alpha = 0.14f))
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Настройки",
-                tint = MomentaTextSecondary,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Настройки",
-                color = MomentaTextSecondary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
     }
 }
 
