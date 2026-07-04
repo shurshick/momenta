@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.44/app-prod-debug.apk"
-    app_latest_android_apk_sha256: str = "272da95f752c44c6c60afa0fa1c21303fde28f282fc6f3e2e29ac05c484bdab8"
-    app_latest_android_apk_size_bytes: int | None = 30940845
+    app_latest_android_apk_sha256: str = "3bc2c37ed98c660d1a3e6a69207f0c9d21cf5baf7e20699114d6cce07d574ae5"
+    app_latest_android_apk_size_bytes: int | None = 30939157
     app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.44"
     app_latest_android_release_notes: str = (
         "Шестеренка профиля перенесена к аватару|"
