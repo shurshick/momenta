@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.45/app-prod-debug.apk"
-    app_latest_android_apk_sha256: str = "c127282ece86eecefe4b53a845a9f9665f613b6ad716b57d38cbc01f9f211908"
-    app_latest_android_apk_size_bytes: int | None = 30942301
+    app_latest_android_apk_sha256: str = "46082ec0a3a058768e7403cd2e266f5e3731117a92a1e6f274f01e894457270f"
+    app_latest_android_apk_size_bytes: int | None = 30940653
     app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.45"
     app_latest_android_release_notes: str = (
         "Уменьшен заголовок ленты|"

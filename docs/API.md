@@ -40,8 +40,8 @@ Example response:
   "min_supported_version_code": 1,
   "mandatory": false,
   "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.45/app-prod-debug.apk",
-  "apk_sha256": "c127282ece86eecefe4b53a845a9f9665f613b6ad716b57d38cbc01f9f211908",
-  "apk_size_bytes": 30942301,
+  "apk_sha256": "46082ec0a3a058768e7403cd2e266f5e3731117a92a1e6f274f01e894457270f",
+  "apk_size_bytes": 30940653,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.45",
   "release_notes": [
     "Уменьшен заголовок ленты",
