@@ -35,19 +35,20 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.44",
-  "version_code": 44,
+  "version_name": "0.2.45",
+  "version_code": 45,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.44/app-prod-debug.apk",
-  "apk_sha256": "3bc2c37ed98c660d1a3e6a69207f0c9d21cf5baf7e20699114d6cce07d574ae5",
-  "apk_size_bytes": 30939157,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.44",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.45/app-prod-debug.apk",
+  "apk_sha256": "c127282ece86eecefe4b53a845a9f9665f613b6ad716b57d38cbc01f9f211908",
+  "apk_size_bytes": 30942301,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.45",
   "release_notes": [
-    "Шестеренка профиля перенесена к аватару",
-    "В камере убрана История и исправлено включение вспышки"
+    "Уменьшен заголовок ленты",
+    "В профиль добавлен заголовок",
+    "Лента больше не подмешивает посты прошлых дней"
   ],
-  "published_at": "2026-07-04T00:00:00Z"
+  "published_at": "2026-07-05T00:00:00Z"
 }
 ```
 

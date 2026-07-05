@@ -137,9 +137,9 @@ fun FeedScreen(
         Text(
             text = "Мир сейчас",
             color = MomentaText,
-            fontSize = 30.sp,
+            fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
         )
 
         Row(

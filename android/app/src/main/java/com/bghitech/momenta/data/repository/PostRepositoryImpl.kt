@@ -15,6 +15,9 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,6 +56,7 @@ class PostRepositoryImpl @Inject constructor(
                 likesCount = 0,
                 commentsCount = 0,
                 viewsCount = 0,
+                challengeDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
                 createdAt = ""
             ))
         } catch (e: Exception) {

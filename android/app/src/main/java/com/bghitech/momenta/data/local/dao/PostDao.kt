@@ -8,6 +8,9 @@ interface PostDao {
     @Query("SELECT * FROM cached_posts ORDER BY cachedAt DESC")
     suspend fun getAllPosts(): List<CachedPostEntity>
 
+    @Query("SELECT * FROM cached_posts WHERE challengeDate = :challengeDate ORDER BY cachedAt DESC")
+    suspend fun getPostsByChallengeDate(challengeDate: String): List<CachedPostEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPosts(posts: List<CachedPostEntity>)
 

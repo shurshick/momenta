@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel
 
 
@@ -14,6 +14,7 @@ class PostOut(BaseModel):
     likes_count: int = 0
     comments_count: int = 0
     views_count: int = 0
+    challenge_date: date | None = None
     created_at: datetime | None = None
     is_liked: bool = False
     is_mine: bool = False
@@ -34,6 +35,7 @@ class PostFeedItem(BaseModel):
     likes_count: int = 0
     comments_count: int = 0
     views_count: int = 0
+    challenge_date: date | None = None
     created_at: datetime | None = None
     is_liked: bool = False
     is_mine: bool = False

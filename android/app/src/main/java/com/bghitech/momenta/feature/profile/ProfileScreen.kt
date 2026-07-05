@@ -154,6 +154,13 @@ fun ProfileScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
+            Text(
+                text = "Профиль",
+                color = MomentaText,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
             if (state.isLoading) {
                 ProfileLoadingSkeleton()
             } else {

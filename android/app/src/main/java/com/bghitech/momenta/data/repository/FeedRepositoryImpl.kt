@@ -8,6 +8,9 @@ import com.bghitech.momenta.data.remote.MomentaApi
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.FeedRepository
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,7 +50,7 @@ class FeedRepositoryImpl @Inject constructor(
     override suspend fun getNextCursor(): String? = nextCursor
 
     override suspend fun getCachedFeed(): List<Post> {
-        return postDao.getAllPosts().map { it.toDomain() }
+        return postDao.getPostsByChallengeDate(todayKey()).map { it.toDomain() }
     }
 
     override suspend fun cacheFeed(posts: List<Post>) {
@@ -66,4 +69,6 @@ class FeedRepositoryImpl @Inject constructor(
             AppResult.Success(getCachedFeed().map { it.user }.distinctBy { it.username }.take(20))
         }
     }
+
+    private fun todayKey(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 }

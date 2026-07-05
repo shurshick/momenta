@@ -12,6 +12,7 @@ data class Post(
     val likesCount: Int,
     val commentsCount: Int,
     val viewsCount: Int,
+    val challengeDate: String,
     val createdAt: String,
     val isLiked: Boolean = false,
     val isMine: Boolean = false,

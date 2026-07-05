@@ -178,7 +178,7 @@ async def test_feed_first_page_contains_newest_active_post(client, auth_headers,
 
 
 @pytest.mark.asyncio
-async def test_today_feed_falls_back_to_recent_active_posts_when_today_empty(
+async def test_today_feed_does_not_include_previous_days_when_today_empty(
     client, auth_headers, test_user, test_challenge, db_session
 ):
     from app.models.post import Post
@@ -199,5 +199,4 @@ async def test_today_feed_falls_back_to_recent_active_posts_when_today_empty(
     response = await client.get("/api/v1/feed/today?limit=20", headers=auth_headers)
 
     assert response.status_code == 200
-    ids = [item["id"] for item in response.json()["items"]]
-    assert ids == [str(post.id)]
+    assert response.json()["items"] == []

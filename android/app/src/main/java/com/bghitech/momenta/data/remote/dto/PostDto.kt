@@ -28,6 +28,8 @@ data class PostDto(
     val commentsCount: Int = 0,
     @SerialName("views_count")
     val viewsCount: Int = 0,
+    @SerialName("challenge_date")
+    val challengeDate: String? = null,
     @SerialName("created_at")
     val createdAt: String? = null,
     @SerialName("is_liked")
