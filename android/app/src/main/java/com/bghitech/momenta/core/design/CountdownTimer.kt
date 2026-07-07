@@ -13,11 +13,9 @@ fun rememberCountdownTime(endsAtIso: String): String {
     LaunchedEffect(endsAtIso) {
         while (true) {
             try {
-                val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-                format.timeZone = TimeZone.getTimeZone("UTC")
-                val endTime = format.parse(endsAtIso)?.time ?: 0L
+                val endTime = parseIsoEndTime(endsAtIso)
                 val now = System.currentTimeMillis()
-                val diff = endTime - now
+                val diff = (endTime - now).coerceAtMost(24L * 60L * 60L * 1000L)
 
                 if (diff <= 0) {
                     timeLeft = "00:00:00"
@@ -36,4 +34,24 @@ fun rememberCountdownTime(endsAtIso: String): String {
     }
 
     return timeLeft
+}
+
+private fun parseIsoEndTime(value: String): Long {
+    val patterns = listOf(
+        "yyyy-MM-dd'T'HH:mm:ssXXX",
+        "yyyy-MM-dd'T'HH:mm:ssX",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss"
+    )
+    for (pattern in patterns) {
+        try {
+            val format = SimpleDateFormat(pattern, Locale.US)
+            if (!pattern.contains("X")) {
+                format.timeZone = TimeZone.getTimeZone("UTC")
+            }
+            return format.parse(value)?.time ?: continue
+        } catch (_: Exception) {
+        }
+    }
+    return 0L
 }

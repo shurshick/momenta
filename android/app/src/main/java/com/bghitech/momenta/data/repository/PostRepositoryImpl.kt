@@ -2,6 +2,7 @@ package com.bghitech.momenta.data.repository
 
 import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.util.AppDateUtils
 import com.bghitech.momenta.data.mapper.toDomain
 import com.bghitech.momenta.data.remote.MomentaApi
 import com.bghitech.momenta.data.remote.dto.CreateCommentRequestDto
@@ -15,9 +16,6 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -56,7 +54,7 @@ class PostRepositoryImpl @Inject constructor(
                 likesCount = 0,
                 commentsCount = 0,
                 viewsCount = 0,
-                challengeDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
+                challengeDate = AppDateUtils.todayKey(),
                 createdAt = ""
             ))
         } catch (e: Exception) {

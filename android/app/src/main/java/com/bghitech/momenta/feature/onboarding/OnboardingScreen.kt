@@ -94,15 +94,15 @@ fun OnboardingScreen(
 
             MomentaCard(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 22.dp, vertical = 20.dp)
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 18.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(58.dp)
+                            .size(54.dp)
                             .clip(MomentaLargeShape)
                             .background(MomentaGreen.copy(alpha = 0.12f)),
                         contentAlignment = Alignment.Center
@@ -111,16 +111,29 @@ fun OnboardingScreen(
                             imageVector = Icons.Filled.Star,
                             contentDescription = null,
                             tint = MomentaGreen,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(30.dp)
                         )
                     }
-                    Text(
-                        text = "\u041e\u0442\u043a\u0440\u043e\u0439 \u0442\u0435\u043c\u0443 \u0434\u043d\u044f, \u043f\u043e\u0439\u043c\u0430\u0439 \u0441\u0432\u043e\u0439\n\u043c\u043e\u043c\u0435\u043d\u0442 \u0438 \u043f\u043e\u0441\u043c\u043e\u0442\u0440\u0438, \u043a\u0430\u043a \u0436\u0438\u0432\u0435\u0442\n\u043c\u0438\u0440 \u0441\u0435\u0439\u0447\u0430\u0441.",
-                        color = MomentaText,
-                        fontSize = 17.sp,
-                        lineHeight = 25.sp,
-                        letterSpacing = 0.sp
-                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "\u041e\u0442\u043a\u0440\u043e\u0439 \u0442\u0435\u043c\u0443 \u0434\u043d\u044f",
+                            color = MomentaText,
+                            fontSize = 17.sp,
+                            lineHeight = 21.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.sp
+                        )
+                        Text(
+                            text = "\u041f\u043e\u0439\u043c\u0430\u0439 \u0441\u0432\u043e\u0439 \u043c\u043e\u043c\u0435\u043d\u0442 \u0438 \u043f\u043e\u0441\u043c\u043e\u0442\u0440\u0438, \u043a\u0430\u043a \u0436\u0438\u0432\u0435\u0442 \u043c\u0438\u0440 \u0441\u0435\u0439\u0447\u0430\u0441.",
+                            color = MomentaTextSecondary,
+                            fontSize = 14.sp,
+                            lineHeight = 19.sp,
+                            letterSpacing = 0.sp
+                        )
+                    }
                 }
             }
 

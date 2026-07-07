@@ -35,20 +35,20 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.45",
-  "version_code": 45,
+  "version_name": "0.2.46",
+  "version_code": 46,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.45/app-prod-debug.apk",
-  "apk_sha256": "46082ec0a3a058768e7403cd2e266f5e3731117a92a1e6f274f01e894457270f",
-  "apk_size_bytes": 30940653,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.45",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.46/app-prod-debug.apk",
+  "apk_sha256": "cabc849f3cfc8bf40d87b253f2e5072e40825b710118673cf2899d1cbaa9a2bf",
+  "apk_size_bytes": 30943677,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.46",
   "release_notes": [
-    "Уменьшен заголовок ленты",
-    "В профиль добавлен заголовок",
-    "Лента больше не подмешивает посты прошлых дней"
+    "Исправлен таймер задания дня",
+    "Исправлена дата публикации после полуночи",
+    "Обновлена верстка текстового блока на стартовом экране"
   ],
-  "published_at": "2026-07-05T00:00:00Z"
+  "published_at": "2026-07-07T00:00:00Z"
 }
 ```
 

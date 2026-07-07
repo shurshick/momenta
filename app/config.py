@@ -12,19 +12,19 @@ class Settings(BaseSettings):
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
     app_latest_android_version_name: str = RELEASE_VERSION
-    app_latest_android_version_code: int = 45
+    app_latest_android_version_code: int = 46
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
-    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.45/app-prod-debug.apk"
-    app_latest_android_apk_sha256: str = "46082ec0a3a058768e7403cd2e266f5e3731117a92a1e6f274f01e894457270f"
-    app_latest_android_apk_size_bytes: int | None = 30940653
-    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.45"
+    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.46/app-prod-debug.apk"
+    app_latest_android_apk_sha256: str = "cabc849f3cfc8bf40d87b253f2e5072e40825b710118673cf2899d1cbaa9a2bf"
+    app_latest_android_apk_size_bytes: int | None = 30943677
+    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.46"
     app_latest_android_release_notes: str = (
-        "Уменьшен заголовок ленты|"
-        "В профиль добавлен заголовок|"
-        "Лента больше не подмешивает посты прошлых дней"
+        "Исправлен таймер задания дня|"
+        "Исправлена дата публикации после полуночи|"
+        "Обновлена верстка текстового блока на стартовом экране"
     )
-    app_latest_android_published_at: str = "2026-07-05T00:00:00Z"
+    app_latest_android_published_at: str = "2026-07-07T00:00:00Z"
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000

@@ -30,6 +30,31 @@ async def test_upload_creates_post(client, auth_headers, test_challenge):
 
 
 @pytest.mark.asyncio
+async def test_upload_today_uses_app_date(client, auth_headers, db_session, monkeypatch):
+    import io
+
+    from PIL import Image
+    from app.models.post import Post
+
+    app_date = date(2026, 7, 8)
+    monkeypatch.setattr("app.api.v1.posts.current_app_date", lambda: app_date)
+
+    img = Image.new("RGB", (100, 100), color="green")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    buf.seek(0)
+
+    files = {"media": ("today.jpg", buf, "image/jpeg")}
+    data = {"challenge_id": "today", "caption": "Today post"}
+    response = await client.post("/api/v1/posts", files=files, data=data, headers=auth_headers)
+
+    assert response.status_code == 200
+    post = await db_session.get(Post, uuid.UUID(response.json()["id"]))
+    assert post is not None
+    assert post.challenge_date == app_date
+
+
+@pytest.mark.asyncio
 async def test_second_post_same_day_rejected(
     client, auth_headers, test_challenge, test_user, db_session
 ):
