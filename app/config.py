@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.46/app-prod-debug.apk"
-    app_latest_android_apk_sha256: str = "cabc849f3cfc8bf40d87b253f2e5072e40825b710118673cf2899d1cbaa9a2bf"
-    app_latest_android_apk_size_bytes: int | None = 30943677
+    app_latest_android_apk_sha256: str = "7a524c0a4956fab16c6dc2dd463a67f608bbe3d8851391bc71e3677f9acde878"
+    app_latest_android_apk_size_bytes: int | None = 30942013
     app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.46"
     app_latest_android_release_notes: str = (
         "Исправлен таймер задания дня|"

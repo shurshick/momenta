@@ -40,8 +40,8 @@ Example response:
   "min_supported_version_code": 1,
   "mandatory": false,
   "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.46/app-prod-debug.apk",
-  "apk_sha256": "cabc849f3cfc8bf40d87b253f2e5072e40825b710118673cf2899d1cbaa9a2bf",
-  "apk_size_bytes": 30943677,
+  "apk_sha256": "7a524c0a4956fab16c6dc2dd463a67f608bbe3d8851391bc71e3677f9acde878",
+  "apk_size_bytes": 30942013,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.46",
   "release_notes": [
     "Исправлен таймер задания дня",
