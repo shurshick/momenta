@@ -40,8 +40,8 @@ Example response:
   "min_supported_version_code": 1,
   "mandatory": false,
   "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.49/app-prod-debug.apk",
-  "apk_sha256": "",
-  "apk_size_bytes": null,
+  "apk_sha256": "65f50df3a0b6429c28b0f5b34fea3c72cb810593f5d8a4d044ebb7f5ad2fea7c",
+  "apk_size_bytes": 30960993,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.49",
   "release_notes": [
     "Серверный рефактор ленты, профилей и health/readiness",
