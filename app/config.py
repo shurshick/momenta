@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.47/app-prod-debug.apk"
-    app_latest_android_apk_sha256: str = "c048062241d1dafc207d43bdd3f7116aefb6aaa2f03b6ce159b5ac610f44eea5"
-    app_latest_android_apk_size_bytes: int | None = 31054139
+    app_latest_android_apk_sha256: str = "bd39e1302d9424e6e247b3d12a07d42241f73ddf652454d27e27acec4665a0f7"
+    app_latest_android_apk_size_bytes: int | None = 30951605
     app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.47"
     app_latest_android_release_notes: str = (
         "\u041c\u044f\u0433\u043a\u043e\u0435 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u043b\u0435\u043d\u0442\u044b|"
