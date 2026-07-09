@@ -11,11 +11,18 @@
     <div class="card">
         <h3 style="margin-bottom:16px;">Лимиты публикаций</h3>
         <div class="form-group">
-            <label for="daily_post_limit">Максимум моментов в день (на пользователя)</label>
+            <label for="daily_post_limit">Максимум моментов в день на пользователя</label>
             <input type="number" id="daily_post_limit" name="daily_post_limit"
                    value="{{ settings.get('daily_post_limit', '1') }}"
                    min="0" max="100" style="max-width:120px;">
-            <p style="font-size:12px;color:#888;margin-top:4px;">0 = безлимит</p>
+            <p style="font-size:12px;color:#888;margin-top:4px;">0 = без лимита</p>
+        </div>
+        <div class="form-group">
+            <label for="post_delete_window_minutes">Окно удаления своего поста, минут</label>
+            <input type="number" id="post_delete_window_minutes" name="post_delete_window_minutes"
+                   value="{{ settings.get('post_delete_window_minutes', '60') }}"
+                   min="0" max="1440" style="max-width:120px;">
+            <p style="font-size:12px;color:#888;margin-top:4px;">По умолчанию 60 минут. 0 = удалить можно только сразу после публикации.</p>
         </div>
     </div>
     <button type="submit" class="btn btn-primary">Сохранить</button>

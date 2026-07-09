@@ -20,6 +20,7 @@ from app.services.post_service import (
     assert_can_create_post,
     can_delete_post,
     create_post,
+    get_delete_window_minutes,
     get_post_by_id,
     increment_views,
     soft_delete_post,
@@ -141,7 +142,11 @@ async def get_post(
         "created_at": post.created_at,
         "is_liked": is_liked,
         "is_mine": uuid.UUID(user_id) == post.user_id,
-        "can_delete": can_delete_post(post, uuid.UUID(user_id)),
+        "can_delete": can_delete_post(
+            post,
+            uuid.UUID(user_id),
+            await get_delete_window_minutes(db),
+        ),
     }
 
 
@@ -155,8 +160,12 @@ async def delete_post(
         raise HTTPException(status_code=404, detail="Post not found")
     if post.user_id != current_user_id:
         raise HTTPException(status_code=403, detail="You can delete only your own post")
-    if not can_delete_post(post, current_user_id):
-        raise HTTPException(status_code=403, detail="Post can be deleted only within 24 hours")
+    delete_window_minutes = await get_delete_window_minutes(db)
+    if not can_delete_post(post, current_user_id, delete_window_minutes):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Post can be deleted only within {delete_window_minutes} minutes",
+        )
     success = await soft_delete_post(db, uuid.UUID(post_id), current_user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Post not found")

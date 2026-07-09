@@ -19,6 +19,8 @@ from app.utils.dates import parse_cursor_datetime
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_DELETE_WINDOW_MINUTES = 60
+
 
 async def assert_can_create_post(
     db: AsyncSession,
@@ -107,6 +109,19 @@ async def get_post_by_id(db: AsyncSession, post_id: uuid.UUID) -> Optional[Post]
     return result.scalar_one_or_none()
 
 
+async def get_delete_window_minutes(db: AsyncSession) -> int:
+    raw_value = await get_setting(
+        db,
+        "post_delete_window_minutes",
+        str(DEFAULT_DELETE_WINDOW_MINUTES),
+    )
+    try:
+        value = int(raw_value)
+    except (TypeError, ValueError):
+        return DEFAULT_DELETE_WINDOW_MINUTES
+    return max(value, 0)
+
+
 async def soft_delete_post(
     db: AsyncSession,
     post_id: uuid.UUID,
@@ -119,19 +134,26 @@ async def soft_delete_post(
         return False
     if post.created_at:
         created_at = _as_utc(post.created_at)
-        if datetime.now(timezone.utc) - created_at > timedelta(hours=24):
+        delete_window_minutes = await get_delete_window_minutes(db)
+        if datetime.now(timezone.utc) - created_at > timedelta(minutes=delete_window_minutes):
             return False
     post.status = "deleted"
     await db.commit()
     return True
 
 
-def can_delete_post(post: Post, user_id: Optional[uuid.UUID]) -> bool:
+def can_delete_post(
+    post: Post,
+    user_id: Optional[uuid.UUID],
+    delete_window_minutes: int = DEFAULT_DELETE_WINDOW_MINUTES,
+) -> bool:
     if not user_id or post.user_id != user_id or post.status != "active":
         return False
     if not post.created_at:
         return True
-    return datetime.now(timezone.utc) - _as_utc(post.created_at) <= timedelta(hours=24)
+    return datetime.now(timezone.utc) - _as_utc(post.created_at) <= timedelta(
+        minutes=max(delete_window_minutes, 0)
+    )
 
 
 async def get_feed_posts(

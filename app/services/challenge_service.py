@@ -29,7 +29,10 @@ async def get_today_challenge_data(db: AsyncSession, user_id: Optional[str] = No
     challenge = await get_or_create_today_challenge(db, today)
 
     participants = await db.execute(
-        select(func.count(Post.id)).where(Post.challenge_date == today, Post.status == "active")
+        select(func.count(func.distinct(Post.user_id))).where(
+            Post.challenge_date == today,
+            Post.status == "active",
+        )
     )
     participants_count = participants.scalar() or 0
     user_posted = await _has_user_posted(db, user_id, today) if user_id else False

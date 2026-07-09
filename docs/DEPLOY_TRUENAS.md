@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.49
+image: ghcr.io/shurshick/momenta:v0.2.50
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -152,7 +152,15 @@ docker exec -it momenta-api alembic upgrade head
 
 Текущий head: `004`.
 
-Для `v0.2.49` новых миграций нет.
+Для `v0.2.50` новых миграций нет.
+
+В `v0.2.50` добавлена новая настройка в уже существующую таблицу `settings`:
+
+| Ключ | Значение по умолчанию | Описание |
+|---|---:|---|
+| `post_delete_window_minutes` | `60` | Сколько минут после публикации пользователь может удалить свой пост |
+
+Если база уже поднята, setting создастся автоматически при старте API. Можно также выставить руками в админке: **Settings → Окно удаления своего поста, минут**.
 
 ## 8.1. Метаданные Android-обновления
 
@@ -165,15 +173,15 @@ curl -s http://TRUENAS_IP:8010/api/v1/app/latest
 Для релиза можно задать эти переменные окружения у `momenta-api`:
 
 ```env
-APP_LATEST_ANDROID_VERSION_NAME=0.2.49
-APP_LATEST_ANDROID_VERSION_CODE=49
+APP_LATEST_ANDROID_VERSION_NAME=0.2.50
+APP_LATEST_ANDROID_VERSION_CODE=50
 APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
 APP_LATEST_ANDROID_MANDATORY=false
-APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.49/app-prod-debug.apk
-APP_LATEST_ANDROID_APK_SHA256=65f50df3a0b6429c28b0f5b34fea3c72cb810593f5d8a4d044ebb7f5ad2fea7c
-APP_LATEST_ANDROID_APK_SIZE_BYTES=30960993
-APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.49
-APP_LATEST_ANDROID_RELEASE_NOTES=Серверный рефактор ленты, профилей и health/readiness|Postgres стал источником правды для лимитов и лайков|Redis больше не валит публикацию или лайк при недоступности|Исправлена обработка пустых Android update metadata|Улучшены preview/thumb metadata в worker
+APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.50/app-prod-debug.apk
+APP_LATEST_ANDROID_APK_SHA256=
+APP_LATEST_ANDROID_APK_SIZE_BYTES=
+APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.50
+APP_LATEST_ANDROID_RELEASE_NOTES=Счетчик участников дня больше не учитывает удаленные посты|Удалить свой пост можно только в настраиваемое окно, по умолчанию 60 минут|В админку добавлена настройка окна удаления поста|Фото в полноэкранном просмотре поддерживают pinch-to-zoom и двойной тап
 APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
 ```
 
@@ -189,7 +197,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.49`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.50`.
 2. Запустите app заново.
 
 После обновления проверьте:

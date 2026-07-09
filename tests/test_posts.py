@@ -1,9 +1,10 @@
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
 from app.services.challenge_service import current_app_date
+from app.services.setting_service import set_setting
 
 
 @pytest.mark.asyncio
@@ -294,3 +295,62 @@ async def test_like_recalculates_drifted_counter(
 
     assert response.status_code == 200
     assert response.json()["likes_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_post_is_rejected_after_configured_window(
+    client,
+    auth_headers,
+    test_user,
+    test_challenge,
+    db_session,
+):
+    from app.models.post import Post
+
+    await set_setting(db_session, "post_delete_window_minutes", "60")
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/old.jpg",
+        status="active",
+        created_at=datetime.now(timezone.utc) - timedelta(minutes=61),
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    response = await client.delete(f"/api/v1/posts/{post.id}", headers=auth_headers)
+
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_delete_post_uses_configured_window(
+    client,
+    auth_headers,
+    test_user,
+    test_challenge,
+    db_session,
+):
+    from app.models.post import Post
+
+    await set_setting(db_session, "post_delete_window_minutes", "120")
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/recent.jpg",
+        status="active",
+        created_at=datetime.now(timezone.utc) - timedelta(minutes=90),
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    response = await client.delete(f"/api/v1/posts/{post.id}", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "deleted"

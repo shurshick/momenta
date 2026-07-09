@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import select
 
 from app.models.challenge import Challenge
+from app.models.post import Post
 from app.services.challenge_service import (
     current_app_date,
     generate_auto_challenge_for_date,
@@ -125,3 +126,41 @@ async def test_get_challenge_by_date(client, test_challenge):
     data = response.json()
     assert data["id"] == str(test_challenge.id)
     assert data["source"] == "manual"
+
+
+@pytest.mark.asyncio
+async def test_today_participants_count_ignores_deleted_posts(
+    client,
+    auth_headers,
+    test_user,
+    test_challenge,
+    db_session,
+):
+    db_session.add_all(
+        [
+            Post(
+                id=uuid.uuid4(),
+                user_id=test_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=current_app_date(),
+                media_type="photo",
+                original_url="https://example.com/active.jpg",
+                status="active",
+            ),
+            Post(
+                id=uuid.uuid4(),
+                user_id=test_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=current_app_date(),
+                media_type="photo",
+                original_url="https://example.com/deleted.jpg",
+                status="deleted",
+            ),
+        ]
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/v1/challenges/today", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["participants_count"] == 1

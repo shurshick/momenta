@@ -8,7 +8,7 @@ from app.models.post import Post
 from app.models.reaction import Reaction
 from app.models.user import User
 from app.schemas.post import PostFeedItem
-from app.services.post_service import can_delete_post
+from app.services.post_service import can_delete_post, get_delete_window_minutes
 
 
 async def build_feed_items(
@@ -20,6 +20,7 @@ async def build_feed_items(
         return []
 
     current_user_uuid = _to_uuid(current_user_id)
+    delete_window_minutes = await get_delete_window_minutes(db)
     post_ids = [post.id for post in posts]
     user_ids = {post.user_id for post in posts}
 
@@ -38,7 +39,13 @@ async def build_feed_items(
         liked_post_ids = {row[0] for row in likes_result.all()}
 
     return [
-        _build_item(post, users.get(post.user_id), current_user_uuid, liked_post_ids)
+        _build_item(
+            post,
+            users.get(post.user_id),
+            current_user_uuid,
+            liked_post_ids,
+            delete_window_minutes,
+        )
         for post in posts
     ]
 
@@ -48,6 +55,7 @@ def _build_item(
     user: User | None,
     current_user_id: uuid.UUID | None,
     liked_post_ids: set[uuid.UUID],
+    delete_window_minutes: int,
 ) -> PostFeedItem:
     return PostFeedItem(
         id=str(post.id),
@@ -71,7 +79,7 @@ def _build_item(
         created_at=post.created_at,
         is_liked=post.id in liked_post_ids,
         is_mine=current_user_id == post.user_id if current_user_id else False,
-        can_delete=can_delete_post(post, current_user_id),
+        can_delete=can_delete_post(post, current_user_id, delete_window_minutes),
     )
 
 

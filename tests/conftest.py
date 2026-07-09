@@ -37,6 +37,7 @@ async def cleanup_db(engine):
             "reactions",
             "reports",
             "posts",
+            "settings",
             "user_streaks",
             "challenges",
             "users",

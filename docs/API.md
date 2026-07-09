@@ -35,20 +35,19 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.49",
-  "version_code": 49,
+  "version_name": "0.2.50",
+  "version_code": 50,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.49/app-prod-debug.apk",
-  "apk_sha256": "65f50df3a0b6429c28b0f5b34fea3c72cb810593f5d8a4d044ebb7f5ad2fea7c",
-  "apk_size_bytes": 30960993,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.49",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.50/app-prod-debug.apk",
+  "apk_sha256": "",
+  "apk_size_bytes": null,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.50",
   "release_notes": [
-    "Серверный рефактор ленты, профилей и health/readiness",
-    "Postgres стал источником правды для лимитов и лайков",
-    "Redis больше не валит публикацию или лайк при недоступности",
-    "Исправлена обработка пустых Android update metadata",
-    "Улучшены preview/thumb metadata в worker"
+    "Счетчик участников дня больше не учитывает удаленные посты",
+    "Удалить свой пост можно только в настраиваемое окно, по умолчанию 60 минут",
+    "В админку добавлена настройка окна удаления поста",
+    "Фото в полноэкранном просмотре поддерживают pinch-to-zoom и двойной тап"
   ],
   "published_at": "2026-07-09T00:00:00Z"
 }
@@ -66,7 +65,7 @@ Example response:
 
 - `POST /api/v1/posts` — Upload post (multipart)
 - `GET /api/v1/posts/{id}` — Get post
-- `DELETE /api/v1/posts/{id}` — Delete own post within 24 hours
+- `DELETE /api/v1/posts/{id}` — Delete own post within configured `post_delete_window_minutes`
 
 Upload form fields:
 

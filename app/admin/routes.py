@@ -494,14 +494,23 @@ async def admin_save_settings(
 ):
     form = await request.form()
     daily_post_limit = form.get("daily_post_limit", "1")
+    delete_window_minutes = form.get("post_delete_window_minutes", "60")
     try:
         val = int(daily_post_limit)
         if val < 0:
             val = 1
     except (ValueError, TypeError):
         val = 1
+    try:
+        delete_window = int(delete_window_minutes)
+        if delete_window < 0:
+            delete_window = 60
+    except (ValueError, TypeError):
+        delete_window = 60
     await set_setting(db, "daily_post_limit", str(val))
+    await set_setting(db, "post_delete_window_minutes", str(delete_window))
     invalidate_cache("daily_post_limit")
+    invalidate_cache("post_delete_window_minutes")
     await log_audit(
         db,
         admin.id,
@@ -509,7 +518,7 @@ async def admin_save_settings(
         "system",
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
-        payload={"daily_post_limit": val},
+        payload={"daily_post_limit": val, "post_delete_window_minutes": delete_window},
     )
     all_settings = await get_all_settings(db)
     return templates.TemplateResponse(

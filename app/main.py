@@ -74,6 +74,15 @@ async def lifespan(app: FastAPI):
                 await db.commit()
         except Exception:
             logger.warning("Initial settings creation failed", exc_info=True)
+        try:
+            result = await db.execute(
+                select(Setting).where(Setting.key == "post_delete_window_minutes")
+            )
+            if not result.scalar_one_or_none():
+                db.add(Setting(key="post_delete_window_minutes", value="60"))
+                await db.commit()
+        except Exception:
+            logger.warning("Initial delete window setting creation failed", exc_info=True)
     yield
     await close_redis()
     await engine.dispose()
