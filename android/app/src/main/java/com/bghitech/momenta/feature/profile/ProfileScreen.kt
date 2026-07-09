@@ -42,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,6 +78,7 @@ import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
 import com.bghitech.momenta.core.design.MomentaWarm
 import com.bghitech.momenta.domain.model.Post
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
@@ -85,6 +87,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var showAvatarDialog by remember { mutableStateOf(false) }
@@ -134,7 +137,13 @@ fun ProfileScreen(
             title = { Text("Выйти", color = MomentaText) },
             text = { Text("Вы уверены, что хотите выйти?", color = MomentaTextSecondary) },
             confirmButton = {
-                TextButton(onClick = { showLogoutDialog = false; onLogout() }) {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    scope.launch {
+                        viewModel.logout()
+                        onLogout()
+                    }
+                }) {
                     Text("Выйти", color = MomentaError)
                 }
             },

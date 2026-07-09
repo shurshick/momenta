@@ -85,7 +85,13 @@ fun SettingsScreen(
             title = { Text("Выйти", color = MomentaText) },
             text = { Text("Сессия завершится, локальные токены будут удалены.", color = MomentaTextSecondary) },
             confirmButton = {
-                TextButton(onClick = { showLogoutDialog = false; onLogout() }) {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    scope.launch {
+                        viewModel.logout()
+                        onLogout()
+                    }
+                }) {
                     Text("Выйти", color = MomentaError)
                 }
             },

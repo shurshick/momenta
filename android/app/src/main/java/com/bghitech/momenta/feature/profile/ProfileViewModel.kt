@@ -6,6 +6,7 @@ import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.repository.ProfileRepository
 import com.bghitech.momenta.domain.usecase.GetMyProfileUseCase
+import com.bghitech.momenta.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +33,8 @@ data class ProfileUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val getMyProfileUseCase: GetMyProfileUseCase,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
@@ -113,6 +115,10 @@ class ProfileViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    suspend fun logout() {
+        logoutUseCase()
     }
 
     private fun mapProfile(profile: com.bghitech.momenta.domain.model.Profile) {

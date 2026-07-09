@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+﻿from pydantic_settings import BaseSettings
 from typing import List
 from app.version import RELEASE_VERSION
 
@@ -8,23 +8,24 @@ class Settings(BaseSettings):
     app_env: str = "development"
     app_version: str = RELEASE_VERSION
     app_timezone: str = "Europe/Moscow"
-    app_latest_android_app_name: str = "Момент"
+    app_latest_android_app_name: str = "\u041c\u043e\u043c\u0435\u043d\u0442"
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
     app_latest_android_version_name: str = RELEASE_VERSION
-    app_latest_android_version_code: int = 46
+    app_latest_android_version_code: int = 47
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
-    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.46/app-prod-debug.apk"
-    app_latest_android_apk_sha256: str = "7a524c0a4956fab16c6dc2dd463a67f608bbe3d8851391bc71e3677f9acde878"
-    app_latest_android_apk_size_bytes: int | None = 30942013
-    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.46"
+    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.47/app-prod-debug.apk"
+    app_latest_android_apk_sha256: str = "c048062241d1dafc207d43bdd3f7116aefb6aaa2f03b6ce159b5ac610f44eea5"
+    app_latest_android_apk_size_bytes: int | None = 31054139
+    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.47"
     app_latest_android_release_notes: str = (
-        "Исправлен таймер задания дня|"
-        "Исправлена дата публикации после полуночи|"
-        "Обновлена верстка текстового блока на стартовом экране"
+        "\u041c\u044f\u0433\u043a\u043e\u0435 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u043b\u0435\u043d\u0442\u044b|"
+        "\u041f\u043e\u043b\u043d\u043e\u044d\u043a\u0440\u0430\u043d\u043d\u044b\u0439 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u043c\u043e\u043c\u0435\u043d\u0442\u0430 \u0438\u0437 \u043b\u0435\u043d\u0442\u044b|"
+        "\u0418\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d \u0432\u044b\u0445\u043e\u0434 \u0438\u0437 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430|"
+        "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u043d\u0430 \u0444\u0440\u043e\u043d\u0442\u0430\u043b\u044c\u043d\u0443\u044e \u043a\u0430\u043c\u0435\u0440\u0443"
     )
-    app_latest_android_published_at: str = "2026-07-07T00:00:00Z"
+    app_latest_android_published_at: str = "2026-07-09T00:00:00Z"
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000
@@ -81,3 +82,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+

@@ -15,7 +15,8 @@ fun rememberCountdownTime(endsAtIso: String): String {
             try {
                 val endTime = parseIsoEndTime(endsAtIso)
                 val now = System.currentTimeMillis()
-                val diff = (endTime - now).coerceAtMost(24L * 60L * 60L * 1000L)
+                val maxDay = 24L * 60L * 60L * 1000L - 1000L
+                val diff = (endTime - now).coerceIn(0L, maxDay)
 
                 if (diff <= 0) {
                     timeLeft = "00:00:00"

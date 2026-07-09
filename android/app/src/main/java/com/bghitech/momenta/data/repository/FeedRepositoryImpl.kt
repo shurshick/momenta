@@ -26,13 +26,7 @@ class FeedRepositoryImpl @Inject constructor(
             nextCursor = response.nextCursor
             AppResult.Success(response.items.map { it.toDomain() })
         } catch (e: Exception) {
-            if (cursor == null) {
-                val cached = getCachedFeed()
-                if (cached.isNotEmpty()) AppResult.Success(cached)
-                else AppResult.Error(AppError.Network)
-            } else {
-                AppResult.Error(AppError.Network)
-            }
+            AppResult.Error(AppError.Network)
         }
     }
 

@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -33,9 +34,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
@@ -43,12 +45,12 @@ import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.core.util.DateUtils
 import com.bghitech.momenta.domain.model.Comment
 import com.bghitech.momenta.domain.model.Post
-import kotlin.math.roundToInt
 
 @Composable
 fun FeedScreen(
     publishRefreshKey: Int = 0,
     focusPostId: String? = null,
+    onFocusHandled: (String) -> Unit = {},
     viewModel: FeedViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -58,6 +60,8 @@ fun FeedScreen(
     val isRefreshing = state.isLoading && state.items.isNotEmpty()
     var handledPublishRefreshKey by remember { mutableIntStateOf(0) }
     var requestedFocusReloadFor by remember { mutableStateOf<String?>(null) }
+    var handledFocusPostId by remember { mutableStateOf<String?>(null) }
+    var fullscreenPost by remember { mutableStateOf<Post?>(null) }
     val userScrolledFromTop by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 80
@@ -79,10 +83,13 @@ fun FeedScreen(
 
     LaunchedEffect(focusPostId, state.items, state.isLoading) {
         val targetId = focusPostId ?: return@LaunchedEffect
+        if (handledFocusPostId == targetId) return@LaunchedEffect
         val index = state.items.indexOfFirst { it.id == targetId }
         if (index >= 0) {
             requestedFocusReloadFor = null
             listState.animateScrollToItem(index)
+            handledFocusPostId = targetId
+            onFocusHandled(targetId)
         } else if (!state.isLoading && requestedFocusReloadFor != targetId) {
             requestedFocusReloadFor = targetId
             viewModel.loadFeed(showCached = false, force = true)
@@ -117,6 +124,13 @@ fun FeedScreen(
             onDismiss = viewModel::closeComments,
             onSend = viewModel::createComment,
             onDelete = viewModel::deleteComment
+        )
+    }
+
+    fullscreenPost?.let { post ->
+        FeedContentDialog(
+            post = post,
+            onDismiss = { fullscreenPost = null }
         )
     }
 
@@ -254,7 +268,6 @@ fun FeedScreen(
                         state = listState,
                         modifier = Modifier
                             .fillMaxSize()
-                            .offset { IntOffset(0, animatedOffset.roundToInt()) }
                             .pointerInput(isRefreshing) {
                                 if (!isRefreshing) {
                                     detectVerticalDragGestures(
@@ -287,6 +300,7 @@ fun FeedScreen(
                                 post = post,
                                 onLikeClick = { viewModel.toggleLike(post.id, post.isLiked) },
                                 onCommentsClick = { viewModel.openComments(post) },
+                                onOpenContent = { fullscreenPost = post },
                                 onReport = { viewModel.reportPost(post.id) },
                                 onDelete = { viewModel.deletePost(post.id) }
                             )
@@ -379,6 +393,7 @@ private fun FeedPostCard(
     post: Post,
     onLikeClick: () -> Unit,
     onCommentsClick: () -> Unit,
+    onOpenContent: () -> Unit,
     onReport: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -483,7 +498,8 @@ private fun FeedPostCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1.04f)
-                    .clip(RoundedCornerShape(18.dp)),
+                    .clip(RoundedCornerShape(18.dp))
+                    .clickable(onClick = onOpenContent),
                 color = MomentaSurfaceAlt,
                 shape = RoundedCornerShape(18.dp)
             ) {
@@ -571,6 +587,66 @@ private fun FeedActionPill(
             verticalAlignment = Alignment.CenterVertically,
             content = content
         )
+    }
+}
+
+@Composable
+private fun FeedContentDialog(
+    post: Post,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MomentaBackground
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = post.previewUrl),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    contentScale = ContentScale.Fit
+                )
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .statusBarsPadding()
+                        .padding(12.dp)
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = "Р—Р°РєСЂС‹С‚СЊ", tint = MomentaText)
+                }
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .fillMaxWidth()
+                        .background(MomentaBackground.copy(alpha = 0.78f))
+                        .navigationBarsPadding()
+                        .padding(18.dp)
+                ) {
+                    Text(
+                        text = post.user.displayName ?: post.user.username,
+                        color = MomentaText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (!post.caption.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = post.caption,
+                            color = MomentaTextSecondary,
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.46
+image: ghcr.io/shurshick/momenta:v0.2.47
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -152,7 +152,7 @@ docker exec -it momenta-api alembic upgrade head
 
 Текущий head: `004`.
 
-Для `v0.2.46` новых миграций нет.
+Для `v0.2.47` новых миграций нет.
 
 ## 8.1. Метаданные Android-обновления
 
@@ -165,16 +165,16 @@ curl -s http://TRUENAS_IP:8010/api/v1/app/latest
 Для релиза можно задать эти переменные окружения у `momenta-api`:
 
 ```env
-APP_LATEST_ANDROID_VERSION_NAME=0.2.46
-APP_LATEST_ANDROID_VERSION_CODE=46
+APP_LATEST_ANDROID_VERSION_NAME=0.2.47
+APP_LATEST_ANDROID_VERSION_CODE=47
 APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
 APP_LATEST_ANDROID_MANDATORY=false
-APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.46/app-prod-debug.apk
-APP_LATEST_ANDROID_APK_SHA256=7a524c0a4956fab16c6dc2dd463a67f608bbe3d8851391bc71e3677f9acde878
-APP_LATEST_ANDROID_APK_SIZE_BYTES=30942013
-APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.46
-APP_LATEST_ANDROID_RELEASE_NOTES=Исправлен таймер задания дня|Исправлена дата публикации после полуночи|Обновлена верстка текстового блока на стартовом экране
-APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-07T00:00:00Z
+APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.47/app-prod-debug.apk
+APP_LATEST_ANDROID_APK_SHA256=c048062241d1dafc207d43bdd3f7116aefb6aaa2f03b6ce159b5ac610f44eea5
+APP_LATEST_ANDROID_APK_SIZE_BYTES=31054139
+APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.47
+APP_LATEST_ANDROID_RELEASE_NOTES=Мягкое обновление ленты|Полноэкранный просмотр момента из ленты|Исправлен выход из аккаунта|Добавлено переключение на фронтальную камеру
+APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
 ```
 
 `APP_VERSION` не используется для Android-обновлений. Версия сервера и версия APK теперь живут отдельно.
@@ -189,7 +189,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-07T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.46`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.47`.
 2. Запустите app заново.
 
 После обновления проверьте:
@@ -269,3 +269,4 @@ DAILY_POST_LIMIT=1
 | momenta-minio | 9001 | 9011 | MinIO console |
 | momenta-postgres | 5432 | нет | только внутри compose |
 | momenta-redis | 6379 | нет | только внутри compose |
+

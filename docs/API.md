@@ -35,20 +35,21 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.46",
-  "version_code": 46,
+  "version_name": "0.2.47",
+  "version_code": 47,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.46/app-prod-debug.apk",
-  "apk_sha256": "7a524c0a4956fab16c6dc2dd463a67f608bbe3d8851391bc71e3677f9acde878",
-  "apk_size_bytes": 30942013,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.46",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.47/app-prod-debug.apk",
+  "apk_sha256": "c048062241d1dafc207d43bdd3f7116aefb6aaa2f03b6ce159b5ac610f44eea5",
+  "apk_size_bytes": 31054139,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.47",
   "release_notes": [
-    "Исправлен таймер задания дня",
-    "Исправлена дата публикации после полуночи",
-    "Обновлена верстка текстового блока на стартовом экране"
+    "Мягкое обновление ленты",
+    "Полноэкранный просмотр момента из ленты",
+    "Исправлен выход из аккаунта",
+    "Добавлено переключение на фронтальную камеру"
   ],
-  "published_at": "2026-07-07T00:00:00Z"
+  "published_at": "2026-07-09T00:00:00Z"
 }
 ```
 
@@ -115,3 +116,4 @@ Only one active/processing/uploading post per user per challenge date is allowed
 - Worker creates preview/thumb media asynchronously.
 - Feed should prefer preview/thumb URLs when available.
 - `/ready` is the best endpoint for deployment health checks because it verifies PostgreSQL, Redis, and S3.
+

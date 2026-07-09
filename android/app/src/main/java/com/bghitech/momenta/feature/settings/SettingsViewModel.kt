@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.BuildConfig
 import com.bghitech.momenta.domain.repository.SettingsRepository
+import com.bghitech.momenta.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +26,8 @@ data class SettingsUiState(
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsUiState())
@@ -57,6 +59,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.setLoggingEnabled(enabled)
         }
+    }
+
+    suspend fun logout() {
+        logoutUseCase()
     }
 
     fun saveAndCheckServer() {

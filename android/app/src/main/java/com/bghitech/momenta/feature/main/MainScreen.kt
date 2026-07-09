@@ -136,7 +136,12 @@ fun MainScreen(
                 composable(NavRoutes.FEED) {
                     FeedScreen(
                         publishRefreshKey = feedRefreshKey,
-                        focusPostId = feedFocusPostId
+                        focusPostId = feedFocusPostId,
+                        onFocusHandled = { handledPostId ->
+                            if (feedFocusPostId == handledPostId) {
+                                feedFocusPostId = null
+                            }
+                        }
                     )
                 }
                 composable(NavRoutes.CIRCLE) {

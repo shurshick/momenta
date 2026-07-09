@@ -61,7 +61,17 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun refresh() = loadFeed(showCached = false)
+    fun refresh() {
+        if (_state.value.isLoading) return
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            loadFeedNow(
+                showCached = false,
+                scrollToTop = false,
+                keepExistingWhileLoading = true
+            )
+        }
+    }
 
     fun refreshAfterPublish() {
         publishRefreshJob?.cancel()

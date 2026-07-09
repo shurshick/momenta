@@ -148,7 +148,8 @@ fun MomentaNavGraph() {
                 },
                 onLogout = {
                     navController.navigate(NavRoutes.AUTH_LOGIN) {
-                        popUpTo(NavRoutes.MAIN) { inclusive = true }
+                        popUpTo(0)
+                        launchSingleTop = true
                     }
                 }
             )
@@ -166,7 +167,8 @@ fun MomentaNavGraph() {
                 },
                 onLogout = {
                     navController.navigate(NavRoutes.AUTH_LOGIN) {
-                        popUpTo(NavRoutes.MAIN_FEED) { inclusive = true }
+                        popUpTo(0)
+                        launchSingleTop = true
                     }
                 }
             )
@@ -177,7 +179,8 @@ fun MomentaNavGraph() {
                 onBack = { navController.popBackStack() },
                 onLogout = {
                     navController.navigate(NavRoutes.AUTH_LOGIN) {
-                        popUpTo(NavRoutes.MAIN) { inclusive = true }
+                        popUpTo(0)
+                        launchSingleTop = true
                     }
                 }
             )

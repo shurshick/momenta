@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
@@ -47,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -118,7 +120,8 @@ fun CameraScreen(
         state = state,
         onBack = onBack,
         onImageCaptured = onImageCaptured,
-        onToggleFlash = { viewModel.toggleFlash() }
+        onToggleFlash = { viewModel.toggleFlash() },
+        onSwitchCamera = { viewModel.switchCamera() }
     )
 }
 
@@ -127,7 +130,8 @@ private fun CameraContent(
     state: CameraUiState,
     onBack: () -> Unit,
     onImageCaptured: (String) -> Unit,
-    onToggleFlash: () -> Unit
+    onToggleFlash: () -> Unit,
+    onSwitchCamera: () -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -145,6 +149,7 @@ private fun CameraContent(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        key(state.isFrontCamera) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
@@ -189,6 +194,7 @@ private fun CameraContent(
                 )
             }
         )
+        }
 
         Row(
             modifier = Modifier
@@ -200,12 +206,21 @@ private fun CameraContent(
             IconButton(onClick = onBack) {
                 Icon(Icons.Default.Close, "Закрыть", tint = MomentaText)
             }
+            Row {
+            IconButton(onClick = onSwitchCamera) {
+                Icon(
+                    Icons.Default.Cameraswitch,
+                    "РџРµСЂРµРєР»СЋС‡РёС‚СЊ РєР°РјРµСЂСѓ",
+                    tint = MomentaText
+                )
+            }
             IconButton(onClick = onToggleFlash) {
                 Icon(
                     if (state.flashMode) Icons.Default.FlashOn else Icons.Default.FlashOff,
                     "Вспышка",
                     tint = if (state.flashMode) MomentaWarm else MomentaText
                 )
+            }
             }
         }
 
