@@ -69,6 +69,7 @@ import com.bghitech.momenta.core.design.MomentaGreen
 import com.bghitech.momenta.core.design.MomentaGreenAlpha
 import com.bghitech.momenta.core.design.MomentaLargeShape
 import com.bghitech.momenta.core.design.MomentaLogoMark
+import com.bghitech.momenta.core.design.MomentaMediaViewer
 import com.bghitech.momenta.core.design.MomentaMediumShape
 import com.bghitech.momenta.core.design.MomentaRoundShape
 import com.bghitech.momenta.core.design.MomentaScreen
@@ -203,8 +204,10 @@ private fun ProfileContent(
     var previewPost by remember { mutableStateOf<Post?>(null) }
 
     previewPost?.let { post ->
-        RecentPostPreviewDialog(
-            post = post,
+        MomentaMediaViewer(
+            imageUrl = post.previewUrl.ifBlank { post.thumbUrl.orEmpty() },
+            title = state.displayName,
+            caption = post.caption,
             onDismiss = { previewPost = null }
         )
     }

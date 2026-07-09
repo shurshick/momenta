@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.47
+image: ghcr.io/shurshick/momenta:v0.2.48
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -152,7 +152,7 @@ docker exec -it momenta-api alembic upgrade head
 
 Текущий head: `004`.
 
-Для `v0.2.47` новых миграций нет.
+Для `v0.2.48` новых миграций нет.
 
 ## 8.1. Метаданные Android-обновления
 
@@ -165,15 +165,15 @@ curl -s http://TRUENAS_IP:8010/api/v1/app/latest
 Для релиза можно задать эти переменные окружения у `momenta-api`:
 
 ```env
-APP_LATEST_ANDROID_VERSION_NAME=0.2.47
-APP_LATEST_ANDROID_VERSION_CODE=47
+APP_LATEST_ANDROID_VERSION_NAME=0.2.48
+APP_LATEST_ANDROID_VERSION_CODE=48
 APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
 APP_LATEST_ANDROID_MANDATORY=false
-APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.47/app-prod-debug.apk
-APP_LATEST_ANDROID_APK_SHA256=bd39e1302d9424e6e247b3d12a07d42241f73ddf652454d27e27acec4665a0f7
-APP_LATEST_ANDROID_APK_SIZE_BYTES=30951605
-APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.47
-APP_LATEST_ANDROID_RELEASE_NOTES=Мягкое обновление ленты|Полноэкранный просмотр момента из ленты|Исправлен выход из аккаунта|Добавлено переключение на фронтальную камеру
+APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.48/app-prod-debug.apk
+APP_LATEST_ANDROID_APK_SHA256=b7372796398c3d4f66a973cb33e59e9fa03b772718d5e1575515b2dafef42388
+APP_LATEST_ANDROID_APK_SIZE_BYTES=30962057
+APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.48
+APP_LATEST_ANDROID_RELEASE_NOTES=Жесткий Android-рефактор навигации и ленты|Штатный pull-to-refresh без грубого drag-перехвата|Лента показывает только текущий день|Общий fullscreen-просмотр медиа для ленты и профиля|Исправлены статусы upload worker и парсинг дат
 APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
 ```
 
@@ -189,7 +189,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.47`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.48`.
 2. Запустите app заново.
 
 После обновления проверьте:

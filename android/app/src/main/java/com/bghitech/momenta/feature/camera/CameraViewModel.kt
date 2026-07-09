@@ -23,7 +23,10 @@ class CameraViewModel @Inject constructor() : ViewModel() {
     }
 
     fun switchCamera() {
-        _state.value = _state.value.copy(isFrontCamera = !_state.value.isFrontCamera)
+        _state.value = _state.value.copy(
+            isFrontCamera = !_state.value.isFrontCamera,
+            flashMode = false
+        )
     }
 
     fun setCapturing(capturing: Boolean) {

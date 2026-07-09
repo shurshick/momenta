@@ -73,22 +73,25 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun refreshAfterPublish() {
+    fun refreshAfterPublish(targetPostId: String? = null) {
         publishRefreshJob?.cancel()
         userScrolledAfterPublish = false
         loadJob?.cancel()
         publishRefreshJob = viewModelScope.launch {
             val previousTopId = _state.value.items.firstOrNull()?.id
+            val previousIds = _state.value.items.map { it.id }.toSet()
             loadFeedNow(
                 showCached = false,
                 scrollToTop = false,
                 keepExistingWhileLoading = true,
                 scrollToTopWhenChangedFromId = previousTopId
             )
-            for (pauseMs in listOf(900L, 1600L, 2600L, 4200L)) {
+            for (pauseMs in listOf(650L, 1200L, 2200L, 3600L)) {
                 if (userScrolledAfterPublish) break
                 val currentTopId = _state.value.items.firstOrNull()?.id
-                if (currentTopId != null && currentTopId != previousTopId) break
+                val targetLoaded = targetPostId != null && _state.value.items.any { it.id == targetPostId }
+                val newPostLoaded = _state.value.items.any { it.id !in previousIds }
+                if (targetLoaded || newPostLoaded || (currentTopId != null && currentTopId != previousTopId)) break
                 delay(pauseMs)
                 if (userScrolledAfterPublish) break
                 loadFeedNow(
@@ -132,7 +135,7 @@ class FeedViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     isLoading = false,
                     items = result.data,
-                    suggestedUsers = _state.value.suggestedUsers.ifEmpty { result.data.suggestedUsers() },
+                    suggestedUsers = result.data.suggestedUsers().ifEmpty { _state.value.suggestedUsers },
                     isOffline = false,
                     scrollToTopSignal = if (shouldScrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
                 )
@@ -302,9 +305,14 @@ class FeedViewModel @Inject constructor(
     }
 
     private fun List<Post>.suggestedUsers(): List<User> =
-        map { it.user }
+        groupBy { it.user.username }
+            .values
+            .sortedWith(
+                compareByDescending<List<Post>> { it.size }
+                    .thenByDescending { posts -> posts.maxOfOrNull { it.createdAt }.orEmpty() }
+            )
+            .map { it.first().user }
             .filter { it.username.isNotBlank() }
-            .distinctBy { it.username }
             .take(20)
 
     private suspend fun adjustCachedProfileLikes(delta: Int) {

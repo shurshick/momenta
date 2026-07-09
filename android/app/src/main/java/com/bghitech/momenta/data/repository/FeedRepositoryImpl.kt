@@ -24,7 +24,7 @@ class FeedRepositoryImpl @Inject constructor(
         return try {
             val response = api.getTodayFeed(cursor, limit)
             nextCursor = response.nextCursor
-            AppResult.Success(response.items.map { it.toDomain() })
+            AppResult.Success(response.items.map { it.toDomain() }.todayOnly())
         } catch (e: Exception) {
             AppResult.Error(AppError.Network)
         }
@@ -42,24 +42,39 @@ class FeedRepositoryImpl @Inject constructor(
     override suspend fun getNextCursor(): String? = nextCursor
 
     override suspend fun getCachedFeed(): List<Post> {
-        return postDao.getPostsByChallengeDate(AppDateUtils.todayKey()).map { it.toDomain() }
+        return postDao.getPostsByChallengeDate(AppDateUtils.todayKey()).map { it.toDomain() }.todayOnly()
     }
 
     override suspend fun cacheFeed(posts: List<Post>) {
-        postDao.insertPosts(posts.map { it.toCachedEntity() })
+        postDao.insertPosts(posts.todayOnly().map { it.toCachedEntity() })
     }
 
     override suspend fun replaceCachedFeed(posts: List<Post>) {
         postDao.clearAll()
-        postDao.insertPosts(posts.map { it.toCachedEntity() })
+        postDao.insertPosts(posts.todayOnly().map { it.toCachedEntity() })
     }
 
     override suspend fun getUserSuggestions(): AppResult<List<User>> {
         return try {
             AppResult.Success(api.getUserSuggestions().items.map { it.toDomain() })
         } catch (e: Exception) {
-            AppResult.Success(getCachedFeed().map { it.user }.distinctBy { it.username }.take(20))
+            AppResult.Success(getCachedFeed().activeUsers())
         }
     }
 
+    private fun List<Post>.todayOnly(): List<Post> {
+        val today = AppDateUtils.todayKey()
+        return filter { it.challengeDate == today }
+    }
+
+    private fun List<Post>.activeUsers(): List<User> =
+        groupBy { it.user.username }
+            .values
+            .sortedWith(
+                compareByDescending<List<Post>> { it.size }
+                    .thenByDescending { posts -> posts.maxOfOrNull { it.createdAt }.orEmpty() }
+            )
+            .map { it.first().user }
+            .filter { it.username.isNotBlank() }
+            .take(20)
 }

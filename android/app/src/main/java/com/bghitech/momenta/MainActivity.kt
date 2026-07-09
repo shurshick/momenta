@@ -18,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavHostController
 import androidx.navigation.navArgument
 import com.bghitech.momenta.core.design.MomentaBackground
 import com.bghitech.momenta.core.design.MomentaTheme
@@ -61,6 +62,7 @@ fun MomentaNavGraph() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val context = LocalContext.current
     var feedRefreshKey by rememberSaveable { mutableIntStateOf(0) }
+    var pendingFeedFocusPostId by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(isLoggedIn, backStackEntry?.destination?.route) {
         val route = backStackEntry?.destination?.route
@@ -147,10 +149,7 @@ fun MomentaNavGraph() {
                     navController.navigate(NavRoutes.SETTINGS)
                 },
                 onLogout = {
-                    navController.navigate(NavRoutes.AUTH_LOGIN) {
-                        popUpTo(0)
-                        launchSingleTop = true
-                    }
+                    navController.resetToAuth()
                 }
             )
         }
@@ -159,6 +158,10 @@ fun MomentaNavGraph() {
             MainScreen(
                 startRoute = NavRoutes.FEED,
                 feedRefreshKey = feedRefreshKey,
+                externalFeedFocusPostId = pendingFeedFocusPostId,
+                onExternalFeedFocusHandled = { postId ->
+                    if (pendingFeedFocusPostId == postId) pendingFeedFocusPostId = null
+                },
                 onNavigateToCamera = {
                     navController.navigate(NavRoutes.CAMERA)
                 },
@@ -166,10 +169,7 @@ fun MomentaNavGraph() {
                     navController.navigate(NavRoutes.SETTINGS)
                 },
                 onLogout = {
-                    navController.navigate(NavRoutes.AUTH_LOGIN) {
-                        popUpTo(0)
-                        launchSingleTop = true
-                    }
+                    navController.resetToAuth()
                 }
             )
         }
@@ -178,10 +178,7 @@ fun MomentaNavGraph() {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 onLogout = {
-                    navController.navigate(NavRoutes.AUTH_LOGIN) {
-                        popUpTo(0)
-                        launchSingleTop = true
-                    }
+                    navController.resetToAuth()
                 }
             )
         }
@@ -203,12 +200,10 @@ fun MomentaNavGraph() {
             PublishScreen(
                 imagePath = imagePath,
                 onBack = { navController.popBackStack() },
-                onUploadSuccess = {
+                onUploadSuccess = { postId ->
                     feedRefreshKey += 1
-                    navController.navigate(NavRoutes.MAIN_FEED) {
-                        popUpTo(0)
-                        launchSingleTop = true
-                    }
+                    pendingFeedFocusPostId = postId
+                    navController.resetToFeed()
                 }
             )
         }
@@ -223,5 +218,19 @@ fun MomentaNavGraph() {
                 }
             )
         }
+    }
+}
+
+private fun NavHostController.resetToAuth() {
+    navigate(NavRoutes.AUTH_LOGIN) {
+        popUpTo(0)
+        launchSingleTop = true
+    }
+}
+
+private fun NavHostController.resetToFeed() {
+    navigate(NavRoutes.MAIN_FEED) {
+        popUpTo(0)
+        launchSingleTop = true
     }
 }

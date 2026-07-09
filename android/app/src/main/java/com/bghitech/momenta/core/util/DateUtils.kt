@@ -6,11 +6,9 @@ import java.util.*
 object DateUtils {
     fun formatRelativeTime(isoDate: String): String {
         return try {
-            val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            format.timeZone = TimeZone.getTimeZone("UTC")
-            val date = format.parse(isoDate) ?: return isoDate
+            val date = parseIsoDate(isoDate) ?: return isoDate
             val now = Date()
-            val diff = now.time - date.time
+            val diff = (now.time - date.time).coerceAtLeast(0L)
 
             val seconds = diff / 1000
             val minutes = seconds / 60
@@ -28,4 +26,31 @@ object DateUtils {
             isoDate
         }
     }
+
+    private fun parseIsoDate(value: String): Date? {
+        val normalized = normalizeIsoFraction(value)
+        val patterns = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss"
+        )
+        for (pattern in patterns) {
+            runCatching {
+                val format = SimpleDateFormat(pattern, Locale.US).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                return format.parse(normalized)
+            }
+        }
+        return null
+    }
+
+    private fun normalizeIsoFraction(value: String): String =
+        value.replace(Regex("""\.(\d{1,9})(Z|[+-]\d{2}:?\d{2})?$""")) { match ->
+            val millis = match.groupValues[1].padEnd(3, '0').take(3)
+            val zone = match.groupValues.getOrNull(2).orEmpty()
+            ".$millis$zone"
+        }
 }

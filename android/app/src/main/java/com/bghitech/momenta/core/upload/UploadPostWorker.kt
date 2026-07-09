@@ -27,7 +27,7 @@ class UploadPostWorker(
             ?: return Result.failure()
 
         return try {
-            uploadQueueDao.markFailed(localId, "uploading")
+            uploadQueueDao.updateStatus(localId, "uploading")
 
             val file = File(entity.filePath)
             if (!file.exists()) {
@@ -45,11 +45,11 @@ class UploadPostWorker(
             )
 
             api.uploadPost(challengeIdPart, captionPart, null, null, mediaPart)
-            uploadQueueDao.markFailed(localId, "uploaded")
+            uploadQueueDao.updateStatus(localId, "uploaded")
             Result.success()
         } catch (e: Exception) {
             if (runAttemptCount < 3) {
-                uploadQueueDao.markFailed(localId, "pending")
+                uploadQueueDao.updateStatus(localId, "pending")
                 Result.retry()
             } else {
                 uploadQueueDao.markFailed(localId, "failed")

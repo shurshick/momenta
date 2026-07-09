@@ -59,7 +59,7 @@ import com.bghitech.momenta.core.design.MomentaTextSecondary
 fun PublishScreen(
     imagePath: String,
     onBack: () -> Unit,
-    onUploadSuccess: () -> Unit,
+    onUploadSuccess: (String?) -> Unit,
     viewModel: PublishViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -70,7 +70,7 @@ fun PublishScreen(
     }
 
     LaunchedEffect(state.uploaded) {
-        if (state.uploaded) onUploadSuccess()
+        if (state.uploaded) onUploadSuccess(state.uploadedPost?.id)
     }
 
     MomentaScreen {

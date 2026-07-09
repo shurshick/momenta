@@ -20,6 +20,9 @@ interface UploadQueueDao {
     @Delete
     suspend fun delete(entity: UploadQueueEntity)
 
+    @Query("UPDATE upload_queue SET status = :status, updatedAt = :updatedAt WHERE localId = :localId")
+    suspend fun updateStatus(localId: String, status: String, updatedAt: Long = System.currentTimeMillis())
+
     @Query("UPDATE upload_queue SET status = :status, retryCount = retryCount + 1, updatedAt = :updatedAt WHERE localId = :localId")
     suspend fun markFailed(localId: String, status: String = "failed", updatedAt: Long = System.currentTimeMillis())
 }

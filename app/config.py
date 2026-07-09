@@ -12,18 +12,19 @@ class Settings(BaseSettings):
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
     app_latest_android_version_name: str = RELEASE_VERSION
-    app_latest_android_version_code: int = 47
+    app_latest_android_version_code: int = 48
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
-    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.47/app-prod-debug.apk"
-    app_latest_android_apk_sha256: str = "bd39e1302d9424e6e247b3d12a07d42241f73ddf652454d27e27acec4665a0f7"
-    app_latest_android_apk_size_bytes: int | None = 30951605
-    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.47"
+    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.48/app-prod-debug.apk"
+    app_latest_android_apk_sha256: str = "b7372796398c3d4f66a973cb33e59e9fa03b772718d5e1575515b2dafef42388"
+    app_latest_android_apk_size_bytes: int | None = 30962057
+    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.48"
     app_latest_android_release_notes: str = (
-        "\u041c\u044f\u0433\u043a\u043e\u0435 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u043b\u0435\u043d\u0442\u044b|"
-        "\u041f\u043e\u043b\u043d\u043e\u044d\u043a\u0440\u0430\u043d\u043d\u044b\u0439 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u043c\u043e\u043c\u0435\u043d\u0442\u0430 \u0438\u0437 \u043b\u0435\u043d\u0442\u044b|"
-        "\u0418\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d \u0432\u044b\u0445\u043e\u0434 \u0438\u0437 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430|"
-        "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u043d\u0430 \u0444\u0440\u043e\u043d\u0442\u0430\u043b\u044c\u043d\u0443\u044e \u043a\u0430\u043c\u0435\u0440\u0443"
+        "\u0416\u0435\u0441\u0442\u043a\u0438\u0439 Android-\u0440\u0435\u0444\u0430\u043a\u0442\u043e\u0440 \u043d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0438 \u0438 \u043b\u0435\u043d\u0442\u044b|"
+        "\u0428\u0442\u0430\u0442\u043d\u044b\u0439 pull-to-refresh \u0431\u0435\u0437 \u0433\u0440\u0443\u0431\u043e\u0433\u043e drag-\u043f\u0435\u0440\u0435\u0445\u0432\u0430\u0442\u0430|"
+        "\u0424\u0438\u043b\u044c\u0442\u0440 \u043b\u0435\u043d\u0442\u044b \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e \u0442\u0435\u043a\u0443\u0449\u0435\u043c\u0443 \u0434\u043d\u044e|"
+        "\u041e\u0431\u0449\u0438\u0439 fullscreen-\u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u043c\u0435\u0434\u0438\u0430 \u0434\u043b\u044f \u043b\u0435\u043d\u0442\u044b \u0438 \u043f\u0440\u043e\u0444\u0438\u043b\u044f|"
+        "\u0427\u0438\u0441\u0442\u044b\u0435 \u0441\u0442\u0430\u0442\u0443\u0441\u044b upload worker \u0438 \u0443\u0441\u0438\u043b\u0435\u043d\u043d\u044b\u0439 \u043f\u0430\u0440\u0441\u0438\u043d\u0433 \u0434\u0430\u0442"
     )
     app_latest_android_published_at: str = "2026-07-09T00:00:00Z"
 
