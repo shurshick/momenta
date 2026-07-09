@@ -1,5 +1,8 @@
-﻿from pydantic_settings import BaseSettings
 from typing import List
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
+
 from app.version import RELEASE_VERSION
 
 
@@ -8,23 +11,28 @@ class Settings(BaseSettings):
     app_env: str = "development"
     app_version: str = RELEASE_VERSION
     app_timezone: str = "Europe/Moscow"
-    app_latest_android_app_name: str = "\u041c\u043e\u043c\u0435\u043d\u0442"
+
+    app_latest_android_app_name: str = "Момент"
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
-    app_latest_android_version_name: str = RELEASE_VERSION
-    app_latest_android_version_code: int = 48
+    app_latest_android_version_name: str = "0.2.49"
+    app_latest_android_version_code: int = 49
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
-    app_latest_android_apk_url: str = "https://github.com/shurshick/momenta/releases/download/v0.2.48/app-prod-debug.apk"
-    app_latest_android_apk_sha256: str = "15a848ffc89dc4af67074d5ade17bdd4ed364e8cc450762dcfe8c842352e9005"
-    app_latest_android_apk_size_bytes: int | None = 30961009
-    app_latest_android_release_url: str = "https://github.com/shurshick/momenta/releases/tag/v0.2.48"
+    app_latest_android_apk_url: str = (
+        "https://github.com/shurshick/momenta/releases/download/v0.2.49/app-prod-debug.apk"
+    )
+    app_latest_android_apk_sha256: str = ""
+    app_latest_android_apk_size_bytes: int | None = None
+    app_latest_android_release_url: str = (
+        "https://github.com/shurshick/momenta/releases/tag/v0.2.49"
+    )
     app_latest_android_release_notes: str = (
-        "\u0416\u0435\u0441\u0442\u043a\u0438\u0439 Android-\u0440\u0435\u0444\u0430\u043a\u0442\u043e\u0440 \u043d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0438 \u0438 \u043b\u0435\u043d\u0442\u044b|"
-        "\u0428\u0442\u0430\u0442\u043d\u044b\u0439 pull-to-refresh \u0431\u0435\u0437 \u0433\u0440\u0443\u0431\u043e\u0433\u043e drag-\u043f\u0435\u0440\u0435\u0445\u0432\u0430\u0442\u0430|"
-        "\u0424\u0438\u043b\u044c\u0442\u0440 \u043b\u0435\u043d\u0442\u044b \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e \u0442\u0435\u043a\u0443\u0449\u0435\u043c\u0443 \u0434\u043d\u044e|"
-        "\u041e\u0431\u0449\u0438\u0439 fullscreen-\u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u043c\u0435\u0434\u0438\u0430 \u0434\u043b\u044f \u043b\u0435\u043d\u0442\u044b \u0438 \u043f\u0440\u043e\u0444\u0438\u043b\u044f|"
-        "\u0427\u0438\u0441\u0442\u044b\u0435 \u0441\u0442\u0430\u0442\u0443\u0441\u044b upload worker \u0438 \u0443\u0441\u0438\u043b\u0435\u043d\u043d\u044b\u0439 \u043f\u0430\u0440\u0441\u0438\u043d\u0433 \u0434\u0430\u0442"
+        "Серверный рефактор ленты, профилей и health/readiness|"
+        "Postgres стал источником правды для лимитов и лайков|"
+        "Redis больше не валит публикацию или лайк при недоступности|"
+        "Исправлена обработка пустых Android update metadata|"
+        "Улучшены preview/thumb metadata в worker"
     )
     app_latest_android_published_at: str = "2026-07-09T00:00:00Z"
 
@@ -65,22 +73,40 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> List[str]:
-        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     @property
     def allowed_image_types(self) -> List[str]:
-        return [t.strip() for t in self.media_allowed_image_types.split(",") if t.strip()]
+        return [
+            media_type.strip()
+            for media_type in self.media_allowed_image_types.split(",")
+            if media_type.strip()
+        ]
 
     @property
     def allowed_video_types(self) -> List[str]:
-        return [t.strip() for t in self.media_allowed_video_types.split(",") if t.strip()]
+        return [
+            media_type.strip()
+            for media_type in self.media_allowed_video_types.split(",")
+            if media_type.strip()
+        ]
 
     @property
     def app_latest_android_release_note_list(self) -> List[str]:
-        return [note.strip() for note in self.app_latest_android_release_notes.split("|") if note.strip()]
+        return [
+            note.strip()
+            for note in self.app_latest_android_release_notes.split("|")
+            if note.strip()
+        ]
+
+    @field_validator("app_latest_android_apk_size_bytes", mode="before")
+    @classmethod
+    def empty_string_to_none(cls, value):
+        if value == "":
+            return None
+        return value
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
 settings = Settings()
-

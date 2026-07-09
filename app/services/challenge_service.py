@@ -1,36 +1,27 @@
 import logging
 import random
 import uuid
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime
 from typing import Optional
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import desc, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.models.challenge import Challenge
 from app.models.post import Post
-from app.services.challenge_templates import AUTO_CHALLENGE_TEMPLATES, FALLBACK_CHALLENGE, ChallengeTemplate
+from app.services.challenge_templates import (
+    AUTO_CHALLENGE_TEMPLATES,
+    FALLBACK_CHALLENGE,
+    ChallengeTemplate,
+)
+from app.utils.dates import app_today, end_of_app_day
 
 logger = logging.getLogger(__name__)
 
 
 def current_app_date() -> date:
-    try:
-        tz = ZoneInfo(settings.app_timezone)
-    except ZoneInfoNotFoundError:
-        tz = timezone.utc
-    return datetime.now(tz).date()
-
-
-def end_of_app_day(d: date) -> datetime:
-    try:
-        tz = ZoneInfo(settings.app_timezone)
-    except ZoneInfoNotFoundError:
-        tz = timezone.utc
-    return datetime.combine(d, time(23, 59, 59), tzinfo=tz)
+    return app_today()
 
 
 async def get_today_challenge_data(db: AsyncSession, user_id: Optional[str] = None) -> dict:
@@ -53,7 +44,9 @@ async def get_today_challenge_data(db: AsyncSession, user_id: Optional[str] = No
     )
 
 
-async def get_or_create_today_challenge(db: AsyncSession, challenge_date: date | None = None) -> Challenge:
+async def get_or_create_today_challenge(
+    db: AsyncSession, challenge_date: date | None = None
+) -> Challenge:
     today = challenge_date or current_app_date()
     existing = await get_active_challenge_by_date(db, today)
     if existing:
@@ -68,7 +61,9 @@ async def get_or_create_today_challenge(db: AsyncSession, challenge_date: date |
         return challenge
     except IntegrityError:
         await db.rollback()
-        raced = await get_active_challenge_by_date(db, today) or await get_challenge_by_date(db, today)
+        raced = await get_active_challenge_by_date(db, today) or await get_challenge_by_date(
+            db, today
+        )
         if raced:
             return raced
         raise
@@ -150,7 +145,9 @@ async def _select_template(db: AsyncSession, challenge_date: date) -> ChallengeT
         .limit(7)
     )
     recent_titles = {row[0] for row in result.all()}
-    candidates = [template for template in AUTO_CHALLENGE_TEMPLATES if template.title not in recent_titles]
+    candidates = [
+        template for template in AUTO_CHALLENGE_TEMPLATES if template.title not in recent_titles
+    ]
     return random.choice(candidates or AUTO_CHALLENGE_TEMPLATES)
 
 
@@ -176,15 +173,11 @@ def _challenge_to_today_payload(
 
 
 async def _has_user_posted(db: AsyncSession, user_id: str, d: date) -> bool:
-    from app.services.redis_service import check_user_posted
-
-    if await check_user_posted(user_id, d):
-        return True
     result = await db.execute(
         select(Post).where(
             Post.user_id == uuid.UUID(user_id),
             Post.challenge_date == d,
-            Post.status.in_(["active", "processing"]),
+            Post.status.in_(["active", "processing", "uploading"]),
         )
     )
     return result.scalar_one_or_none() is not None

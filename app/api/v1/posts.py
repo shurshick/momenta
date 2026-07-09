@@ -1,18 +1,30 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_db
-from app.schemas.post import CreatePostResponse
-from app.services.post_service import can_delete_post, create_post, get_post_by_id, soft_delete_post, increment_views
-from app.services.challenge_service import current_app_date, get_challenge_by_id, get_or_create_today_challenge
-from app.services.s3_service import upload_fileobj, make_object_key
+
 from app.api.v1.auth import get_current_user_id
 from app.config import settings
-from app.models.user import User
+from app.db import get_db
+from app.models.media_asset import MediaAsset
 from app.models.reaction import Reaction
-import mimetypes
-import os
+from app.models.user import User
+from app.schemas.post import CreatePostResponse
+from app.services.challenge_service import (
+    current_app_date,
+    get_challenge_by_id,
+    get_or_create_today_challenge,
+)
+from app.services.post_service import (
+    assert_can_create_post,
+    can_delete_post,
+    create_post,
+    get_post_by_id,
+    increment_views,
+    soft_delete_post,
+)
+from app.services.s3_service import make_object_key, upload_fileobj
 
 router = APIRouter(prefix="/api/v1/posts", tags=["posts"])
 
@@ -45,23 +57,53 @@ async def upload_post(
         challenge = await get_challenge_by_id(db, uuid.UUID(challenge_id))
     if not challenge:
         raise HTTPException(status_code=404, detail="Challenge not found")
+    current_user_uuid = uuid.UUID(user_id)
+    try:
+        await assert_can_create_post(db, current_user_uuid, challenge.challenge_date)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
     media_type = "photo" if media.content_type.startswith("image/") else "video"
-    ext = media.filename.split(".")[-1] if media.filename else "bin"
+    ext = _safe_extension(media.filename, media.content_type)
     post_id = uuid.uuid4()
     object_key = make_object_key(challenge.challenge_date, str(post_id), "original", ext)
     public_url = upload_fileobj(media.file, object_key, media.content_type)
     try:
         post = await create_post(
-            db, uuid.UUID(user_id), challenge.id, challenge.challenge_date,
-            media_type, public_url, caption=caption, country=country, city=city,
+            db,
+            current_user_uuid,
+            challenge.id,
+            challenge.challenge_date,
+            media_type,
+            public_url,
+            caption=caption,
+            country=country,
+            city=city,
+            post_id=post_id,
         )
+        db.add(
+            MediaAsset(
+                owner_user_id=current_user_uuid,
+                post_id=post.id,
+                storage_bucket=settings.s3_bucket,
+                object_key=object_key,
+                public_url=public_url,
+                media_type=media_type,
+                mime_type=media.content_type,
+                size_bytes=len(contents),
+                status="uploaded",
+            )
+        )
+        await db.commit()
         return {"id": str(post.id), "status": post.status}
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
 
 @router.get("/{post_id}")
-async def get_post(post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+async def get_post(
+    post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)
+):
     post = await get_post_by_id(db, uuid.UUID(post_id))
     if not post or post.status == "deleted":
         raise HTTPException(status_code=404)
@@ -104,7 +146,9 @@ async def get_post(post_id: str, user_id: str = Depends(get_current_user_id), db
 
 
 @router.delete("/{post_id}")
-async def delete_post(post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+async def delete_post(
+    post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)
+):
     post = await get_post_by_id(db, uuid.UUID(post_id))
     current_user_id = uuid.UUID(user_id)
     if not post or post.status == "deleted":
@@ -117,3 +161,20 @@ async def delete_post(post_id: str, user_id: str = Depends(get_current_user_id),
     if not success:
         raise HTTPException(status_code=404, detail="Post not found")
     return {"status": "deleted"}
+
+
+def _safe_extension(filename: str | None, content_type: str) -> str:
+    extension_by_type = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "video/mp4": "mp4",
+        "video/quicktime": "mov",
+    }
+    if content_type in extension_by_type:
+        return extension_by_type[content_type]
+    if filename and "." in filename:
+        candidate = filename.rsplit(".", 1)[-1].lower()
+        if candidate.isalnum() and len(candidate) <= 8:
+            return candidate
+    return "bin"

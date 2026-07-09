@@ -17,6 +17,7 @@ async def test_upload_creates_post(client, auth_headers, test_challenge):
     import io
 
     from PIL import Image
+
     img = Image.new("RGB", (100, 100), color="red")
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
@@ -34,6 +35,7 @@ async def test_upload_today_uses_app_date(client, auth_headers, db_session, monk
     import io
 
     from PIL import Image
+
     from app.models.post import Post
 
     app_date = date(2026, 7, 8)
@@ -59,6 +61,7 @@ async def test_second_post_same_day_rejected(
     client, auth_headers, test_challenge, test_user, db_session
 ):
     from app.models.post import Post
+
     post = Post(
         id=uuid.uuid4(),
         user_id=test_user.id,
@@ -73,6 +76,7 @@ async def test_second_post_same_day_rejected(
     import io
 
     from PIL import Image
+
     img = Image.new("RGB", (100, 100), color="blue")
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
@@ -97,7 +101,9 @@ async def test_hidden_posts_not_visible(client, auth_headers, test_user, db_sess
 
 
 @pytest.mark.asyncio
-async def test_best_random_returns_active_today_post(client, auth_headers, test_user, test_challenge, db_session):
+async def test_best_random_returns_active_today_post(
+    client, auth_headers, test_user, test_challenge, db_session
+):
     from app.models.post import Post
 
     post = Post(
@@ -122,7 +128,9 @@ async def test_best_random_returns_active_today_post(client, auth_headers, test_
 
 
 @pytest.mark.asyncio
-async def test_best_random_fallback_returns_recent_active_post(client, auth_headers, test_user, test_challenge, db_session):
+async def test_best_random_fallback_returns_recent_active_post(
+    client, auth_headers, test_user, test_challenge, db_session
+):
     from app.models.post import Post
 
     post = Post(
@@ -146,7 +154,9 @@ async def test_best_random_fallback_returns_recent_active_post(client, auth_head
 
 
 @pytest.mark.asyncio
-async def test_best_random_ignores_deleted_posts(client, auth_headers, test_user, test_challenge, db_session):
+async def test_best_random_ignores_deleted_posts(
+    client, auth_headers, test_user, test_challenge, db_session
+):
     from app.models.post import Post
 
     post = Post(
@@ -169,7 +179,9 @@ async def test_best_random_ignores_deleted_posts(client, auth_headers, test_user
 
 
 @pytest.mark.asyncio
-async def test_feed_first_page_contains_newest_active_post(client, auth_headers, test_user, test_challenge, db_session):
+async def test_feed_first_page_contains_newest_active_post(
+    client, auth_headers, test_user, test_challenge, db_session
+):
     from app.models.post import Post
 
     older = Post(
@@ -225,3 +237,60 @@ async def test_today_feed_does_not_include_previous_days_when_today_empty(
 
     assert response.status_code == 200
     assert response.json()["items"] == []
+
+
+@pytest.mark.asyncio
+async def test_today_feed_accepts_z_cursor(
+    client, auth_headers, test_user, test_challenge, db_session
+):
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/newer.jpg",
+        preview_url="https://example.com/newer.webp",
+        status="active",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    response = await client.get(
+        "/api/v1/feed/today?cursor=2999-01-01T00:00:00Z",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["items"][0]["id"] == str(post.id)
+
+
+@pytest.mark.asyncio
+async def test_like_recalculates_drifted_counter(
+    client,
+    auth_headers,
+    test_user,
+    test_challenge,
+    db_session,
+):
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/drift.jpg",
+        likes_count=99,
+        status="active",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    response = await client.post(f"/api/v1/posts/{post.id}/like", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["likes_count"] == 1

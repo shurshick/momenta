@@ -1,9 +1,11 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
-from sqlalchemy import String, Text, Date, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy import Date, String, Text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app.models.base import Base, TimestampMixin, pk_uuid
 
 

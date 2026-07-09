@@ -1,5 +1,4 @@
 import uuid
-from datetime import date
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -13,6 +12,7 @@ from app.models.challenge import Challenge
 from app.models.user import User
 from app.security import get_password_hash
 from app.services.challenge_service import current_app_date
+
 
 @pytest.fixture(scope="session")
 async def engine(tmp_path_factory):

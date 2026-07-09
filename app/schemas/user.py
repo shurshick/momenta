@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -15,7 +16,7 @@ class UserProfile(BaseModel):
     moments_count: int = 0
     streak_count: int = 0
     likes_count: int = 0
-    recent_posts: list[dict] = []
+    recent_posts: list[dict] = Field(default_factory=list)
     created_at: datetime | None = None
     last_seen_at: datetime | None = None
 

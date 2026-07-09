@@ -1,13 +1,24 @@
 import uuid
+from datetime import datetime, timezone
 from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.user import User
-from app.security import get_password_hash, verify_password, create_access_token, create_refresh_token, decode_token
+from app.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    get_password_hash,
+    verify_password,
+)
 
 
 async def register_user(db: AsyncSession, username: str, email: str, password: str) -> dict:
-    existing = await db.execute(select(User).where((User.username == username) | (User.email == email)))
+    existing = await db.execute(
+        select(User).where((User.username == username) | (User.email == email))
+    )
     if existing.scalar_one_or_none():
         raise ValueError("Имя пользователя или email уже заняты")
     user = User(
@@ -32,6 +43,9 @@ async def login_user(db: AsyncSession, username_or_email: str, password: str) ->
         raise ValueError("Неверные учётные данные")
     if user.status != "active":
         raise ValueError("Аккаунт заблокирован")
+    user.last_seen_at = datetime.now(timezone.utc)
+    await db.commit()
+    await db.refresh(user)
     return _auth_response(user)
 
 

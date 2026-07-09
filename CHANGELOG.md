@@ -1,5 +1,23 @@
 # Changelog
 
+## [v0.2.49] - 2026-07-09
+
+### Changed
+
+- **Backend**: лента и профили теперь собирают пользователей и лайки батчами, без лишних запросов на каждый пост.
+- **Backend**: `/ready` стал настоящей readiness-проверкой PostgreSQL, Redis и S3, а не фиктивным `true`.
+- **Backend**: расчет даты приложения, конца дня и cursor timestamp вынесен в общий модуль с учетом `APP_TIMEZONE`.
+- **Backend**: Android update metadata отделены от версии сервера и спокойно принимают пустые `APK_SHA256`/`APK_SIZE_BYTES`.
+- **Backend**: worker сохраняет реальные размеры preview/thumb media assets.
+
+### Fixed
+
+- **Backend**: Redis больше не валит публикацию, лайк или просмотр, если кэш временно недоступен.
+- **Backend**: ежедневный лимит публикаций проверяется по Postgres, а не по Redis-флагу.
+- **Backend**: счетчик лайков пересчитывается по таблице `reactions`, поэтому дрейф счетчика исправляется при лайке/анлайке.
+- **Backend**: access endpoints больше не принимают refresh token как access token.
+- **Backend**: feed cursor теперь принимает ISO timestamp с `Z`.
+
 ## [v0.2.48] - 2026-07-09
 
 ### Changed

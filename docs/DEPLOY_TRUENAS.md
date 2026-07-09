@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.48
+image: ghcr.io/shurshick/momenta:v0.2.49
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -152,7 +152,7 @@ docker exec -it momenta-api alembic upgrade head
 
 Текущий head: `004`.
 
-Для `v0.2.48` новых миграций нет.
+Для `v0.2.49` новых миграций нет.
 
 ## 8.1. Метаданные Android-обновления
 
@@ -165,15 +165,15 @@ curl -s http://TRUENAS_IP:8010/api/v1/app/latest
 Для релиза можно задать эти переменные окружения у `momenta-api`:
 
 ```env
-APP_LATEST_ANDROID_VERSION_NAME=0.2.48
-APP_LATEST_ANDROID_VERSION_CODE=48
+APP_LATEST_ANDROID_VERSION_NAME=0.2.49
+APP_LATEST_ANDROID_VERSION_CODE=49
 APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
 APP_LATEST_ANDROID_MANDATORY=false
-APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.48/app-prod-debug.apk
-APP_LATEST_ANDROID_APK_SHA256=15a848ffc89dc4af67074d5ade17bdd4ed364e8cc450762dcfe8c842352e9005
-APP_LATEST_ANDROID_APK_SIZE_BYTES=30961009
-APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.48
-APP_LATEST_ANDROID_RELEASE_NOTES=Жесткий Android-рефактор навигации и ленты|Штатный pull-to-refresh без грубого drag-перехвата|Лента показывает только текущий день|Общий fullscreen-просмотр медиа для ленты и профиля|Исправлены статусы upload worker и парсинг дат
+APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.49/app-prod-debug.apk
+APP_LATEST_ANDROID_APK_SHA256=
+APP_LATEST_ANDROID_APK_SIZE_BYTES=
+APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.49
+APP_LATEST_ANDROID_RELEASE_NOTES=Серверный рефактор ленты, профилей и health/readiness|Postgres стал источником правды для лимитов и лайков|Redis больше не валит публикацию или лайк при недоступности|Исправлена обработка пустых Android update metadata|Улучшены preview/thumb metadata в worker
 APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
 ```
 
@@ -189,7 +189,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.48`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.49`.
 2. Запустите app заново.
 
 После обновления проверьте:

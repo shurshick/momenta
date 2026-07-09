@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_db
-from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, TokenRefreshRequest
-from app.services.auth_service import register_user, login_user, refresh_token, get_user_by_id
-from app.security import decode_token
 import uuid
+
+from fastapi import APIRouter, Depends, Header, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db import get_db
+from app.schemas.auth import AuthResponse, LoginRequest, RegisterRequest, TokenRefreshRequest
+from app.security import decode_token
+from app.services.auth_service import get_user_by_id, login_user, refresh_token, register_user
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -19,6 +21,8 @@ async def get_current_user_id(token: str = Depends(get_token)) -> str:
     payload = decode_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
+    if payload.get("type") != "access":
+        raise HTTPException(status_code=401, detail="Invalid token type")
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token payload")

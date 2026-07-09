@@ -1,9 +1,10 @@
 import uuid
-from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Integer, BigInteger, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy import BigInteger, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app.models.base import Base, TimestampMixin, pk_uuid
 
 
@@ -12,7 +13,9 @@ class MediaAsset(Base, TimestampMixin):
 
     id: Mapped[uuid.UUID] = pk_uuid()
     owner_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    post_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
+    post_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), nullable=True, index=True
+    )
     storage_bucket: Mapped[str] = mapped_column(String(255), nullable=False)
     object_key: Mapped[str] = mapped_column(String(500), nullable=False)
     public_url: Mapped[str] = mapped_column(String(500), nullable=False)

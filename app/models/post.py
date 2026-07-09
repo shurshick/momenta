@@ -1,9 +1,11 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
-from sqlalchemy import String, Text, Integer, Date, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy import Date, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app.models.base import Base, TimestampMixin, pk_uuid
 
 
@@ -30,6 +32,4 @@ class Post(Base, TimestampMixin):
     reports_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="uploading", nullable=False, index=True)
 
-    __table_args__ = (
-        {"extend_existing": True},
-    )
+    __table_args__ = ({"extend_existing": True},)

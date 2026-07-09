@@ -1,8 +1,11 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import date
 from typing import Optional
+
 import redis.asyncio as aioredis
+
 from app.config import settings
+from app.utils.dates import seconds_until_end_of_app_day
 
 redis_client: Optional[aioredis.Redis] = None
 
@@ -42,12 +45,16 @@ async def add_to_feed(d: date, post_id: str, score: float, country: Optional[str
     if country:
         country_key = f"feed:today:country:{country}:{d.isoformat()}"
         await pipe.zadd(country_key, {post_id: score})
-    ttl_seconds = int((datetime.now(timezone.utc).replace(hour=23, minute=59, second=59) - datetime.now(timezone.utc)).total_seconds()) + 3600
+    ttl_seconds = seconds_until_end_of_app_day(d)
     await pipe.expire(global_key, ttl_seconds)
+    if country:
+        await pipe.expire(country_key, ttl_seconds)
     await pipe.execute()
 
 
-async def get_feed(d: date, start: int = 0, stop: int = 19, country: Optional[str] = None) -> list[str]:
+async def get_feed(
+    d: date, start: int = 0, stop: int = 19, country: Optional[str] = None
+) -> list[str]:
     r = await get_redis()
     if country:
         key = f"feed:today:country:{country}:{d.isoformat()}"
@@ -57,10 +64,10 @@ async def get_feed(d: date, start: int = 0, stop: int = 19, country: Optional[st
     return list(results)
 
 
-async def mark_user_posted(user_id: str, d: date, ttl_seconds: int = 86400):
+async def mark_user_posted(user_id: str, d: date, ttl_seconds: int | None = None):
     r = await get_redis()
     key = f"user:posted:{user_id}:{d.isoformat()}"
-    await r.setex(key, ttl_seconds, "1")
+    await r.setex(key, ttl_seconds or seconds_until_end_of_app_day(d), "1")
 
 
 async def check_user_posted(user_id: str, d: date) -> bool:

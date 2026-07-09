@@ -35,7 +35,9 @@ async def test_get_today_challenge_auto_creates_when_missing(client, auth_header
     assert data["prompt"]
     assert data["source"] == "auto"
 
-    result = await db_session.execute(select(Challenge).where(Challenge.challenge_date == current_app_date()))
+    result = await db_session.execute(
+        select(Challenge).where(Challenge.challenge_date == current_app_date())
+    )
     assert result.scalar_one_or_none() is not None
 
 
@@ -48,7 +50,9 @@ async def test_get_today_challenge_is_idempotent(client, auth_headers, db_sessio
     assert second.status_code == 200
     assert first.json()["id"] == second.json()["id"]
 
-    result = await db_session.execute(select(Challenge).where(Challenge.challenge_date == current_app_date()))
+    result = await db_session.execute(
+        select(Challenge).where(Challenge.challenge_date == current_app_date())
+    )
     assert len(result.scalars().all()) == 1
 
 

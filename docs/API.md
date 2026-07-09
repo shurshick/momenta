@@ -35,19 +35,20 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.48",
-  "version_code": 47,
+  "version_name": "0.2.49",
+  "version_code": 49,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.48/app-prod-debug.apk",
-  "apk_sha256": "15a848ffc89dc4af67074d5ade17bdd4ed364e8cc450762dcfe8c842352e9005",
-  "apk_size_bytes": 30961009,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.48",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.49/app-prod-debug.apk",
+  "apk_sha256": "",
+  "apk_size_bytes": null,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.49",
   "release_notes": [
-    "Мягкое обновление ленты",
-    "Полноэкранный просмотр момента из ленты",
-    "Исправлен выход из аккаунта",
-    "Добавлено переключение на фронтальную камеру"
+    "Серверный рефактор ленты, профилей и health/readiness",
+    "Postgres стал источником правды для лимитов и лайков",
+    "Redis больше не валит публикацию или лайк при недоступности",
+    "Исправлена обработка пустых Android update metadata",
+    "Улучшены preview/thumb metadata в worker"
   ],
   "published_at": "2026-07-09T00:00:00Z"
 }

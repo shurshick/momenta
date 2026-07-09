@@ -1,8 +1,9 @@
-import uuid
 from datetime import date
-from typing import Optional, BinaryIO
+from typing import BinaryIO
+
 import boto3
 from botocore.client import Config
+
 from app.config import settings
 
 s3_client = None
@@ -35,7 +36,9 @@ def ensure_bucket():
 def upload_fileobj(fileobj: BinaryIO, object_key: str, content_type: str) -> str:
     s3 = get_s3()
     bucket = settings.s3_bucket
-    s3.upload_fileobj(fileobj, bucket, object_key, ExtraArgs={"ContentType": content_type, "ACL": "public-read"})
+    s3.upload_fileobj(
+        fileobj, bucket, object_key, ExtraArgs={"ContentType": content_type, "ACL": "public-read"}
+    )
     return f"{settings.s3_public_endpoint}/{bucket}/{object_key}"
 
 

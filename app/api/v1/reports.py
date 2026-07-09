@@ -1,19 +1,24 @@
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_db
-from app.schemas.report import CreateReportRequest
-from app.models.report import Report
-from app.models.post import Post
-from app.services.post_service import get_post_by_id
+
 from app.api.v1.auth import get_current_user_id
+from app.db import get_db
+from app.models.report import Report
+from app.schemas.report import CreateReportRequest
+from app.services.post_service import get_post_by_id
 
 router = APIRouter(prefix="/api/v1/posts", tags=["reports"])
 
 
 @router.post("/{post_id}/report")
-async def create_report(post_id: str, req: CreateReportRequest, user_id: str = Depends(get_current_user_id),
-                        db: AsyncSession = Depends(get_db)):
+async def create_report(
+    post_id: str,
+    req: CreateReportRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
     post = await get_post_by_id(db, uuid.UUID(post_id))
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")

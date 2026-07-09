@@ -14,9 +14,9 @@ from app.schemas.comment import CommentListResponse, CommentOut, CreateCommentRe
 router = APIRouter(prefix="/api/v1/posts", tags=["comments"])
 
 
-async def _build_comment_out(db: AsyncSession, comment: Comment, current_user_id: uuid.UUID) -> CommentOut:
-    user_result = await db.execute(select(User).where(User.id == comment.user_id))
-    user = user_result.scalar_one_or_none()
+def _build_comment_out(
+    comment: Comment, user: User | None, current_user_id: uuid.UUID
+) -> CommentOut:
     return CommentOut(
         id=str(comment.id),
         post_id=str(comment.post_id),
@@ -42,7 +42,9 @@ async def list_comments(
 ):
     current_user_id = uuid.UUID(user_id)
     post_uuid = uuid.UUID(post_id)
-    post_result = await db.execute(select(Post).where(Post.id == post_uuid, Post.status == "active"))
+    post_result = await db.execute(
+        select(Post).where(Post.id == post_uuid, Post.status == "active")
+    )
     if not post_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Post not found")
 
@@ -51,8 +53,14 @@ async def list_comments(
         .where(Comment.post_id == post_uuid, Comment.status == "active")
         .order_by(Comment.created_at.asc())
     )
-    comments = result.scalars().all()
-    return {"items": [await _build_comment_out(db, comment, current_user_id) for comment in comments]}
+    comments = list(result.scalars().all())
+    users = await _load_comment_users(db, comments)
+    return {
+        "items": [
+            _build_comment_out(comment, users.get(comment.user_id), current_user_id)
+            for comment in comments
+        ]
+    }
 
 
 @router.post("/{post_id}/comments", response_model=CommentOut)
@@ -64,7 +72,9 @@ async def create_comment(
 ):
     current_user_id = uuid.UUID(user_id)
     post_uuid = uuid.UUID(post_id)
-    post_result = await db.execute(select(Post).where(Post.id == post_uuid, Post.status == "active"))
+    post_result = await db.execute(
+        select(Post).where(Post.id == post_uuid, Post.status == "active")
+    )
     post = post_result.scalar_one_or_none()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
@@ -76,7 +86,8 @@ async def create_comment(
     post.comments_count += 1
     await db.commit()
     await db.refresh(comment)
-    return await _build_comment_out(db, comment, current_user_id)
+    user_result = await db.execute(select(User).where(User.id == current_user_id))
+    return _build_comment_out(comment, user_result.scalar_one_or_none(), current_user_id)
 
 
 @router.delete("/{post_id}/comments/{comment_id}")
@@ -109,3 +120,11 @@ async def delete_comment(
         post.comments_count -= 1
     await db.commit()
     return {"status": "deleted"}
+
+
+async def _load_comment_users(db: AsyncSession, comments: list[Comment]) -> dict[uuid.UUID, User]:
+    user_ids = {comment.user_id for comment in comments}
+    if not user_ids:
+        return {}
+    result = await db.execute(select(User).where(User.id.in_(user_ids)))
+    return {user.id: user for user in result.scalars().all()}

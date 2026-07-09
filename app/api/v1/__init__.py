@@ -1,5 +1,17 @@
 from fastapi import APIRouter
-from app.api.v1 import app_info, health, auth, challenges, posts, feed, reactions, reports, users, comments
+
+from app.api.v1 import (
+    app_info,
+    auth,
+    challenges,
+    comments,
+    feed,
+    health,
+    posts,
+    reactions,
+    reports,
+    users,
+)
 
 router = APIRouter()
 router.include_router(app_info.router)

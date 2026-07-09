@@ -1,50 +1,44 @@
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_db
-from app.schemas.user import AvatarListResponse, UpdateAvatarRequest, UserProfile, UpdateProfileRequest, UserSummaryListResponse
-from app.services.auth_service import get_user_by_id
+
 from app.api.v1.auth import get_current_user_id
+from app.db import get_db
 from app.models.post import Post
+from app.models.user import User
+from app.schemas.user import (
+    AvatarListResponse,
+    UpdateAvatarRequest,
+    UpdateProfileRequest,
+    UserProfile,
+    UserSummaryListResponse,
+)
+from app.services.auth_service import get_user_by_id
+from app.services.challenge_service import current_app_date
 
 router = APIRouter(prefix="/api/v1", tags=["users"])
 
 AVATAR_KEYS = [f"avatar_{index:02d}" for index in range(1, 41)]
 
 
-async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -> UserProfile:
-    from datetime import date, timedelta
-
-    moments_result = await db.execute(
-        select(func.count(Post.id)).where(Post.user_id == user.id, Post.status == "active")
-    )
-    moments_count = moments_result.scalar() or 0
-
-    likes_result = await db.execute(
-        select(func.coalesce(func.sum(Post.likes_count), 0)).where(
-            Post.user_id == user.id,
-            Post.status == "active",
+async def _build_profile(db: AsyncSession, user: User) -> UserProfile:
+    moments_count = (
+        await db.execute(
+            select(func.count(Post.id)).where(Post.user_id == user.id, Post.status == "active")
         )
-    )
-    likes_count = likes_result.scalar() or 0
+    ).scalar() or 0
 
-    streak_count = 0
-    today = date.today()
-    for i in range(365):
-        d = today - timedelta(days=i)
-        has_post = await db.execute(
-            select(func.count(Post.id)).where(
+    likes_count = (
+        await db.execute(
+            select(func.coalesce(func.sum(Post.likes_count), 0)).where(
                 Post.user_id == user.id,
-                Post.challenge_date == d,
                 Post.status == "active",
             )
         )
-        if (has_post.scalar() or 0) > 0:
-            streak_count += 1
-        else:
-            break
+    ).scalar() or 0
 
     recent_result = await db.execute(
         select(Post.id, Post.preview_url, Post.thumb_url, Post.created_at)
@@ -52,10 +46,6 @@ async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -
         .order_by(Post.created_at.desc())
         .limit(9)
     )
-    recent_posts = [
-        {"id": str(r[0]), "preview_url": r[1], "thumb_url": r[2], "created_at": r[3]}
-        for r in recent_result.all()
-    ]
 
     return UserProfile(
         id=str(user.id),
@@ -63,17 +53,40 @@ async def _build_profile(db: AsyncSession, user, viewer_id: str | None = None) -
         display_name=user.display_name,
         avatar_key=user.avatar_key,
         avatar_url=user.avatar_url,
-        bio=getattr(user, "bio", None),
+        bio=user.bio,
         country=user.country,
         city=user.city,
         locale=user.locale,
         moments_count=moments_count,
-        streak_count=streak_count,
+        streak_count=await _calculate_streak_count(db, user.id),
         likes_count=likes_count,
-        recent_posts=recent_posts,
+        recent_posts=[
+            {"id": str(row[0]), "preview_url": row[1], "thumb_url": row[2], "created_at": row[3]}
+            for row in recent_result.all()
+        ],
         created_at=user.created_at,
         last_seen_at=user.last_seen_at,
     )
+
+
+async def _calculate_streak_count(db: AsyncSession, user_id: uuid.UUID) -> int:
+    since = current_app_date() - timedelta(days=365)
+    result = await db.execute(
+        select(Post.challenge_date)
+        .where(
+            Post.user_id == user_id,
+            Post.status == "active",
+            Post.challenge_date >= since,
+        )
+        .group_by(Post.challenge_date)
+    )
+    posted_dates = {row[0] for row in result.all()}
+    streak_count = 0
+    cursor = current_app_date()
+    while cursor in posted_dates:
+        streak_count += 1
+        cursor -= timedelta(days=1)
+    return streak_count
 
 
 @router.get("/users/suggestions", response_model=UserSummaryListResponse)
@@ -81,8 +94,6 @@ async def list_user_suggestions(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    from app.models.user import User
-
     active_posts = (
         select(
             Post.user_id.label("user_id"),
@@ -129,7 +140,9 @@ async def get_user_profile(user_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/me/profile", response_model=UserProfile)
-async def get_my_profile(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+async def get_my_profile(
+    user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)
+):
     user = await get_user_by_id(db, uuid.UUID(user_id))
     if not user:
         raise HTTPException(status_code=404)
@@ -137,23 +150,26 @@ async def get_my_profile(user_id: str = Depends(get_current_user_id), db: AsyncS
 
 
 @router.patch("/me/profile", response_model=UserProfile)
-async def update_my_profile(req: UpdateProfileRequest, user_id: str = Depends(get_current_user_id),
-                             db: AsyncSession = Depends(get_db)):
+async def update_my_profile(
+    req: UpdateProfileRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
     user = await get_user_by_id(db, uuid.UUID(user_id))
     if not user:
         raise HTTPException(status_code=404)
     if req.display_name is not None:
-        user.display_name = req.display_name
+        user.display_name = req.display_name.strip()
     if req.bio is not None:
-        user.bio = req.bio
+        user.bio = req.bio.strip()
     if req.avatar_url is not None:
         user.avatar_url = req.avatar_url
     if req.country is not None:
-        user.country = req.country
+        user.country = req.country.upper()
     if req.city is not None:
-        user.city = req.city
+        user.city = req.city.strip()
     if req.locale is not None:
-        user.locale = req.locale
+        user.locale = req.locale.strip()
     await db.commit()
     await db.refresh(user)
     return await _build_profile(db, user)

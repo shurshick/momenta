@@ -1,4 +1,4 @@
-from app.config import settings
+from app.config import Settings, settings
 
 
 async def test_app_latest_is_public(client):
@@ -32,3 +32,12 @@ async def test_app_latest_uses_config_values(client, monkeypatch):
     assert data["mandatory"] is True
     assert data["apk_sha256"] == "abc123"
     assert data["apk_size_bytes"] == 123456
+
+
+def test_empty_apk_size_env_is_allowed(monkeypatch):
+    monkeypatch.setenv("APP_LATEST_ANDROID_APK_SIZE_BYTES", "")
+
+    parsed = Settings()
+
+    assert parsed.app_latest_android_apk_size_bytes is None
+    monkeypatch.delenv("APP_LATEST_ANDROID_APK_SIZE_BYTES", raising=False)
