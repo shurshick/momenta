@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
             text("SELECT version_num FROM alembic_version LIMIT 1")
         )
         if current_revision.scalar_one_or_none() is None:
-            await conn.execute(text("INSERT INTO alembic_version (version_num) VALUES ('005')"))
+            await conn.execute(text("INSERT INTO alembic_version (version_num) VALUES ('006')"))
 
     async with async_session_factory() as db:
         try:

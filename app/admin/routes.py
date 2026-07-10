@@ -23,6 +23,7 @@ from app.services.challenge_service import create_challenge, current_app_date, g
 from app.services.s3_service import ensure_bucket
 from app.services.setting_service import get_all_settings, invalidate_cache, set_setting
 from app.version import RELEASE_VERSION
+from app.worker.tasks import retry_failed_media
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -140,6 +141,12 @@ async def admin_dashboard(
     new_reports = (
         await db.execute(select(func.count(Report.id)).where(Report.status == "new"))
     ).scalar() or 0
+    processing_posts = (
+        await db.execute(select(func.count(Post.id)).where(Post.status == "processing"))
+    ).scalar() or 0
+    failed_posts = (
+        await db.execute(select(func.count(Post.id)).where(Post.status == "failed"))
+    ).scalar() or 0
     challenge = await db.execute(
         select(Challenge).where(Challenge.challenge_date == today, Challenge.status == "active")
     )
@@ -152,6 +159,8 @@ async def admin_dashboard(
             "total_users": total_users,
             "posts_today": posts_today,
             "new_reports": new_reports,
+            "processing_posts": processing_posts,
+            "failed_posts": failed_posts,
             "challenge_today": challenge_obj.title_ru if challenge_obj else "No challenge today",
         },
     )
@@ -363,6 +372,31 @@ async def admin_restore_post(
     )
     await db.commit()
     return RedirectResponse(url="/admin/posts", status_code=303)
+
+
+@router.post("/posts/{post_id}/retry-media")
+async def admin_retry_media(
+    post_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    result = await db.execute(select(Post).where(Post.id == uuid.UUID(post_id)))
+    post = result.scalar_one_or_none()
+    if not post:
+        raise HTTPException(status_code=404)
+    if not await retry_failed_media(db, post):
+        raise HTTPException(status_code=409, detail="Post is not failed")
+    await log_audit(
+        db,
+        admin.id,
+        "retry_media",
+        "post",
+        post.id,
+        request.client.host if request.client else None,
+        request.headers.get("user-agent"),
+    )
+    return RedirectResponse(url="/admin/posts?status_filter=processing", status_code=303)
 
 
 @router.get("/reports", response_class=HTMLResponse)

@@ -3,10 +3,12 @@ import io
 import logging
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
 from PIL import Image
 from sqlalchemy import select
 
+from app.config import settings
 from app.db import async_session_factory
 from app.models.media_asset import MediaAsset
 from app.models.post import Post
@@ -14,8 +16,15 @@ from app.services.counter_service import CounterService
 from app.services.redis_service import add_to_feed, get_redis
 from app.services.s3_service import make_object_key, upload_fileobj
 
-
 logger = logging.getLogger(__name__)
+
+
+def _log_event(level: int, event: str, status: str, **fields: Any) -> None:
+    payload = " ".join(f"{key}={value}" for key, value in fields.items() if value is not None)
+    message = f"worker event={event} status={status}"
+    if payload:
+        message = f"{message} {payload}"
+    logger.log(level, message)
 
 
 def run_worker():
@@ -24,23 +33,25 @@ def run_worker():
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
         force=True,
     )
-    logger.info("worker operation=start status=starting")
+    _log_event(logging.INFO, "start", "starting")
     asyncio.run(_worker_loop())
 
 
 async def _worker_loop():
-    logger.info("worker operation=loop status=running")
+    _log_event(logging.INFO, "loop", "running")
     while True:
         try:
             processing = await process_pending_media()
             reprocessed = await reprocess_broken_posts()
-            logger.info(
-                "worker operation=cycle status=done processing=%s reprocessed=%s",
-                processing,
-                reprocessed,
+            _log_event(
+                logging.INFO,
+                "cycle",
+                "done",
+                processing=processing,
+                reprocessed=reprocessed,
             )
         except Exception:
-            logger.exception("worker operation=cycle status=error")
+            logger.exception("worker event=cycle status=error")
         await asyncio.sleep(10)
 
 
@@ -50,19 +61,19 @@ async def process_pending_media():
             result = await db.execute(select(Post).where(Post.status == "processing").limit(10))
             posts = result.scalars().all()
             if posts:
-                logger.info("worker operation=find_processing status=found count=%s", len(posts))
+                _log_event(logging.INFO, "find_processing", "found", count=len(posts))
             for post in posts:
                 try:
                     await _process_post_media(db, post)
                 except Exception:
                     logger.exception(
-                        "worker operation=process_media status=error post_id=%s",
+                        "worker event=process_media status=error post_id=%s",
                         post.id,
                     )
-                    await _fail_post(db, post)
+                    await _record_media_failure(db, post, RuntimeError("unexpected worker error"))
             return len(posts)
     except Exception:
-        logger.exception("worker operation=process_pending_media status=db_error")
+        logger.exception("worker event=process_pending_media status=db_error")
         return 0
 
 
@@ -82,28 +93,39 @@ async def reprocess_broken_posts():
             )
             posts = result.scalars().all()
             if posts:
-                logger.info("worker operation=find_broken_posts status=found count=%s", len(posts))
+                _log_event(logging.INFO, "find_broken_posts", "found", count=len(posts))
             for post in posts:
                 try:
                     await _process_post_media(db, post)
                 except Exception:
                     logger.exception(
-                        "worker operation=reprocess_media status=error post_id=%s",
+                        "worker event=reprocess_media status=error post_id=%s",
                         post.id,
                     )
-                    await _fail_post(db, post)
+                    await _record_media_failure(db, post, RuntimeError("unexpected worker error"))
             return len(posts)
     except Exception:
-        logger.exception("worker operation=reprocess_broken_posts status=db_error")
+        logger.exception("worker event=reprocess_broken_posts status=db_error")
         return 0
 
 
 async def _process_post_media(db, post):
+    post.processing_attempts = (post.processing_attempts or 0) + 1
+    post.last_error = None
+    await db.commit()
+    _log_event(
+        logging.INFO,
+        "process_media",
+        "started",
+        post_id=post.id,
+        media_type=post.media_type,
+        attempt=post.processing_attempts,
+        max_attempts=settings.worker_media_max_attempts,
+    )
     if post.media_type != "photo":
         await _activate_post(db, post)
         return
     try:
-        from app.config import settings
         from app.services.s3_service import get_s3
 
         s3 = get_s3()
@@ -114,17 +136,19 @@ async def _process_post_media(db, post):
         else:
             parts = post.original_url.split("/")
             object_key = "/".join(parts[3:])
-        logger.info("worker operation=download_media status=started post_id=%s", post.id)
+        _log_event(
+            logging.INFO,
+            "download_media",
+            "started",
+            post_id=post.id,
+            object_key=object_key,
+        )
         obj = s3.get_object(Bucket=bucket, Key=object_key)
         img_data = obj["Body"].read()
-        logger.info(
-            "worker operation=download_media status=done post_id=%s bytes=%s",
-            post.id,
-            len(img_data),
-        )
-    except Exception:
-        logger.exception("worker operation=download_media status=error post_id=%s", post.id)
-        await _fail_post(db, post)
+        _log_event(logging.INFO, "download_media", "done", post_id=post.id, bytes=len(img_data))
+    except Exception as exc:
+        logger.exception("worker event=download_media status=error post_id=%s", post.id)
+        await _record_media_failure(db, post, exc)
         return
     try:
         img = Image.open(io.BytesIO(img_data))
@@ -181,24 +205,68 @@ async def _process_post_media(db, post):
             )
         )
         await _activate_post(db, post)
-    except Exception:
-        logger.exception("worker operation=process_image status=error post_id=%s", post.id)
-        await _fail_post(db, post)
+    except Exception as exc:
+        logger.exception("worker event=process_image status=error post_id=%s", post.id)
+        await _record_media_failure(db, post, exc)
 
 
 async def _activate_post(db, post):
     post.status = "active"
+    post.last_error = None
+    post.processed_at = datetime.now(timezone.utc)
     await db.commit()
     score = (
         post.created_at.timestamp() if post.created_at else datetime.now(timezone.utc).timestamp()
     )
-    await add_to_feed(post.challenge_date, str(post.id), score, post.country)
+    try:
+        await add_to_feed(post.challenge_date, str(post.id), score, post.country)
+    except Exception:
+        logger.warning("worker event=add_to_feed status=error post_id=%s", post.id, exc_info=True)
+    _log_event(
+        logging.INFO,
+        "process_media",
+        "active",
+        post_id=post.id,
+        attempt=post.processing_attempts,
+    )
 
 
-async def _fail_post(db, post):
-    post.status = "failed"
+async def _record_media_failure(db, post, exc: Exception):
+    post.last_error = _safe_error_message(exc)
+    if (post.processing_attempts or 0) >= settings.worker_media_max_attempts:
+        post.status = "failed"
+        post.processed_at = datetime.now(timezone.utc)
+        status = "failed"
+    else:
+        post.status = "processing"
+        status = "retry_pending"
     await db.commit()
-    logger.info("worker operation=process_media status=failed post_id=%s", post.id)
+    _log_event(
+        logging.INFO,
+        "process_media",
+        status,
+        post_id=post.id,
+        attempt=post.processing_attempts,
+        max_attempts=settings.worker_media_max_attempts,
+        error=post.last_error,
+    )
+
+
+async def retry_failed_media(db, post: Post) -> bool:
+    if post.status != "failed":
+        return False
+    post.status = "processing"
+    post.processing_attempts = 0
+    post.last_error = None
+    post.processed_at = None
+    await db.commit()
+    _log_event(logging.INFO, "retry_media", "queued", post_id=post.id)
+    return True
+
+
+def _safe_error_message(exc: Exception) -> str:
+    message = f"{exc.__class__.__name__}: {exc}"
+    return message[:1000]
 
 
 async def flush_counters():
@@ -226,4 +294,6 @@ async def clean_stuck_posts():
                 age = (datetime.now(timezone.utc) - post.created_at).total_seconds()
                 if age > 300:
                     post.status = "failed"
+                    post.last_error = "Upload did not finish within 300 seconds"
+                    post.processed_at = datetime.now(timezone.utc)
         await db.commit()

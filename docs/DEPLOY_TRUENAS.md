@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.58
+image: ghcr.io/shurshick/momenta:v0.2.59
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -150,7 +150,13 @@ http://TRUENAS_IP:8010/admin
 docker exec -it momenta-api alembic upgrade head
 ```
 
-Текущий head: `005`.
+Текущий head: `006`.
+
+Для `v0.2.59` добавлена миграция `006` с полями media pipeline:
+
+- `posts.processing_attempts`
+- `posts.last_error`
+- `posts.processed_at`
 
 Для `v0.2.52` добавлена миграция `005` с индексами и уникальностью жалоб/реакций:
 
@@ -206,7 +212,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-10T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.58`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.59`.
 2. Запустите app заново.
 
 После обновления проверьте:
@@ -265,6 +271,8 @@ docker exec -it momenta-postgres pg_isready -U momenta -d momenta
 - `S3_ENDPOINT` должен смотреть на `http://momenta-minio:9000`.
 - `S3_PUBLIC_ENDPOINT` должен смотреть на публичный media-домен.
 - Nginx Proxy Manager должен проксировать media-домен на порт `9010`.
+- `WORKER_MEDIA_MAX_ATTEMPTS` задает число попыток обработки перед статусом `failed`.
+- В админке `/admin/posts?status_filter=failed` можно увидеть ошибку и запустить retry.
 
 ### Rate limit мешает тестам
 

@@ -1,6 +1,6 @@
 ﻿services:
   momenta-api:
-    image: ghcr.io/shurshick/momenta:v0.2.58
+    image: ghcr.io/shurshick/momenta:v0.2.59
     container_name: momenta-api
     pull_policy: always
     restart: unless-stopped
@@ -34,6 +34,7 @@
       S3_SECURE: "false"
       MEDIA_MAX_IMAGE_MB: 15
       MEDIA_MAX_VIDEO_MB: 80
+      WORKER_MEDIA_MAX_ATTEMPTS: 3
       ADMIN_EMAIL: admin@example.com
       ADMIN_PASSWORD: CHANGE_ME_ADMIN_PASSWORD
 
@@ -61,7 +62,7 @@
       retries: 5
 
   momenta-worker:
-    image: ghcr.io/shurshick/momenta:v0.2.58
+    image: ghcr.io/shurshick/momenta:v0.2.59
     container_name: momenta-worker
     pull_policy: always
     restart: unless-stopped
@@ -88,6 +89,7 @@
       S3_BUCKET: momenta-media
       S3_REGION: us-east-1
       S3_SECURE: "false"
+      WORKER_MEDIA_MAX_ATTEMPTS: 3
     volumes:
       - /mnt/pool/app/momenta/api:/app/data
 

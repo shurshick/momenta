@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.2.59] - 2026-07-10
+
+### Added
+
+- **Backend**: добавлена миграция `006` с полями `processing_attempts`, `last_error`, `processed_at` для постов.
+- **Worker**: добавлены structured logs и лимит попыток обработки медиа через `WORKER_MEDIA_MAX_ATTEMPTS`.
+- **Admin**: dashboard показывает processing/failed media, в списке постов видны attempts/error/processed_at.
+- **Admin**: failed media можно вернуть в обработку кнопкой Retry.
+
+### Fixed
+
+- **Worker**: битые фото больше не активируются и не попадают в ленту.
+- **Worker**: ошибка Redis/feed cache больше не ломает успешно обработанное медиа.
+
 ## [v0.2.58] - 2026-07-10
 
 ### Added

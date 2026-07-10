@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     rate_limit_upload_per_hour: int = 20
 
     worker_concurrency: int = 2
+    worker_media_max_attempts: int = 3
 
     @property
     def cors_origin_list(self) -> List[str]:

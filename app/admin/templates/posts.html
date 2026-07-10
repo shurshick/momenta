@@ -7,8 +7,10 @@
         <form method="get">
             <select name="status_filter" onchange="this.form.submit()">
                 <option value="">All statuses</option>
+                <option value="uploading" {% if status_filter == 'uploading' %}selected{% endif %}>Uploading</option>
                 <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
                 <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>Processing</option>
+                <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
                 <option value="hidden" {% if status_filter == 'hidden' %}selected{% endif %}>Hidden</option>
                 <option value="deleted" {% if status_filter == 'deleted' %}selected{% endif %}>Deleted</option>
             </select>
@@ -24,7 +26,10 @@
                 <th>Date</th>
                 <th>Type</th>
                 <th>Status</th>
+                <th>Attempts</th>
                 <th>Likes</th>
+                <th>Processed</th>
+                <th>Error</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -36,7 +41,10 @@
                 <td>{{ p.challenge_date }}</td>
                 <td>{{ p.media_type }}</td>
                 <td><span class="badge badge-{{ p.status }}">{{ p.status }}</span></td>
+                <td>{{ p.processing_attempts }}</td>
                 <td>{{ p.likes_count }}</td>
+                <td>{{ p.processed_at or "-" }}</td>
+                <td class="truncate">{{ p.last_error or "-" }}</td>
                 <td>
                     {% if p.status == 'active' %}
                     <form method="post" action="/admin/posts/{{ p.id }}/hide" style="display:inline">
@@ -46,11 +54,15 @@
                     <form method="post" action="/admin/posts/{{ p.id }}/restore" style="display:inline">
                         <button type="submit" class="btn btn-sm btn-success">Restore</button>
                     </form>
+                    {% elif p.status == 'failed' %}
+                    <form method="post" action="/admin/posts/{{ p.id }}/retry-media" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-success">Retry</button>
+                    </form>
                     {% endif %}
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="7" class="empty">No posts found</td></tr>
+            <tr><td colspan="10" class="empty">No posts found</td></tr>
             {% endfor %}
         </tbody>
     </table>

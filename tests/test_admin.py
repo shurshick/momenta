@@ -69,6 +69,44 @@ async def test_admin_can_hide_post(client, test_admin, test_user, test_challenge
 
 
 @pytest.mark.asyncio
+async def test_admin_can_retry_failed_media(
+    client, test_admin, test_user, test_challenge, db_session
+):
+    import uuid
+    from datetime import date, datetime, timezone
+
+    from app.models.post import Post
+    from app.security import create_access_token
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=date.today(),
+        media_type="photo",
+        original_url="https://example.com/broken.jpg",
+        status="failed",
+        processing_attempts=3,
+        last_error="RuntimeError: broken",
+        processed_at=datetime.now(timezone.utc),
+    )
+    db_session.add(post)
+    await db_session.commit()
+    token = create_access_token({"sub": str(test_admin.id), "role": "admin", "type": "admin"})
+    import httpx
+
+    async with httpx.AsyncClient(transport=client._transport, base_url="http://test") as ac:
+        ac.cookies = {"admin_token": token}
+        response = await ac.post(f"/admin/posts/{post.id}/retry-media")
+        assert response.status_code == 303
+    await db_session.refresh(post)
+    assert post.status == "processing"
+    assert post.processing_attempts == 0
+    assert post.last_error is None
+    assert post.processed_at is None
+
+
+@pytest.mark.asyncio
 async def test_admin_action_creates_audit_log(client, test_admin, db_session):
     from sqlalchemy import select
 
