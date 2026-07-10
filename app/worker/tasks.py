@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 def run_worker():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+        force=True,
+    )
     logger.info("worker operation=start status=starting")
     asyncio.run(_worker_loop())
 

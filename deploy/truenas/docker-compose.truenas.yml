@@ -65,7 +65,10 @@
     container_name: momenta-worker
     pull_policy: always
     restart: unless-stopped
-    command: ["python", "-c", "from app.worker.tasks import run_worker; run_worker()"]
+    command:
+      - python
+      - -c
+      - "import logging; logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s [%(name)s] %(message)s', force=True); from app.worker.tasks import run_worker; run_worker()"
     depends_on:
       momenta-postgres:
         condition: service_healthy
