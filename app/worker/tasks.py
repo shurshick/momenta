@@ -1,5 +1,6 @@
 import asyncio
 import io
+import logging
 import uuid
 from datetime import datetime, timezone
 
@@ -9,27 +10,32 @@ from sqlalchemy import select
 from app.db import async_session_factory
 from app.models.media_asset import MediaAsset
 from app.models.post import Post
+from app.services.counter_service import CounterService
 from app.services.redis_service import add_to_feed, get_redis
 from app.services.s3_service import make_object_key, upload_fileobj
 
 
+logger = logging.getLogger(__name__)
+
+
 def run_worker():
-    print("[worker] Starting worker...", flush=True)
+    logger.info("worker operation=start status=starting")
     asyncio.run(_worker_loop())
 
 
 async def _worker_loop():
-    print("[worker] Event loop running, entering main loop", flush=True)
+    logger.info("worker operation=loop status=running")
     while True:
         try:
             processing = await process_pending_media()
             reprocessed = await reprocess_broken_posts()
-            print(
-                f"[worker] cycle done: processing={processing} reprocessed={reprocessed}",
-                flush=True,
+            logger.info(
+                "worker operation=cycle status=done processing=%s reprocessed=%s",
+                processing,
+                reprocessed,
             )
-        except Exception as e:
-            print(f"[worker] Error: {e}", flush=True)
+        except Exception:
+            logger.exception("worker operation=cycle status=error")
         await asyncio.sleep(10)
 
 
@@ -39,16 +45,19 @@ async def process_pending_media():
             result = await db.execute(select(Post).where(Post.status == "processing").limit(10))
             posts = result.scalars().all()
             if posts:
-                print(f"[worker] Found {len(posts)} processing posts", flush=True)
+                logger.info("worker operation=find_processing status=found count=%s", len(posts))
             for post in posts:
                 try:
                     await _process_post_media(db, post)
-                except Exception as e:
-                    print(f"Media processing error for post {post.id}: {e}")
-                    post.status = "active"
+                except Exception:
+                    logger.exception(
+                        "worker operation=process_media status=error post_id=%s",
+                        post.id,
+                    )
+                    await _fail_post(db, post)
             return len(posts)
-    except Exception as e:
-        print(f"[worker] process_pending_media DB error: {e}", flush=True)
+    except Exception:
+        logger.exception("worker operation=process_pending_media status=db_error")
         return 0
 
 
@@ -68,15 +77,19 @@ async def reprocess_broken_posts():
             )
             posts = result.scalars().all()
             if posts:
-                print(f"[worker] Found {len(posts)} broken posts to reprocess", flush=True)
+                logger.info("worker operation=find_broken_posts status=found count=%s", len(posts))
             for post in posts:
                 try:
                     await _process_post_media(db, post)
-                except Exception as e:
-                    print(f"Reprocess error for post {post.id}: {e}")
+                except Exception:
+                    logger.exception(
+                        "worker operation=reprocess_media status=error post_id=%s",
+                        post.id,
+                    )
+                    await _fail_post(db, post)
             return len(posts)
-    except Exception as e:
-        print(f"[worker] reprocess_broken_posts DB error: {e}", flush=True)
+    except Exception:
+        logger.exception("worker operation=reprocess_broken_posts status=db_error")
         return 0
 
 
@@ -96,13 +109,17 @@ async def _process_post_media(db, post):
         else:
             parts = post.original_url.split("/")
             object_key = "/".join(parts[3:])
-        print(f"[worker] Downloading s3://{bucket}/{object_key}")
+        logger.info("worker operation=download_media status=started post_id=%s", post.id)
         obj = s3.get_object(Bucket=bucket, Key=object_key)
         img_data = obj["Body"].read()
-        print(f"[worker] Downloaded {len(img_data)} bytes")
-    except Exception as e:
-        print(f"Failed to download from S3: {e}")
-        await _activate_post(db, post)
+        logger.info(
+            "worker operation=download_media status=done post_id=%s bytes=%s",
+            post.id,
+            len(img_data),
+        )
+    except Exception:
+        logger.exception("worker operation=download_media status=error post_id=%s", post.id)
+        await _fail_post(db, post)
         return
     try:
         img = Image.open(io.BytesIO(img_data))
@@ -159,9 +176,9 @@ async def _process_post_media(db, post):
             )
         )
         await _activate_post(db, post)
-    except Exception as e:
-        print(f"Image processing failed: {e}")
-        await _activate_post(db, post)
+    except Exception:
+        logger.exception("worker operation=process_image status=error post_id=%s", post.id)
+        await _fail_post(db, post)
 
 
 async def _activate_post(db, post):
@@ -171,6 +188,12 @@ async def _activate_post(db, post):
         post.created_at.timestamp() if post.created_at else datetime.now(timezone.utc).timestamp()
     )
     await add_to_feed(post.challenge_date, str(post.id), score, post.country)
+
+
+async def _fail_post(db, post):
+    post.status = "failed"
+    await db.commit()
+    logger.info("worker operation=process_media status=failed post_id=%s", post.id)
 
 
 async def flush_counters():
@@ -184,7 +207,7 @@ async def flush_counters():
                 result = await db.execute(select(Post).where(Post.id == uuid.UUID(post_id)))
                 post = result.scalar_one_or_none()
                 if post:
-                    post.views_count += int(count)
+                    await CounterService(db).add_post_views(post, int(count))
                 await r.delete(key)
         await db.commit()
 
@@ -197,5 +220,5 @@ async def clean_stuck_posts():
             if post.created_at:
                 age = (datetime.now(timezone.utc) - post.created_at).total_seconds()
                 if age > 300:
-                    post.status = "active"
+                    post.status = "failed"
         await db.commit()

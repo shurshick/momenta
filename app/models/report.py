@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, String, Text, func
+from sqlalchemy import DateTime, Index, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,3 +23,9 @@ class Report(Base):
     )
     reviewed_by: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("ix_reports_post_status", "post_id", "status"),
+        UniqueConstraint("post_id", "user_id", name="uq_report_post_user"),
+        {"extend_existing": True},
+    )

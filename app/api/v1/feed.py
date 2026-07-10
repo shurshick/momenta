@@ -1,6 +1,6 @@
 import random
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import date
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
@@ -36,32 +36,17 @@ async def today_best_random(
 ):
     posts = await _top_active_posts(db, challenge_date=current_app_date())
     if not posts:
-        posts = await _top_recent_active_posts(db, hours=48)
-    if not posts:
-        posts = await _top_active_posts(db)
-    if not posts:
         return {"post": None}
     items = await build_feed_items(db, [random.choice(posts)], user_id)
     return {"post": items[0] if items else None}
 
 
-async def _top_active_posts(db: AsyncSession, challenge_date: date | None = None) -> list[Post]:
-    query = select(Post).where(Post.status == "active")
-    if challenge_date is not None:
-        query = query.where(Post.challenge_date == challenge_date)
-    query = query.order_by(Post.likes_count.desc(), Post.created_at.desc()).limit(10)
-    result = await db.execute(query)
-    return list(result.scalars().all())
-
-
-async def _top_recent_active_posts(db: AsyncSession, hours: int = 48) -> list[Post]:
-    since = datetime.now(timezone.utc) - timedelta(hours=hours)
-    query = (
-        select(Post)
-        .where(Post.status == "active", Post.created_at >= since)
-        .order_by(Post.likes_count.desc(), Post.created_at.desc())
-        .limit(10)
+async def _top_active_posts(db: AsyncSession, challenge_date: date) -> list[Post]:
+    query = select(Post).where(
+        Post.status == "active",
+        Post.challenge_date == challenge_date,
     )
+    query = query.order_by(Post.likes_count.desc(), Post.created_at.desc()).limit(10)
     result = await db.execute(query)
     return list(result.scalars().all())
 

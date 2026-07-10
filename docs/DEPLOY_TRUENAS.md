@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.50
+image: ghcr.io/shurshick/momenta:v0.2.52
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -150,9 +150,18 @@ http://TRUENAS_IP:8010/admin
 docker exec -it momenta-api alembic upgrade head
 ```
 
-Текущий head: `004`.
+Текущий head: `005`.
 
-Для `v0.2.50` новых миграций нет.
+Для `v0.2.52` добавлена миграция `005` с индексами и уникальностью жалоб/реакций:
+
+- `posts(challenge_date, status, created_at DESC)`
+- `posts(user_id, status, created_at DESC)`
+- `posts(status, likes_count DESC, created_at DESC)`
+- `posts(status, created_at DESC)`
+- `comments(post_id, status, created_at)`
+- `reports(post_id, status)`
+- unique `reports(post_id, user_id)`
+- unique `reactions(post_id, user_id, type)`
 
 В `v0.2.50` добавлена новая настройка в уже существующую таблицу `settings`:
 
@@ -173,16 +182,16 @@ curl -s http://TRUENAS_IP:8010/api/v1/app/latest
 Для релиза можно задать эти переменные окружения у `momenta-api`:
 
 ```env
-APP_LATEST_ANDROID_VERSION_NAME=0.2.50
-APP_LATEST_ANDROID_VERSION_CODE=50
+APP_LATEST_ANDROID_VERSION_NAME=0.2.52
+APP_LATEST_ANDROID_VERSION_CODE=52
 APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
 APP_LATEST_ANDROID_MANDATORY=false
-APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.50/app-prod-debug.apk
-APP_LATEST_ANDROID_APK_SHA256=0925cab9254b52141684be3ca3a891a66ff60768767ba891e58fdcd3040b9299
-APP_LATEST_ANDROID_APK_SIZE_BYTES=30965005
-APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.50
-APP_LATEST_ANDROID_RELEASE_NOTES=Счетчик участников дня больше не учитывает удаленные посты|Удалить свой пост можно только в настраиваемое окно, по умолчанию 60 минут|В админку добавлена настройка окна удаления поста|Фото в полноэкранном просмотре поддерживают pinch-to-zoom и двойной тап
-APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
+APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.52/app-prod-debug.apk
+APP_LATEST_ANDROID_APK_SHA256=400a1c4be2e79b7e3f5cff5d08ed6249b20cf9c6ec55e5cddf091ec704d21f20
+APP_LATEST_ANDROID_APK_SIZE_BYTES=30965973
+APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.52
+APP_LATEST_ANDROID_RELEASE_NOTES=Исправлена кодировка русских строк|Добавлена CI-защита от mojibake|Лучший момент дня теперь выбирается строго из сегодняшних постов|Worker больше не активирует посты с битой media|Добавлены индексы, CounterService и repair-counters|Версии сервера и Android выровнены для v0.2.52
+APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-10T00:00:00Z
 ```
 
 `APP_VERSION` не используется для Android-обновлений. Версия сервера и версия APK теперь живут отдельно.
@@ -197,7 +206,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-09T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.50`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.52`.
 2. Запустите app заново.
 
 После обновления проверьте:

@@ -2,7 +2,7 @@ import uuid
 from datetime import date
 from typing import Optional
 
-from sqlalchemy import Date, Integer, String, Text
+from sqlalchemy import Date, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -33,3 +33,19 @@ class Post(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(20), default="uploading", nullable=False, index=True)
 
     __table_args__ = ({"extend_existing": True},)
+
+
+Index(
+    "ix_posts_challenge_status_created_desc",
+    Post.challenge_date,
+    Post.status,
+    Post.created_at.desc(),
+)
+Index("ix_posts_user_status_created_desc", Post.user_id, Post.status, Post.created_at.desc())
+Index(
+    "ix_posts_status_likes_created_desc",
+    Post.status,
+    Post.likes_count.desc(),
+    Post.created_at.desc(),
+)
+Index("ix_posts_status_created_desc", Post.status, Post.created_at.desc())

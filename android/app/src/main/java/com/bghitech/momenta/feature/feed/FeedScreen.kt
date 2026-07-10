@@ -382,7 +382,7 @@ private fun FeedPostCard(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Удалить момент?", color = MomentaText) },
-            text = { Text("Удаление доступно только для своих моментов в первые 24 часа.", color = MomentaTextSecondary) },
+            text = { Text("Удаление доступно только для своих моментов в настроенное окно удаления.", color = MomentaTextSecondary) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false

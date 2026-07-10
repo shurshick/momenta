@@ -35,21 +35,23 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.50",
-  "version_code": 50,
+  "version_name": "0.2.52",
+  "version_code": 52,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.50/app-prod-debug.apk",
-  "apk_sha256": "",
-  "apk_size_bytes": null,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.50",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.52/app-prod-debug.apk",
+  "apk_sha256": "400a1c4be2e79b7e3f5cff5d08ed6249b20cf9c6ec55e5cddf091ec704d21f20",
+  "apk_size_bytes": 30965973,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.52",
   "release_notes": [
-    "Счетчик участников дня больше не учитывает удаленные посты",
-    "Удалить свой пост можно только в настраиваемое окно, по умолчанию 60 минут",
-    "В админку добавлена настройка окна удаления поста",
-    "Фото в полноэкранном просмотре поддерживают pinch-to-zoom и двойной тап"
+    "Исправлена кодировка русских строк",
+    "Добавлена CI-защита от mojibake",
+    "Лучший момент дня теперь выбирается строго из сегодняшних постов",
+    "Worker больше не активирует посты с битой media",
+    "Добавлены индексы, CounterService и repair-counters",
+    "Версии сервера и Android выровнены для v0.2.52"
   ],
-  "published_at": "2026-07-09T00:00:00Z"
+  "published_at": "2026-07-10T00:00:00Z"
 }
 ```
 
@@ -82,7 +84,7 @@ Only one active/processing/uploading post per user per challenge date is allowed
 ## Feed
 
 - `GET /api/v1/feed/today?cursor=&limit=20` — Global feed
-- `GET /api/v1/feed/today/best-random` — Random post from today's top moments
+- `GET /api/v1/feed/today/best-random` — Random post from today's top moments. Returns `post: null` if today has no active posts.
 - `GET /api/v1/feed/country/{code}?cursor=&limit=20` — Country feed
 - `GET /api/v1/feed/user/{id}?cursor=&limit=20` — User feed
 
@@ -94,6 +96,8 @@ Only one active/processing/uploading post per user per challenge date is allowed
 ## Reports
 
 - `POST /api/v1/posts/{id}/report` — Report post
+
+The same user can report the same post only once. Duplicate reports return `409`.
 
 ## Comments
 

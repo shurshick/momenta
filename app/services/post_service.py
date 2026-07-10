@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.post import Post
 from app.models.reaction import Reaction
+from app.services.counter_service import CounterService
 from app.services.redis_service import (  # noqa: F401
     add_to_feed,
     increment_counter,
@@ -138,6 +139,7 @@ async def soft_delete_post(
         if datetime.now(timezone.utc) - created_at > timedelta(minutes=delete_window_minutes):
             return False
     post.status = "deleted"
+    await CounterService(db).sync_post_counts(post)
     await db.commit()
     return True
 
@@ -200,7 +202,7 @@ async def like_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) ->
         )
     )
     if existing.scalar_one_or_none():
-        likes_count = await recalculate_post_likes(db, post)
+        likes_count = await CounterService(db).sync_post_likes(post)
         await db.commit()
         return {"liked": True, "likes_count": likes_count}
 
@@ -212,7 +214,7 @@ async def like_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) ->
         post = await get_post_by_id(db, post_id)
         return {"liked": True, "likes_count": post.likes_count if post else 0}
 
-    likes_count = await recalculate_post_likes(db, post)
+    likes_count = await CounterService(db).sync_post_likes(post)
     await db.commit()
     await _safe_cache_call(increment_counter(f"post:likes:{post_id}"), "increment_like_counter")
     return {"liked": True, "likes_count": likes_count}
@@ -232,28 +234,19 @@ async def unlike_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) 
     )
     reaction = existing.scalar_one_or_none()
     if not reaction:
-        likes_count = await recalculate_post_likes(db, post)
+        likes_count = await CounterService(db).sync_post_likes(post)
         await db.commit()
         return {"liked": False, "likes_count": likes_count}
 
     await db.delete(reaction)
     await db.flush()
-    likes_count = await recalculate_post_likes(db, post)
+    likes_count = await CounterService(db).sync_post_likes(post)
     await db.commit()
     return {"liked": False, "likes_count": likes_count}
 
 
 async def recalculate_post_likes(db: AsyncSession, post: Post) -> int:
-    likes_count = (
-        await db.execute(
-            select(func.count(Reaction.id)).where(
-                Reaction.post_id == post.id,
-                Reaction.type == "like",
-            )
-        )
-    ).scalar() or 0
-    post.likes_count = likes_count
-    return likes_count
+    return await CounterService(db).sync_post_likes(post)
 
 
 async def increment_views(db: AsyncSession, post_id: uuid.UUID):

@@ -10,6 +10,7 @@ from app.models.comment import Comment
 from app.models.post import Post
 from app.models.user import User
 from app.schemas.comment import CommentListResponse, CommentOut, CreateCommentRequest
+from app.services.counter_service import CounterService
 
 router = APIRouter(prefix="/api/v1/posts", tags=["comments"])
 
@@ -83,7 +84,8 @@ async def create_comment(
     if not comment.text:
         raise HTTPException(status_code=400, detail="Comment cannot be empty")
     db.add(comment)
-    post.comments_count += 1
+    await db.flush()
+    await CounterService(db).sync_post_comments(post)
     await db.commit()
     await db.refresh(comment)
     user_result = await db.execute(select(User).where(User.id == current_user_id))
@@ -116,8 +118,8 @@ async def delete_comment(
     comment.status = "deleted"
     post_result = await db.execute(select(Post).where(Post.id == post_uuid))
     post = post_result.scalar_one_or_none()
-    if post and post.comments_count > 0:
-        post.comments_count -= 1
+    if post:
+        await CounterService(db).sync_post_comments(post)
     await db.commit()
     return {"status": "deleted"}
 

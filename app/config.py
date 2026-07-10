@@ -15,27 +15,29 @@ class Settings(BaseSettings):
     app_latest_android_app_name: str = "Момент"
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
-    app_latest_android_version_name: str = "0.2.50"
-    app_latest_android_version_code: int = 50
+    app_latest_android_version_name: str = "0.2.52"
+    app_latest_android_version_code: int = 52
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = (
-        "https://github.com/shurshick/momenta/releases/download/v0.2.50/app-prod-debug.apk"
+        "https://github.com/shurshick/momenta/releases/download/v0.2.52/app-prod-debug.apk"
     )
     app_latest_android_apk_sha256: str = (
-        "0925cab9254b52141684be3ca3a891a66ff60768767ba891e58fdcd3040b9299"
+        "400a1c4be2e79b7e3f5cff5d08ed6249b20cf9c6ec55e5cddf091ec704d21f20"
     )
-    app_latest_android_apk_size_bytes: int | None = 30965005
+    app_latest_android_apk_size_bytes: int | None = 30965973
     app_latest_android_release_url: str = (
-        "https://github.com/shurshick/momenta/releases/tag/v0.2.50"
+        "https://github.com/shurshick/momenta/releases/tag/v0.2.52"
     )
     app_latest_android_release_notes: str = (
-        "Счетчик участников дня больше не учитывает удаленные посты|"
-        "Удалить свой пост можно только в настраиваемое окно, по умолчанию 60 минут|"
-        "В админку добавлена настройка окна удаления поста|"
-        "Фото в полноэкранном просмотре поддерживают pinch-to-zoom и двойной тап"
+        "Исправлена кодировка русских строк|"
+        "Добавлена CI-защита от mojibake|"
+        "Лучший момент дня теперь выбирается строго из сегодняшних постов|"
+        "Worker больше не активирует посты с битой media|"
+        "Добавлены индексы, CounterService и repair-counters|"
+        "Версии сервера и Android выровнены для v0.2.52"
     )
-    app_latest_android_published_at: str = "2026-07-09T00:00:00Z"
+    app_latest_android_published_at: str = "2026-07-10T00:00:00Z"
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000

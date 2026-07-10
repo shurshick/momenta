@@ -20,6 +20,18 @@ jobs:
         with:
           cache-dependency-glob: pyproject.toml
 
+      - name: Check mojibake
+        run: python scripts/check_mojibake.py
+
+      - name: Check Alembic heads
+        run: >
+          uv run --python 3.12 --extra dev python -c
+          "from alembic.config import Config;
+          from alembic.script import ScriptDirectory;
+          heads = ScriptDirectory.from_config(Config('alembic.ini')).get_heads();
+          assert len(heads) == 1, heads;
+          print(heads[0])"
+
       - name: Run pytest
         run: uv run --python 3.12 --extra dev pytest -q
 

@@ -210,7 +210,7 @@ private fun CameraContent(
             IconButton(onClick = onSwitchCamera) {
                 Icon(
                     Icons.Default.Cameraswitch,
-                    "РџРµСЂРµРєР»СЋС‡РёС‚СЊ РєР°РјРµСЂСѓ",
+                    "Переключить камеру",
                     tint = MomentaText
                 )
             }

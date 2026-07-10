@@ -129,7 +129,7 @@ async def test_best_random_returns_active_today_post(
 
 
 @pytest.mark.asyncio
-async def test_best_random_fallback_returns_recent_active_post(
+async def test_best_random_does_not_fallback_to_previous_day_post(
     client, auth_headers, test_user, test_challenge, db_session
 ):
     from app.models.post import Post
@@ -151,7 +151,7 @@ async def test_best_random_fallback_returns_recent_active_post(
     response = await client.get("/api/v1/feed/today/best-random", headers=auth_headers)
 
     assert response.status_code == 200
-    assert response.json()["post"]["id"] == str(post.id)
+    assert response.json()["post"] is None
 
 
 @pytest.mark.asyncio
@@ -295,6 +295,119 @@ async def test_like_recalculates_drifted_counter(
 
     assert response.status_code == 200
     assert response.json()["likes_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_like_unlike_counter_service(
+    client,
+    auth_headers,
+    test_user,
+    test_challenge,
+    db_session,
+):
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/counter.jpg",
+        status="active",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    like_response = await client.post(f"/api/v1/posts/{post.id}/like", headers=auth_headers)
+    assert like_response.status_code == 200
+    assert like_response.json()["likes_count"] == 1
+    await db_session.refresh(post)
+    assert post.likes_count == 1
+
+    unlike_response = await client.delete(f"/api/v1/posts/{post.id}/like", headers=auth_headers)
+    assert unlike_response.status_code == 200
+    assert unlike_response.json()["likes_count"] == 0
+    await db_session.refresh(post)
+    assert post.likes_count == 0
+
+
+@pytest.mark.asyncio
+async def test_comment_create_delete_counter_service(
+    client,
+    auth_headers,
+    test_user,
+    test_challenge,
+    db_session,
+):
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/comments.jpg",
+        comments_count=99,
+        status="active",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    create_response = await client.post(
+        f"/api/v1/posts/{post.id}/comments",
+        headers=auth_headers,
+        json={"text": "hello"},
+    )
+    assert create_response.status_code == 200
+    comment_id = create_response.json()["id"]
+    await db_session.refresh(post)
+    assert post.comments_count == 1
+
+    delete_response = await client.delete(
+        f"/api/v1/posts/{post.id}/comments/{comment_id}",
+        headers=auth_headers,
+    )
+    assert delete_response.status_code == 200
+    await db_session.refresh(post)
+    assert post.comments_count == 0
+
+
+@pytest.mark.asyncio
+async def test_soft_delete_post_updates_counts(
+    client,
+    auth_headers,
+    test_user,
+    test_challenge,
+    db_session,
+):
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/delete-counts.jpg",
+        status="active",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    before = await client.get("/api/v1/me/profile", headers=auth_headers)
+    assert before.status_code == 200
+    assert before.json()["moments_count"] == 1
+
+    delete_response = await client.delete(f"/api/v1/posts/{post.id}", headers=auth_headers)
+    assert delete_response.status_code == 200
+    await db_session.refresh(post)
+    assert post.status == "deleted"
+
+    after = await client.get("/api/v1/me/profile", headers=auth_headers)
+    assert after.status_code == 200
+    assert after.json()["moments_count"] == 0
 
 
 @pytest.mark.asyncio
