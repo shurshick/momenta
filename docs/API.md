@@ -40,8 +40,8 @@ Example response:
   "min_supported_version_code": 1,
   "mandatory": false,
   "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.55/app-prod-debug.apk",
-  "apk_sha256": "8ae093559ed89439cb4614111d624c305a023fe30f5e427b1c138b41d55747e0",
-  "apk_size_bytes": 30969285,
+  "apk_sha256": "08768ce93bf19d69cdee3fdddbe980aa105ef9daccf1b888b10b97c58d58b108",
+  "apk_size_bytes": 30968317,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.55",
   "release_notes": [
     "Задание дня снова загружается после входа",

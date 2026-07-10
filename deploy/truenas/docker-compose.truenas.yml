@@ -45,8 +45,8 @@
       APP_MIN_SUPPORTED_ANDROID_VERSION_CODE: 1
       APP_LATEST_ANDROID_MANDATORY: "false"
       APP_LATEST_ANDROID_APK_URL: https://github.com/shurshick/momenta/releases/download/v0.2.55/app-prod-debug.apk
-      APP_LATEST_ANDROID_APK_SHA256: 8ae093559ed89439cb4614111d624c305a023fe30f5e427b1c138b41d55747e0
-      APP_LATEST_ANDROID_APK_SIZE_BYTES: 30969285
+      APP_LATEST_ANDROID_APK_SHA256: 08768ce93bf19d69cdee3fdddbe980aa105ef9daccf1b888b10b97c58d58b108
+      APP_LATEST_ANDROID_APK_SIZE_BYTES: 30968317
       APP_LATEST_ANDROID_RELEASE_URL: https://github.com/shurshick/momenta/releases/tag/v0.2.55
       APP_LATEST_ANDROID_RELEASE_NOTES: Задание дня снова загружается после входа|Лента показывает свежие посты первыми|Кнопка Назад больше не возвращает на экран входа после авторизации
       APP_LATEST_ANDROID_PUBLISHED_AT: 2026-07-10T00:00:00Z
