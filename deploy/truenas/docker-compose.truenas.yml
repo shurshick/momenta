@@ -1,6 +1,6 @@
 ﻿services:
   momenta-api:
-    image: ghcr.io/shurshick/momenta:v0.2.54
+    image: ghcr.io/shurshick/momenta:v0.2.55
     container_name: momenta-api
     pull_policy: always
     restart: unless-stopped
@@ -40,15 +40,15 @@
       APP_LATEST_ANDROID_APP_NAME: Момент
       APP_LATEST_ANDROID_PACKAGE_NAME: com.bghitech.momenta
       APP_LATEST_ANDROID_CHANNEL: stable
-      APP_LATEST_ANDROID_VERSION_NAME: 0.2.54
-      APP_LATEST_ANDROID_VERSION_CODE: 54
+      APP_LATEST_ANDROID_VERSION_NAME: 0.2.55
+      APP_LATEST_ANDROID_VERSION_CODE: 55
       APP_MIN_SUPPORTED_ANDROID_VERSION_CODE: 1
       APP_LATEST_ANDROID_MANDATORY: "false"
-      APP_LATEST_ANDROID_APK_URL: https://github.com/shurshick/momenta/releases/download/v0.2.54/app-prod-debug.apk
-      APP_LATEST_ANDROID_APK_SHA256: 9b4750dc9bfe61a69951d46cdbcc1da34fc0256a2603d7f29b31aa29ed53393c
-      APP_LATEST_ANDROID_APK_SIZE_BYTES: 30966625
-      APP_LATEST_ANDROID_RELEASE_URL: https://github.com/shurshick/momenta/releases/tag/v0.2.54
-      APP_LATEST_ANDROID_RELEASE_NOTES: Исправлена загрузка задания дня после старта приложения|Лента переведена на Room-first FeedStore|Публикация стала local-first с локальным pending-постом|Убраны delay/retry/scroll костыли после публикации|Room schema обновлена до v5 под FeedStore
+      APP_LATEST_ANDROID_APK_URL: https://github.com/shurshick/momenta/releases/download/v0.2.55/app-prod-debug.apk
+      APP_LATEST_ANDROID_APK_SHA256: 8ae093559ed89439cb4614111d624c305a023fe30f5e427b1c138b41d55747e0
+      APP_LATEST_ANDROID_APK_SIZE_BYTES: 30969285
+      APP_LATEST_ANDROID_RELEASE_URL: https://github.com/shurshick/momenta/releases/tag/v0.2.55
+      APP_LATEST_ANDROID_RELEASE_NOTES: Задание дня снова загружается после входа|Лента показывает свежие посты первыми|Кнопка Назад больше не возвращает на экран входа после авторизации
       APP_LATEST_ANDROID_PUBLISHED_AT: 2026-07-10T00:00:00Z
     ports:
       - "8010:8000"
@@ -61,7 +61,7 @@
       retries: 5
 
   momenta-worker:
-    image: ghcr.io/shurshick/momenta:v0.2.54
+    image: ghcr.io/shurshick/momenta:v0.2.55
     container_name: momenta-worker
     pull_policy: always
     restart: unless-stopped

@@ -84,11 +84,23 @@ class TokenStore @Inject constructor(
         return tokenProvider.accessToken()
     }
 
+    fun getAccessTokenSync(): String? {
+        tokenProvider.accessToken()?.let { return it }
+        loadSyncTokensIntoProvider()
+        return tokenProvider.accessToken()
+    }
+
     suspend fun getRefreshToken(): String? {
         tokenProvider.refreshToken()?.let { return it }
         loadSyncTokensIntoProvider()
         tokenProvider.refreshToken()?.let { return it }
         warmUp()
+        return tokenProvider.refreshToken()
+    }
+
+    fun getRefreshTokenSync(): String? {
+        tokenProvider.refreshToken()?.let { return it }
+        loadSyncTokensIntoProvider()
         return tokenProvider.refreshToken()
     }
 

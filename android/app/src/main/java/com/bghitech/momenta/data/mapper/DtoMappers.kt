@@ -16,10 +16,10 @@ fun UserDto.toDomain(): User = User(
 
 fun ChallengeDto.toDomain(): Challenge = Challenge(
     id = id,
-    date = date,
-    title = title,
-    description = description,
-    prompt = prompt,
+    date = date ?: challengeDate.orEmpty(),
+    title = title ?: titleRu.orEmpty(),
+    description = description ?: descriptionRu,
+    prompt = prompt ?: promptRu,
     source = source,
     endsAt = endsAt,
     userPosted = userPosted,

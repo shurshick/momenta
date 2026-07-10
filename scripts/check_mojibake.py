@@ -80,6 +80,26 @@ MOJIBAKE_PATTERNS = (
     "Гђ",
     "Г‘",
 )
+MOJIBAKE_NOISE = set("РСЃЊЉЌЋЏЂЃЄЅІЇЈљњџ™“”„…†‡€")
+
+
+def cyrillic_count(text: str) -> int:
+    return sum("А" <= char <= "я" or char in "Ёё" for char in text)
+
+
+def looks_like_cp1251_mojibake(line: str) -> bool:
+    try:
+        restored = line.encode("cp1251").decode("utf-8")
+    except UnicodeError:
+        return False
+    if restored == line:
+        return False
+    noise_count = sum(char in MOJIBAKE_NOISE for char in line)
+    return noise_count >= 2 and cyrillic_count(restored) >= 3
+
+
+def has_mojibake(line: str) -> bool:
+    return any(pattern in line for pattern in MOJIBAKE_PATTERNS) or looks_like_cp1251_mojibake(line)
 
 
 def should_skip(path: Path) -> bool:
@@ -128,7 +148,7 @@ def main() -> int:
         if text is None:
             continue
         for line_no, line in enumerate(text.splitlines(), start=1):
-            if any(pattern in line for pattern in MOJIBAKE_PATTERNS):
+            if has_mojibake(line):
                 failures.append((path.relative_to(ROOT), line_no, line.strip()))
 
     for rel, line_no, line in failures:

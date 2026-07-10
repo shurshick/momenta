@@ -3,6 +3,7 @@ package com.bghitech.momenta.feature.today
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.common.userMessage
 import com.bghitech.momenta.domain.model.Challenge
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.repository.FeedRepository
@@ -48,7 +49,10 @@ class TodayViewModel @Inject constructor(
 
             val cached = getTodayChallengeUseCase.getCached()
             if (cached != null && _state.value.challenge == null) {
-                _state.value = _state.value.copy(challenge = cached, userPostedToday = cached.userPosted)
+                _state.value = _state.value.copy(
+                    challenge = cached,
+                    userPostedToday = cached.userPosted
+                )
             }
 
             when (val result = getTodayChallengeUseCase()) {
@@ -65,7 +69,11 @@ class TodayViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         isChallengeLoading = false,
                         isOffline = cached == null,
-                        challengeError = if (cached == null) "Не удалось загрузить задание дня" else null
+                        challengeError = if (cached == null) {
+                            result.error.userMessage("Не удалось загрузить задание дня")
+                        } else {
+                            null
+                        }
                     )
                 }
             }
@@ -103,7 +111,11 @@ class TodayViewModel @Inject constructor(
                     bestPost = fallbackPost,
                     feedLoaded = fallbackPost != null || cached.isNotEmpty(),
                     isBestMomentLoading = false,
-                    bestMomentError = if (fallbackPost == null) "Лучший момент дня пока не найден" else null
+                    bestMomentError = if (fallbackPost == null) {
+                        "Лучший момент дня пока не найден"
+                    } else {
+                        null
+                    }
                 )
             }
         }

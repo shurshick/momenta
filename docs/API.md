@@ -35,20 +35,18 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.54",
-  "version_code": 54,
+  "version_name": "0.2.55",
+  "version_code": 55,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.54/app-prod-debug.apk",
-  "apk_sha256": "9b4750dc9bfe61a69951d46cdbcc1da34fc0256a2603d7f29b31aa29ed53393c",
-  "apk_size_bytes": 30966625,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.54",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.55/app-prod-debug.apk",
+  "apk_sha256": "8ae093559ed89439cb4614111d624c305a023fe30f5e427b1c138b41d55747e0",
+  "apk_size_bytes": 30969285,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.55",
   "release_notes": [
-    "Исправлена загрузка задания дня после старта приложения",
-    "Лента переведена на Room-first FeedStore",
-    "Публикация стала local-first с локальным pending-постом",
-    "Убраны delay/retry/scroll костыли после публикации",
-    "Room schema обновлена до v5 под FeedStore"
+    "Задание дня снова загружается после входа",
+    "Лента показывает свежие посты первыми",
+    "Кнопка Назад больше не возвращает на экран входа после авторизации"
   ],
   "published_at": "2026-07-10T00:00:00Z"
 }

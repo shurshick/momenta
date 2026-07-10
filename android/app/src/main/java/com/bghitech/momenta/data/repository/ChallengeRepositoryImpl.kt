@@ -1,8 +1,8 @@
 package com.bghitech.momenta.data.repository
 
-import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.core.common.safeApiCall
+import com.bghitech.momenta.core.util.AppDateUtils
 import com.bghitech.momenta.data.local.dao.ChallengeDao
 import com.bghitech.momenta.data.mapper.*
 import com.bghitech.momenta.data.remote.MomentaApi
@@ -22,13 +22,13 @@ class ChallengeRepositoryImpl @Inject constructor(
             is AppResult.Success -> result
             is AppResult.Error -> {
                 val cached = getCachedChallenge()
-                if (cached != null) AppResult.Success(cached) else AppResult.Error(AppError.Network)
+                if (cached != null) AppResult.Success(cached) else result
             }
         }
     }
 
     override suspend fun getCachedChallenge(): Challenge? {
-        return challengeDao.getLatestChallenge()?.toDomain()
+        return challengeDao.getChallengeByDate(AppDateUtils.todayKey())?.toDomain()
     }
 
     override suspend fun cacheChallenge(challenge: Challenge) {

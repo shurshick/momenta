@@ -7,10 +7,18 @@ import kotlinx.serialization.Serializable
 data class ChallengeDto(
     val id: String,
     @SerialName("date")
-    val date: String,
-    val title: String,
+    val date: String? = null,
+    @SerialName("challenge_date")
+    val challengeDate: String? = null,
+    val title: String? = null,
+    @SerialName("title_ru")
+    val titleRu: String? = null,
     val description: String? = null,
+    @SerialName("description_ru")
+    val descriptionRu: String? = null,
     val prompt: String? = null,
+    @SerialName("prompt_ru")
+    val promptRu: String? = null,
     val source: String = "manual",
     @SerialName("ends_at")
     val endsAt: String? = null,

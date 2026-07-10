@@ -109,7 +109,8 @@ fun MomentaNavGraph() {
             AuthScreen(
                 onAuthSuccess = {
                     navController.navigate(NavRoutes.MAIN) {
-                        popUpTo(NavRoutes.AUTH) { inclusive = true }
+                        popUpTo(0)
+                        launchSingleTop = true
                     }
                 }
             )
@@ -120,7 +121,8 @@ fun MomentaNavGraph() {
                 initialLoginMode = true,
                 onAuthSuccess = {
                     navController.navigate(NavRoutes.MAIN) {
-                        popUpTo(NavRoutes.AUTH_LOGIN) { inclusive = true }
+                        popUpTo(0)
+                        launchSingleTop = true
                     }
                 }
             )
@@ -131,7 +133,8 @@ fun MomentaNavGraph() {
                 initialLoginMode = false,
                 onAuthSuccess = {
                     navController.navigate(NavRoutes.MAIN) {
-                        popUpTo(NavRoutes.AUTH_REGISTER) { inclusive = true }
+                        popUpTo(0)
+                        launchSingleTop = true
                     }
                 }
             )

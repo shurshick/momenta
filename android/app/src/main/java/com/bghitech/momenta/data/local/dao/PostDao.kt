@@ -6,13 +6,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PostDao {
-    @Query("SELECT * FROM cached_posts ORDER BY cachedAt DESC")
+    @Query("SELECT * FROM cached_posts ORDER BY createdAt DESC, cachedAt DESC")
     suspend fun getAllPosts(): List<CachedPostEntity>
 
-    @Query("SELECT * FROM cached_posts WHERE challengeDate = :challengeDate ORDER BY cachedAt DESC")
+    @Query("SELECT * FROM cached_posts WHERE challengeDate = :challengeDate ORDER BY createdAt DESC, cachedAt DESC")
     suspend fun getPostsByChallengeDate(challengeDate: String): List<CachedPostEntity>
 
-    @Query("SELECT * FROM cached_posts WHERE challengeDate = :challengeDate ORDER BY cachedAt DESC")
+    @Query("SELECT * FROM cached_posts WHERE challengeDate = :challengeDate ORDER BY createdAt DESC, cachedAt DESC")
     fun observePostsByChallengeDate(challengeDate: String): Flow<List<CachedPostEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

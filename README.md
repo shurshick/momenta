@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия: **v0.2.54**.
+Текущая стабильная версия: **v0.2.55**.
 
 ## Что уже есть
 
@@ -59,12 +59,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.54
+image: ghcr.io/shurshick/momenta:v0.2.55
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-Для **v0.2.54** лента переведена на Room-first FeedStore, публикация стала local-first, исправлена загрузка задания дня после старта.
+В **v0.2.55** исправлены загрузка задания дня, порядок ленты и возврат назад после авторизации.
 
 ## Обновления Android
 
@@ -78,8 +78,8 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.54](https://github.com/shurshick/momenta/releases/tag/v0.2.54)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.54`
+- Release: [v0.2.55](https://github.com/shurshick/momenta/releases/tag/v0.2.55)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.55`
 - Android APK: `app-prod-debug.apk`
 
 ## Документы
@@ -88,5 +88,6 @@ GET /api/v1/app/latest
 - Android architecture: [android/docs/ANDROID_ARCHITECTURE.md](android/docs/ANDROID_ARCHITECTURE.md)
 - TrueNAS deploy: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 - API: [docs/API.md](docs/API.md)
+- Release style: [docs/RELEASE_STYLE.md](docs/RELEASE_STYLE.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
 

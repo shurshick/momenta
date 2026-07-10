@@ -15,26 +15,24 @@ class Settings(BaseSettings):
     app_latest_android_app_name: str = "Момент"
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
-    app_latest_android_version_name: str = "0.2.54"
-    app_latest_android_version_code: int = 54
+    app_latest_android_version_name: str = "0.2.55"
+    app_latest_android_version_code: int = 55
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = (
-        "https://github.com/shurshick/momenta/releases/download/v0.2.54/app-prod-debug.apk"
+        "https://github.com/shurshick/momenta/releases/download/v0.2.55/app-prod-debug.apk"
     )
     app_latest_android_apk_sha256: str = (
-        "9b4750dc9bfe61a69951d46cdbcc1da34fc0256a2603d7f29b31aa29ed53393c"
+        "8ae093559ed89439cb4614111d624c305a023fe30f5e427b1c138b41d55747e0"
     )
-    app_latest_android_apk_size_bytes: int | None = 30966625
+    app_latest_android_apk_size_bytes: int | None = 30969285
     app_latest_android_release_url: str = (
-        "https://github.com/shurshick/momenta/releases/tag/v0.2.54"
+        "https://github.com/shurshick/momenta/releases/tag/v0.2.55"
     )
     app_latest_android_release_notes: str = (
-        "Исправлена загрузка задания дня после старта приложения|"
-        "Лента переведена на Room-first FeedStore|"
-        "Публикация стала local-first с локальным pending-постом|"
-        "Убраны delay/retry/scroll костыли после публикации|"
-        "Room schema обновлена до v5 под FeedStore"
+        "Задание дня снова загружается после входа|"
+        "Лента показывает свежие посты первыми|"
+        "Кнопка Назад больше не возвращает на экран входа после авторизации"
     )
     app_latest_android_published_at: str = "2026-07-10T00:00:00Z"
 

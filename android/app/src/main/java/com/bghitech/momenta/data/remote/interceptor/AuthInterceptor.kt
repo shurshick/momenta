@@ -17,7 +17,8 @@ import javax.inject.Singleton
 
 @Singleton
 class AuthInterceptor @Inject constructor(
-    private val tokenProvider: AuthTokenProvider
+    private val tokenProvider: AuthTokenProvider,
+    private val tokenStore: TokenStore
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -26,7 +27,7 @@ class AuthInterceptor @Inject constructor(
             return chain.proceed(originalRequest)
         }
 
-        val accessToken = tokenProvider.accessToken()
+        val accessToken = tokenProvider.accessToken() ?: tokenStore.getAccessTokenSync()
 
         val request = if (accessToken != null) {
             originalRequest.newBuilder()
@@ -93,7 +94,7 @@ class TokenAuthenticator @Inject constructor(
     }
 
     private fun refreshAccessToken(): String? {
-        val refreshToken = tokenProvider.refreshToken()
+        val refreshToken = tokenProvider.refreshToken() ?: tokenStore.getRefreshTokenSync()
         if (refreshToken.isNullOrBlank()) {
             tokenStore.clearTokensSync()
             return null
