@@ -8,7 +8,13 @@
 - Описание: 3-5 коротких пунктов по делу.
 - Писать по-русски, без длинных технических простыней.
 - Пользовательские фиксы выше внутренних tooling-правок.
-- APK-блок всегда одинаковый:
+- Server-only релиз не должен прикреплять APK. В описании достаточно Docker:
+
+```text
+Docker: ghcr.io/shurshick/momenta:vX.Y.Z
+```
+
+- Android-релиз публикуется только когда менялся APK. APK-блок всегда одинаковый:
 
 ```text
 APK: app-prod-debug.apk
@@ -16,6 +22,9 @@ sha256: <sha>
 size: <bytes>
 Docker: ghcr.io/shurshick/momenta:vX.Y.Z
 ```
+
+- Docker image публикуется workflow `Docker Publish`.
+- APK прикрепляется отдельно ручным workflow `Android APK Publish` с нужным release tag.
 
 ## README
 

@@ -89,6 +89,90 @@ async def test_second_post_same_day_rejected(
 
 
 @pytest.mark.asyncio
+async def test_daily_post_limit_allows_configured_number(
+    client, auth_headers, test_challenge, test_user, db_session
+):
+    import io
+
+    from PIL import Image
+
+    from app.models.post import Post
+
+    await set_setting(db_session, "daily_post_limit", "2")
+    db_session.add(
+        Post(
+            id=uuid.uuid4(),
+            user_id=test_user.id,
+            challenge_id=test_challenge.id,
+            challenge_date=current_app_date(),
+            media_type="photo",
+            original_url="https://example.com/first.jpg",
+            status="active",
+        )
+    )
+    await db_session.commit()
+
+    img = Image.new("RGB", (100, 100), color="green")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    buf.seek(0)
+    files = {"media": ("second.jpg", buf, "image/jpeg")}
+    data = {"challenge_id": str(test_challenge.id), "caption": "Second allowed post"}
+
+    response = await client.post("/api/v1/posts", files=files, data=data, headers=auth_headers)
+
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_daily_post_limit_rejects_after_configured_number(
+    client, auth_headers, test_challenge, test_user, db_session
+):
+    import io
+
+    from PIL import Image
+
+    from app.models.post import Post
+
+    await set_setting(db_session, "daily_post_limit", "2")
+    db_session.add_all(
+        [
+            Post(
+                id=uuid.uuid4(),
+                user_id=test_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=current_app_date(),
+                media_type="photo",
+                original_url="https://example.com/first.jpg",
+                status="active",
+            ),
+            Post(
+                id=uuid.uuid4(),
+                user_id=test_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=current_app_date(),
+                media_type="photo",
+                original_url="https://example.com/second.jpg",
+                status="processing",
+            ),
+        ]
+    )
+    await db_session.commit()
+
+    img = Image.new("RGB", (100, 100), color="blue")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    buf.seek(0)
+    files = {"media": ("third.jpg", buf, "image/jpeg")}
+    data = {"challenge_id": str(test_challenge.id), "caption": "Third rejected post"}
+
+    response = await client.post("/api/v1/posts", files=files, data=data, headers=auth_headers)
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Лимит 2 моментов в день исчерпан"
+
+
+@pytest.mark.asyncio
 async def test_feed_returns_today_posts(client, auth_headers):
     response = await client.get("/api/v1/feed/today", headers=auth_headers)
     assert response.status_code == 200

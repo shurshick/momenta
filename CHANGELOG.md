@@ -1,5 +1,16 @@
 # Changelog
 
+## [v0.2.58] - 2026-07-10
+
+### Added
+
+- **Backend**: добавлены тесты на `daily_post_limit > 1`: разрешение второго поста и отказ после лимита.
+
+### Changed
+
+- **Release**: Docker/server release больше не собирает и не прикрепляет APK автоматически.
+- **Release**: Android APK публикуется отдельным ручным workflow `Android APK Publish`.
+
 ## [v0.2.57] - 2026-07-10
 
 ### Fixed
