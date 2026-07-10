@@ -29,6 +29,16 @@ async def get_current_user_id(token: str = Depends(get_token)) -> str:
     return user_id
 
 
+async def get_optional_current_user_id(authorization: str = Header(default="")) -> str | None:
+    if not authorization.startswith("Bearer "):
+        return None
+    payload = decode_token(authorization[7:])
+    if not payload or payload.get("type") != "access":
+        return None
+    user_id = payload.get("sub")
+    return user_id if user_id else None
+
+
 @router.post("/register", response_model=AuthResponse)
 async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
     try:

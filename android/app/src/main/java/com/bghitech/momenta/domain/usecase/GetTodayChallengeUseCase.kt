@@ -11,7 +11,11 @@ class GetTodayChallengeUseCase @Inject constructor(
     suspend operator fun invoke(): AppResult<Challenge> {
         val result = challengeRepository.getTodayChallenge()
         if (result is AppResult.Success) {
-            challengeRepository.cacheChallenge(result.data)
+            try {
+                challengeRepository.cacheChallenge(result.data)
+            } catch (_: Exception) {
+                // Cache must not hide a valid challenge from the UI.
+            }
         }
         return result
     }

@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.55
+image: ghcr.io/shurshick/momenta:v0.2.56
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -182,15 +182,15 @@ curl -s http://TRUENAS_IP:8010/api/v1/app/latest
 Для релиза можно задать эти переменные окружения у `momenta-api`:
 
 ```env
-APP_LATEST_ANDROID_VERSION_NAME=0.2.55
-APP_LATEST_ANDROID_VERSION_CODE=55
+APP_LATEST_ANDROID_VERSION_NAME=0.2.56
+APP_LATEST_ANDROID_VERSION_CODE=56
 APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
 APP_LATEST_ANDROID_MANDATORY=false
-APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.55/app-prod-debug.apk
-APP_LATEST_ANDROID_APK_SHA256=08768ce93bf19d69cdee3fdddbe980aa105ef9daccf1b888b10b97c58d58b108
-APP_LATEST_ANDROID_APK_SIZE_BYTES=30968317
-APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.55
-APP_LATEST_ANDROID_RELEASE_NOTES=Задание дня снова загружается после входа|Лента показывает свежие посты первыми|Кнопка Назад больше не возвращает на экран входа после авторизации
+APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.56/app-prod-debug.apk
+APP_LATEST_ANDROID_APK_SHA256=33af798744b396dce95bf193cb47e6cd707da965586654f7fc39247b4d9efcc3
+APP_LATEST_ANDROID_APK_SIZE_BYTES=30969405
+APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.56
+APP_LATEST_ANDROID_RELEASE_NOTES=Задание дня больше не зависит от авторизации|Карточка дня открывается даже при истекшем токене|Успешный ответ задания больше не скрывается ошибкой локального cache
 APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-10T00:00:00Z
 ```
 
@@ -206,7 +206,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-10T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.55`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.56`.
 2. Запустите app заново.
 
 После обновления проверьте:

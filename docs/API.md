@@ -35,18 +35,18 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.55",
-  "version_code": 55,
+  "version_name": "0.2.56",
+  "version_code": 56,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.55/app-prod-debug.apk",
-  "apk_sha256": "08768ce93bf19d69cdee3fdddbe980aa105ef9daccf1b888b10b97c58d58b108",
-  "apk_size_bytes": 30968317,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.55",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.56/app-prod-debug.apk",
+  "apk_sha256": "33af798744b396dce95bf193cb47e6cd707da965586654f7fc39247b4d9efcc3",
+  "apk_size_bytes": 30969405,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.56",
   "release_notes": [
-    "Задание дня снова загружается после входа",
-    "Лента показывает свежие посты первыми",
-    "Кнопка Назад больше не возвращает на экран входа после авторизации"
+    "Задание дня больше не зависит от авторизации",
+    "Карточка дня открывается даже при истекшем токене",
+    "Успешный ответ задания больше не скрывается ошибкой локального cache"
   ],
   "published_at": "2026-07-10T00:00:00Z"
 }

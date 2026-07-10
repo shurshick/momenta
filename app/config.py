@@ -15,24 +15,24 @@ class Settings(BaseSettings):
     app_latest_android_app_name: str = "Момент"
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
-    app_latest_android_version_name: str = "0.2.55"
-    app_latest_android_version_code: int = 55
+    app_latest_android_version_name: str = "0.2.56"
+    app_latest_android_version_code: int = 56
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = (
-        "https://github.com/shurshick/momenta/releases/download/v0.2.55/app-prod-debug.apk"
+        "https://github.com/shurshick/momenta/releases/download/v0.2.56/app-prod-debug.apk"
     )
     app_latest_android_apk_sha256: str = (
-        "08768ce93bf19d69cdee3fdddbe980aa105ef9daccf1b888b10b97c58d58b108"
+        "33af798744b396dce95bf193cb47e6cd707da965586654f7fc39247b4d9efcc3"
     )
-    app_latest_android_apk_size_bytes: int | None = 30968317
+    app_latest_android_apk_size_bytes: int | None = 30969405
     app_latest_android_release_url: str = (
-        "https://github.com/shurshick/momenta/releases/tag/v0.2.55"
+        "https://github.com/shurshick/momenta/releases/tag/v0.2.56"
     )
     app_latest_android_release_notes: str = (
-        "Задание дня снова загружается после входа|"
-        "Лента показывает свежие посты первыми|"
-        "Кнопка Назад больше не возвращает на экран входа после авторизации"
+        "Задание дня больше не зависит от авторизации|"
+        "Карточка дня открывается даже при истекшем токене|"
+        "Успешный ответ задания больше не скрывается ошибкой локального cache"
     )
     app_latest_android_published_at: str = "2026-07-10T00:00:00Z"
 

@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия: **v0.2.55**.
+Текущая стабильная версия: **v0.2.56**.
 
 ## Что уже есть
 
@@ -59,12 +59,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.55
+image: ghcr.io/shurshick/momenta:v0.2.56
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.55** исправлены загрузка задания дня, порядок ленты и возврат назад после авторизации.
+В **v0.2.56** задание дня сделано публичным endpoint и больше не ломается из-за auth-состояния.
 
 ## Обновления Android
 
@@ -78,8 +78,8 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.55](https://github.com/shurshick/momenta/releases/tag/v0.2.55)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.55`
+- Release: [v0.2.56](https://github.com/shurshick/momenta/releases/tag/v0.2.56)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.56`
 - Android APK: `app-prod-debug.apk`
 
 ## Документы

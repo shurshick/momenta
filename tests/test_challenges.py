@@ -26,6 +26,28 @@ async def test_get_today_challenge_returns_existing(client, auth_headers, test_c
 
 
 @pytest.mark.asyncio
+async def test_get_today_challenge_is_public(client, test_challenge):
+    response = await client.get("/api/v1/challenges/today")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == str(test_challenge.id)
+    assert data["title"] == "Тестовый челлендж"
+    assert data["user_posted"] is False
+
+
+@pytest.mark.asyncio
+async def test_get_today_challenge_ignores_invalid_auth(client, test_challenge):
+    response = await client.get(
+        "/api/v1/challenges/today",
+        headers={"Authorization": "Bearer invalid-token"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == str(test_challenge.id)
+
+
+@pytest.mark.asyncio
 async def test_get_today_challenge_auto_creates_when_missing(client, auth_headers, db_session):
     response = await client.get("/api/v1/challenges/today", headers=auth_headers)
 

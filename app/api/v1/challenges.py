@@ -4,7 +4,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.auth import get_current_user_id
+from app.api.v1.auth import get_optional_current_user_id
 from app.db import get_db
 from app.services.challenge_service import (
     get_challenge_by_date,
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/v1/challenges", tags=["challenges"])
 
 @router.get("/today")
 async def today_challenge(
-    user_id: str = Depends(get_current_user_id),
+    user_id: str | None = Depends(get_optional_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
     return await get_today_challenge_data(db, user_id)
