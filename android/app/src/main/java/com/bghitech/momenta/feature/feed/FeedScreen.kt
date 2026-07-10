@@ -49,7 +49,6 @@ import com.bghitech.momenta.domain.model.Post
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FeedScreen(
-    publishRefreshKey: Int = 0,
     focusPostId: String? = null,
     onFocusHandled: (String) -> Unit = {},
     viewModel: FeedViewModel = hiltViewModel()
@@ -62,28 +61,9 @@ fun FeedScreen(
         refreshing = isRefreshing,
         onRefresh = viewModel::refresh
     )
-    var handledPublishRefreshKey by remember { mutableIntStateOf(0) }
     var requestedFocusReloadFor by remember { mutableStateOf<String?>(null) }
     var handledFocusPostId by remember { mutableStateOf<String?>(null) }
     var fullscreenPost by remember { mutableStateOf<Post?>(null) }
-    val userScrolledFromTop by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 80
-        }
-    }
-
-    LaunchedEffect(publishRefreshKey, state.isLoading) {
-        if (publishRefreshKey > handledPublishRefreshKey && !state.isLoading) {
-            handledPublishRefreshKey = publishRefreshKey
-            viewModel.refreshAfterPublish(focusPostId)
-        }
-    }
-
-    LaunchedEffect(state.scrollToTopSignal) {
-        if (state.scrollToTopSignal > 0) {
-            listState.scrollToItem(0)
-        }
-    }
 
     LaunchedEffect(focusPostId, state.items, state.isLoading) {
         val targetId = focusPostId ?: return@LaunchedEffect
@@ -96,13 +76,7 @@ fun FeedScreen(
             onFocusHandled(targetId)
         } else if (!state.isLoading && requestedFocusReloadFor != targetId) {
             requestedFocusReloadFor = targetId
-            viewModel.loadFeed(showCached = false, force = true)
-        }
-    }
-
-    LaunchedEffect(userScrolledFromTop) {
-        if (userScrolledFromTop) {
-            viewModel.onUserScrolledAfterPublish()
+            viewModel.loadFeed(force = true)
         }
     }
 

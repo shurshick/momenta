@@ -9,13 +9,9 @@ class GetTodayFeedUseCase @Inject constructor(
     private val feedRepository: FeedRepository
 ) {
     suspend operator fun invoke(cursor: String? = null, limit: Int = 20): AppResult<List<Post>> {
-        val result = feedRepository.getTodayFeed(cursor, limit)
-        if (result is AppResult.Success && cursor == null && result.data.isNotEmpty()) {
-            feedRepository.replaceCachedFeed(result.data)
-        }
-        return result
+        return feedRepository.getTodayFeed(cursor, limit)
     }
 
     suspend fun getCached(): List<Post> = feedRepository.getCachedFeed()
-    fun getNextCursor(): String? = null // handled in repo
+    suspend fun getNextCursor(): String? = feedRepository.getNextCursor()
 }

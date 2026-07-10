@@ -1,6 +1,6 @@
 ﻿services:
   momenta-api:
-    image: ghcr.io/shurshick/momenta:v0.2.53
+    image: ghcr.io/shurshick/momenta:v0.2.54
     container_name: momenta-api
     pull_policy: always
     restart: unless-stopped
@@ -40,15 +40,15 @@
       APP_LATEST_ANDROID_APP_NAME: Момент
       APP_LATEST_ANDROID_PACKAGE_NAME: com.bghitech.momenta
       APP_LATEST_ANDROID_CHANNEL: stable
-      APP_LATEST_ANDROID_VERSION_NAME: 0.2.53
-      APP_LATEST_ANDROID_VERSION_CODE: 53
+      APP_LATEST_ANDROID_VERSION_NAME: 0.2.54
+      APP_LATEST_ANDROID_VERSION_CODE: 54
       APP_MIN_SUPPORTED_ANDROID_VERSION_CODE: 1
       APP_LATEST_ANDROID_MANDATORY: "false"
-      APP_LATEST_ANDROID_APK_URL: https://github.com/shurshick/momenta/releases/download/v0.2.53/app-prod-debug.apk
-      APP_LATEST_ANDROID_APK_SHA256: 325d6dd28155ee6a96e3e752d8d859a978083fca3ecefa3ebf363f42dab97925
-      APP_LATEST_ANDROID_APK_SIZE_BYTES: 30967433
-      APP_LATEST_ANDROID_RELEASE_URL: https://github.com/shurshick/momenta/releases/tag/v0.2.53
-      APP_LATEST_ANDROID_RELEASE_NOTES: Добавлен единый safeApiCall и нормальная модель AppError|Auth path переведен на memory-first токены без runBlocking в OkHttp|Room теперь экспортирует схему и получил baseline schema v4|Локальный cache подготовлен к FeedStore индексами и Flow-запросом|Destructive migration пока разрешена до ограниченного тестирования
+      APP_LATEST_ANDROID_APK_URL: https://github.com/shurshick/momenta/releases/download/v0.2.54/app-prod-debug.apk
+      APP_LATEST_ANDROID_APK_SHA256: d83f4eed5bd955f37fb7263dfa99aa738a8f320013ced30dd85a8c13e393bcaa
+      APP_LATEST_ANDROID_APK_SIZE_BYTES: 30967625
+      APP_LATEST_ANDROID_RELEASE_URL: https://github.com/shurshick/momenta/releases/tag/v0.2.54
+      APP_LATEST_ANDROID_RELEASE_NOTES: Исправлена загрузка задания дня после старта приложения|Лента переведена на Room-first FeedStore|Публикация стала local-first с локальным pending-постом|Убраны delay/retry/scroll костыли после публикации|Room schema обновлена до v5 под FeedStore
       APP_LATEST_ANDROID_PUBLISHED_AT: 2026-07-10T00:00:00Z
     ports:
       - "8010:8000"
@@ -61,7 +61,7 @@
       retries: 5
 
   momenta-worker:
-    image: ghcr.io/shurshick/momenta:v0.2.53
+    image: ghcr.io/shurshick/momenta:v0.2.54
     container_name: momenta-worker
     pull_policy: always
     restart: unless-stopped

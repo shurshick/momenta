@@ -118,7 +118,8 @@ fun Post.toCachedEntity(): CachedPostEntity = CachedPostEntity(
     createdAt = createdAt,
     isLiked = isLiked,
     isMine = isMine,
-    canDelete = canDelete
+    canDelete = canDelete,
+    syncState = "remote"
 )
 
 fun CachedPostEntity.toDomain(): Post = Post(

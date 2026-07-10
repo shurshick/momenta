@@ -54,9 +54,6 @@ fun MainScreen(
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit,
     startRoute: String = NavRoutes.TODAY,
-    feedRefreshKey: Int = 0,
-    externalFeedFocusPostId: String? = null,
-    onExternalFeedFocusHandled: (String) -> Unit = {},
     updateViewModel: AppUpdateViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
@@ -137,10 +134,8 @@ fun MainScreen(
                 }
                 composable(NavRoutes.FEED) {
                     FeedScreen(
-                        publishRefreshKey = feedRefreshKey,
-                        focusPostId = externalFeedFocusPostId ?: feedFocusPostId,
+                        focusPostId = feedFocusPostId,
                         onFocusHandled = { handledPostId ->
-                            onExternalFeedFocusHandled(handledPostId)
                             if (feedFocusPostId == handledPostId) {
                                 feedFocusPostId = null
                             }

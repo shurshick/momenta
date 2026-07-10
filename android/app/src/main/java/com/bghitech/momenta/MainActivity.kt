@@ -8,7 +8,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -61,8 +60,6 @@ fun MomentaNavGraph() {
     val isLoggedIn by appAuthStateViewModel.isLoggedIn.collectAsStateWithLifecycle()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val context = LocalContext.current
-    var feedRefreshKey by rememberSaveable { mutableIntStateOf(0) }
-    var pendingFeedFocusPostId by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(isLoggedIn, backStackEntry?.destination?.route) {
         val route = backStackEntry?.destination?.route
@@ -157,11 +154,6 @@ fun MomentaNavGraph() {
         composable(NavRoutes.MAIN_FEED) {
             MainScreen(
                 startRoute = NavRoutes.FEED,
-                feedRefreshKey = feedRefreshKey,
-                externalFeedFocusPostId = pendingFeedFocusPostId,
-                onExternalFeedFocusHandled = { postId ->
-                    if (pendingFeedFocusPostId == postId) pendingFeedFocusPostId = null
-                },
                 onNavigateToCamera = {
                     navController.navigate(NavRoutes.CAMERA)
                 },
@@ -200,9 +192,7 @@ fun MomentaNavGraph() {
             PublishScreen(
                 imagePath = imagePath,
                 onBack = { navController.popBackStack() },
-                onUploadSuccess = { postId ->
-                    feedRefreshKey += 1
-                    pendingFeedFocusPostId = postId
+                onUploadSuccess = {
                     navController.resetToFeed()
                 }
             )
@@ -211,7 +201,6 @@ fun MomentaNavGraph() {
         composable(NavRoutes.UPLOAD_SUCCESS) {
             com.bghitech.momenta.feature.publish.UploadSuccessScreen(
                 onGoToToday = {
-                    feedRefreshKey += 1
                     navController.navigate(NavRoutes.MAIN_FEED) {
                         popUpTo(NavRoutes.UPLOAD_SUCCESS) { inclusive = true }
                     }

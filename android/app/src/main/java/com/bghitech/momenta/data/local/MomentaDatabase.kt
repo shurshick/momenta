@@ -15,7 +15,7 @@ import com.bghitech.momenta.data.local.dao.UploadQueueDao
         CachedPostEntity::class,
         UploadQueueEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 abstract class MomentaDatabase : RoomDatabase() {

@@ -32,5 +32,6 @@ data class CachedPostEntity(
     val isLiked: Boolean,
     val isMine: Boolean,
     val canDelete: Boolean,
+    val syncState: String = "remote",
     val cachedAt: Long = System.currentTimeMillis()
 )

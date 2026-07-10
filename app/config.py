@@ -15,26 +15,26 @@ class Settings(BaseSettings):
     app_latest_android_app_name: str = "Момент"
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
-    app_latest_android_version_name: str = "0.2.53"
-    app_latest_android_version_code: int = 53
+    app_latest_android_version_name: str = "0.2.54"
+    app_latest_android_version_code: int = 54
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = (
-        "https://github.com/shurshick/momenta/releases/download/v0.2.53/app-prod-debug.apk"
+        "https://github.com/shurshick/momenta/releases/download/v0.2.54/app-prod-debug.apk"
     )
     app_latest_android_apk_sha256: str = (
-        "325d6dd28155ee6a96e3e752d8d859a978083fca3ecefa3ebf363f42dab97925"
+        "d83f4eed5bd955f37fb7263dfa99aa738a8f320013ced30dd85a8c13e393bcaa"
     )
-    app_latest_android_apk_size_bytes: int | None = 30967433
+    app_latest_android_apk_size_bytes: int | None = 30967625
     app_latest_android_release_url: str = (
-        "https://github.com/shurshick/momenta/releases/tag/v0.2.53"
+        "https://github.com/shurshick/momenta/releases/tag/v0.2.54"
     )
     app_latest_android_release_notes: str = (
-        "Добавлен единый safeApiCall и нормальная модель AppError|"
-        "Auth path переведен на memory-first токены без runBlocking в OkHttp|"
-        "Room теперь экспортирует схему и получил baseline schema v4|"
-        "Локальный cache подготовлен к FeedStore индексами и Flow-запросом|"
-        "Destructive migration пока разрешена до ограниченного тестирования"
+        "Исправлена загрузка задания дня после старта приложения|"
+        "Лента переведена на Room-first FeedStore|"
+        "Публикация стала local-first с локальным pending-постом|"
+        "Убраны delay/retry/scroll костыли после публикации|"
+        "Room schema обновлена до v5 под FeedStore"
     )
     app_latest_android_published_at: str = "2026-07-10T00:00:00Z"
 

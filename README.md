@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия: **v0.2.53**.
+Текущая стабильная версия: **v0.2.54**.
 
 ## Что уже есть
 
@@ -59,12 +59,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.53
+image: ghcr.io/shurshick/momenta:v0.2.54
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-Для **v0.2.53** обновлена Android-основа: safeApiCall, AppError, auth tokens без runBlocking и Room schema export.
+Для **v0.2.54** лента переведена на Room-first FeedStore, публикация стала local-first, исправлена загрузка задания дня после старта.
 
 ## Обновления Android
 
@@ -78,8 +78,8 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.53](https://github.com/shurshick/momenta/releases/tag/v0.2.53)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.53`
+- Release: [v0.2.54](https://github.com/shurshick/momenta/releases/tag/v0.2.54)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.54`
 - Android APK: `app-prod-debug.apk`
 
 ## Документы

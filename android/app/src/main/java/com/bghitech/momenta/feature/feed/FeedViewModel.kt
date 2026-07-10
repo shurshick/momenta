@@ -13,7 +13,6 @@ import com.bghitech.momenta.domain.usecase.GetTodayFeedUseCase
 import com.bghitech.momenta.domain.usecase.LikePostUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -29,8 +28,7 @@ data class FeedUiState(
     val comments: List<Comment> = emptyList(),
     val isCommentsLoading: Boolean = false,
     val commentsError: String? = null,
-    val suggestedUsers: List<User> = emptyList(),
-    val scrollToTopSignal: Int = 0
+    val suggestedUsers: List<User> = emptyList()
 )
 
 @HiltViewModel
@@ -44,163 +42,49 @@ class FeedViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(FeedUiState())
     val state = _state.asStateFlow()
-    private var loadJob: Job? = null
-    private var publishRefreshJob: Job? = null
-    private var userScrolledAfterPublish = false
+    private var syncJob: Job? = null
 
     init {
+        observeFeedStore()
         loadFeed()
         loadUserSuggestions()
     }
 
-    fun loadFeed(showCached: Boolean = true, scrollToTop: Boolean = false, force: Boolean = false) {
+    fun loadFeed(force: Boolean = false) {
         if (_state.value.isLoading && !force) return
-        if (force) loadJob?.cancel()
-        loadJob = viewModelScope.launch {
-            loadFeedNow(showCached = showCached, scrollToTop = scrollToTop)
-        }
+        if (force) syncJob?.cancel()
+        syncJob = viewModelScope.launch { syncFeed() }
     }
 
     fun refresh() {
-        if (_state.value.isLoading) return
-        loadJob?.cancel()
-        loadJob = viewModelScope.launch {
-            loadFeedNow(
-                showCached = false,
-                scrollToTop = false,
-                keepExistingWhileLoading = true
-            )
-        }
-    }
-
-    fun refreshAfterPublish(targetPostId: String? = null) {
-        publishRefreshJob?.cancel()
-        userScrolledAfterPublish = false
-        loadJob?.cancel()
-        publishRefreshJob = viewModelScope.launch {
-            val previousTopId = _state.value.items.firstOrNull()?.id
-            val previousIds = _state.value.items.map { it.id }.toSet()
-            loadFeedNow(
-                showCached = false,
-                scrollToTop = false,
-                keepExistingWhileLoading = true,
-                scrollToTopWhenChangedFromId = previousTopId
-            )
-            for (pauseMs in listOf(650L, 1200L, 2200L, 3600L)) {
-                if (userScrolledAfterPublish) break
-                val currentTopId = _state.value.items.firstOrNull()?.id
-                val targetLoaded = targetPostId != null && _state.value.items.any { it.id == targetPostId }
-                val newPostLoaded = _state.value.items.any { it.id !in previousIds }
-                if (targetLoaded || newPostLoaded || (currentTopId != null && currentTopId != previousTopId)) break
-                delay(pauseMs)
-                if (userScrolledAfterPublish) break
-                loadFeedNow(
-                    showCached = false,
-                    scrollToTop = false,
-                    keepExistingWhileLoading = true,
-                    scrollToTopWhenChangedFromId = previousTopId
-                )
-            }
-        }
-    }
-
-    fun onUserScrolledAfterPublish() {
-        if (publishRefreshJob?.isActive == true) {
-            userScrolledAfterPublish = true
-        }
-    }
-
-    private suspend fun loadFeedNow(
-        showCached: Boolean,
-        scrollToTop: Boolean,
-        keepExistingWhileLoading: Boolean = false,
-        scrollToTopWhenChangedFromId: String? = null
-    ) {
-        _state.value = _state.value.copy(isLoading = true, error = null)
-
-        val cached = getTodayFeedUseCase.getCached()
-        if (showCached && cached.isNotEmpty() && !keepExistingWhileLoading) {
-            _state.value = _state.value.copy(
-                items = cached,
-                suggestedUsers = _state.value.suggestedUsers.ifEmpty { cached.suggestedUsers() }
-            )
-        }
-
-        when (val result = getTodayFeedUseCase()) {
-            is AppResult.Success -> {
-                val shouldScrollToTop = scrollToTop ||
-                        (scrollToTopWhenChangedFromId != null &&
-                                result.data.firstOrNull()?.id != null &&
-                                result.data.firstOrNull()?.id != scrollToTopWhenChangedFromId)
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    items = result.data,
-                    suggestedUsers = result.data.suggestedUsers().ifEmpty { _state.value.suggestedUsers },
-                    isOffline = false,
-                    scrollToTopSignal = if (shouldScrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
-                )
-            }
-            is AppResult.Error -> {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    isOffline = cached.isEmpty(),
-                    error = if (cached.isEmpty()) "Не удалось загрузить ленту" else null,
-                    scrollToTopSignal = if (scrollToTop) _state.value.scrollToTopSignal + 1 else _state.value.scrollToTopSignal
-                )
-            }
-        }
-    }
-
-    private fun loadUserSuggestions() {
-        viewModelScope.launch {
-            when (val result = feedRepository.getUserSuggestions()) {
-                is AppResult.Success -> {
-                    _state.value = _state.value.copy(
-                        suggestedUsers = result.data.distinctBy { it.username }.take(20)
-                    )
-                }
-                is AppResult.Error -> Unit
-            }
-        }
+        loadFeed(force = true)
     }
 
     fun loadMore() {
         if (_state.value.isLoadingMore) return
         viewModelScope.launch {
-            val cursor = feedRepository.getNextCursor() ?: return@launch
+            val cursor = getTodayFeedUseCase.getNextCursor() ?: return@launch
             _state.value = _state.value.copy(isLoadingMore = true)
-            when (val result = getTodayFeedUseCase(cursor = cursor)) {
-                is AppResult.Success -> {
-                    val existingIds = _state.value.items.map { it.id }.toSet()
-                    val newItems = result.data.filter { it.id !in existingIds }
-                    _state.value = _state.value.copy(
-                        isLoadingMore = false,
-                        items = _state.value.items + newItems
-                    )
-                }
-                is AppResult.Error -> {
-                    _state.value = _state.value.copy(isLoadingMore = false)
-                }
+            when (getTodayFeedUseCase(cursor = cursor)) {
+                is AppResult.Success -> _state.value = _state.value.copy(isLoadingMore = false)
+                is AppResult.Error -> _state.value = _state.value.copy(isLoadingMore = false)
             }
         }
     }
 
     fun toggleLike(postId: String, currentlyLiked: Boolean) {
         viewModelScope.launch {
-            val oldItems = _state.value.items
-            val targetPost = oldItems.firstOrNull { it.id == postId }
+            val oldPost = _state.value.items.firstOrNull { it.id == postId } ?: return@launch
             val likesDelta = if (currentlyLiked) -1 else 1
-            _state.value = _state.value.copy(
-                items = _state.value.items.map {
-                    if (it.id == postId) it.copy(
-                        isLiked = !currentlyLiked,
-                        likesCount = (it.likesCount + likesDelta).coerceAtLeast(0)
-                    ) else it
-                }
+            val optimisticPost = oldPost.copy(
+                isLiked = !currentlyLiked,
+                likesCount = (oldPost.likesCount + likesDelta).coerceAtLeast(0)
             )
+            feedRepository.updateCachedPost(optimisticPost)
+
             if (likePostUseCase(postId, !currentlyLiked) is AppResult.Error) {
-                _state.value = _state.value.copy(items = oldItems)
-            } else if (targetPost?.isMine == true) {
+                feedRepository.updateCachedPost(oldPost)
+            } else if (oldPost.isMine) {
                 adjustCachedProfileLikes(likesDelta)
             }
         }
@@ -217,11 +101,7 @@ class FeedViewModel @Inject constructor(
             val deletedPost = _state.value.items.firstOrNull { it.id == postId }
             when (postRepository.deletePost(postId)) {
                 is AppResult.Success -> {
-                    val newItems = _state.value.items.filterNot { it.id == postId }
-                    _state.value = _state.value.copy(
-                        items = newItems,
-                        suggestedUsers = _state.value.suggestedUsers.ifEmpty { newItems.suggestedUsers() }
-                    )
+                    feedRepository.removeLocalPost(postId)
                     if (deletedPost?.isMine == true) {
                         removePostFromCachedProfile(deletedPost)
                     }
@@ -269,12 +149,11 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = postRepository.createComment(post.id, trimmed)) {
                 is AppResult.Success -> {
+                    val updatedPost = post.copy(commentsCount = post.commentsCount + 1)
+                    feedRepository.updateCachedPost(updatedPost)
                     _state.value = _state.value.copy(
                         comments = _state.value.comments + result.data,
-                        items = _state.value.items.map {
-                            if (it.id == post.id) it.copy(commentsCount = it.commentsCount + 1) else it
-                        },
-                        commentsPost = post.copy(commentsCount = post.commentsCount + 1)
+                        commentsPost = updatedPost
                     )
                 }
                 is AppResult.Error -> {
@@ -289,17 +168,59 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             when (postRepository.deleteComment(post.id, commentId)) {
                 is AppResult.Success -> {
+                    val updatedPost = post.copy(commentsCount = (post.commentsCount - 1).coerceAtLeast(0))
+                    feedRepository.updateCachedPost(updatedPost)
                     _state.value = _state.value.copy(
                         comments = _state.value.comments.filterNot { it.id == commentId },
-                        items = _state.value.items.map {
-                            if (it.id == post.id) it.copy(commentsCount = (it.commentsCount - 1).coerceAtLeast(0)) else it
-                        },
-                        commentsPost = post.copy(commentsCount = (post.commentsCount - 1).coerceAtLeast(0))
+                        commentsPost = updatedPost
                     )
                 }
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(commentsError = "Не удалось удалить комментарий")
                 }
+            }
+        }
+    }
+
+    private fun observeFeedStore() {
+        viewModelScope.launch {
+            feedRepository.observeTodayFeed().collect { posts ->
+                _state.value = _state.value.copy(
+                    items = posts,
+                    suggestedUsers = posts.suggestedUsers().ifEmpty { _state.value.suggestedUsers },
+                    isOffline = false,
+                    error = if (posts.isNotEmpty()) null else _state.value.error
+                )
+            }
+        }
+    }
+
+    private suspend fun syncFeed() {
+        _state.value = _state.value.copy(isLoading = true, error = null)
+        when (getTodayFeedUseCase()) {
+            is AppResult.Success -> {
+                _state.value = _state.value.copy(isLoading = false, isOffline = false, error = null)
+            }
+            is AppResult.Error -> {
+                val hasCached = _state.value.items.isNotEmpty()
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    isOffline = !hasCached,
+                    error = if (hasCached) null else "Не удалось загрузить ленту"
+                )
+            }
+        }
+    }
+
+    private fun loadUserSuggestions() {
+        viewModelScope.launch {
+            when (val result = feedRepository.getUserSuggestions()) {
+                is AppResult.Success -> {
+                    _state.value = _state.value.copy(
+                        suggestedUsers = result.data.distinctBy { it.username }.take(20)
+                    )
+                }
+                is AppResult.Error -> Unit
             }
         }
     }

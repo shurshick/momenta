@@ -18,6 +18,27 @@ interface PostDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPosts(posts: List<CachedPostEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPost(post: CachedPostEntity)
+
+    @Query("DELETE FROM cached_posts WHERE id = :postId")
+    suspend fun deleteById(postId: String)
+
+    @Query("DELETE FROM cached_posts WHERE challengeDate = :challengeDate AND syncState = 'remote'")
+    suspend fun clearRemoteByChallengeDate(challengeDate: String)
+
+    @Transaction
+    suspend fun replaceRemotePosts(challengeDate: String, posts: List<CachedPostEntity>) {
+        clearRemoteByChallengeDate(challengeDate)
+        insertPosts(posts)
+    }
+
+    @Transaction
+    suspend fun replacePostId(oldId: String, post: CachedPostEntity) {
+        deleteById(oldId)
+        insertPost(post)
+    }
+
     @Query("DELETE FROM cached_posts")
     suspend fun clearAll()
 }

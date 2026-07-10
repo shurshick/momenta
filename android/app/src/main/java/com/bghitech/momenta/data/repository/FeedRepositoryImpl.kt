@@ -11,6 +11,8 @@ import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.FeedRepository
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Singleton
 class FeedRepositoryImpl @Inject constructor(
@@ -20,11 +22,22 @@ class FeedRepositoryImpl @Inject constructor(
 
     private var nextCursor: String? = null
 
+    override fun observeTodayFeed(): Flow<List<Post>> {
+        return postDao.observePostsByChallengeDate(AppDateUtils.todayKey())
+            .map { entities -> entities.map { it.toDomain() }.todayOnly() }
+    }
+
     override suspend fun getTodayFeed(cursor: String?, limit: Int): AppResult<List<Post>> {
         return safeApiCall {
             val response = api.getTodayFeed(cursor, limit)
             nextCursor = response.nextCursor
-            response.items.map { it.toDomain() }.todayOnly()
+            val posts = response.items.map { it.toDomain() }.todayOnly()
+            if (cursor == null) {
+                replaceCachedFeed(posts)
+            } else {
+                cacheFeed(posts)
+            }
+            posts
         }
     }
 
@@ -49,8 +62,24 @@ class FeedRepositoryImpl @Inject constructor(
     }
 
     override suspend fun replaceCachedFeed(posts: List<Post>) {
-        postDao.clearAll()
-        postDao.insertPosts(posts.todayOnly().map { it.toCachedEntity() })
+        val today = AppDateUtils.todayKey()
+        postDao.replaceRemotePosts(today, posts.todayOnly().map { it.toCachedEntity() })
+    }
+
+    override suspend fun upsertLocalPost(post: Post) {
+        postDao.insertPost(post.toCachedEntity().copy(syncState = "pending"))
+    }
+
+    override suspend fun replaceLocalPost(localId: String, post: Post) {
+        postDao.replacePostId(localId, post.toCachedEntity().copy(syncState = "uploaded"))
+    }
+
+    override suspend fun removeLocalPost(postId: String) {
+        postDao.deleteById(postId)
+    }
+
+    override suspend fun updateCachedPost(post: Post) {
+        postDao.insertPost(post.toCachedEntity())
     }
 
     override suspend fun getUserSuggestions(): AppResult<List<User>> {
