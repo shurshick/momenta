@@ -2,6 +2,7 @@ package com.bghitech.momenta.data.repository
 
 import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.common.safeApiCall
 import com.bghitech.momenta.data.mapper.toDomain
 import com.bghitech.momenta.data.remote.MomentaApi
 import com.bghitech.momenta.data.remote.dto.UpdateAvatarRequestDto
@@ -19,44 +20,33 @@ class ProfileRepositoryImpl @Inject constructor(
     private var cachedProfile: Profile? = null
 
     override suspend fun getMyProfile(): AppResult<Profile> {
-        return try {
-            val dto = api.getMyProfile()
-            val profile = dto.toDomain()
-            cachedProfile = profile
-            AppResult.Success(profile)
-        } catch (e: Exception) {
-            val cached = getCachedProfile()
-            if (cached != null) AppResult.Success(cached)
-            else AppResult.Error(AppError.Network)
+        return when (val result = safeApiCall {
+            api.getMyProfile().toDomain().also { cachedProfile = it }
+        }) {
+            is AppResult.Success -> result
+            is AppResult.Error -> {
+                val cached = getCachedProfile()
+                if (cached != null) AppResult.Success(cached) else AppResult.Error(AppError.Network)
+            }
         }
     }
 
     override suspend fun updateProfile(displayName: String?, bio: String?): AppResult<Profile> {
-        return try {
-            val dto = api.updateMyProfile(UpdateProfileRequestDto(displayName, bio))
-            val profile = dto.toDomain()
-            cachedProfile = profile
-            AppResult.Success(profile)
-        } catch (e: Exception) {
-            AppResult.Error(AppError.Unknown(e.message))
+        return safeApiCall {
+            api.updateMyProfile(UpdateProfileRequestDto(displayName, bio)).toDomain().also { cachedProfile = it }
         }
     }
 
     override suspend fun updateAvatar(avatarKey: String): AppResult<Profile> {
-        return try {
-            val profile = api.updateMyAvatar(UpdateAvatarRequestDto(avatarKey)).toDomain()
-            cachedProfile = profile
-            AppResult.Success(profile)
-        } catch (e: Exception) {
-            AppResult.Error(AppError.Unknown(e.message))
+        return safeApiCall {
+            api.updateMyAvatar(UpdateAvatarRequestDto(avatarKey)).toDomain().also { cachedProfile = it }
         }
     }
 
     override suspend fun getAvatars(): AppResult<List<String>> {
-        return try {
-            AppResult.Success(api.getAvatars().items.map { it.key })
-        } catch (e: Exception) {
-            AppResult.Success((1..40).map { index -> "avatar_%02d".format(index) })
+        return when (val result = safeApiCall { api.getAvatars().items.map { it.key } }) {
+            is AppResult.Success -> result
+            is AppResult.Error -> AppResult.Success((1..40).map { index -> "avatar_%02d".format(index) })
         }
     }
 

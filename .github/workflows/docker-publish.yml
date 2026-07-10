@@ -1,4 +1,4 @@
-name: Build and Publish
+﻿name: Build and Publish
 
 on:
   release:
@@ -121,7 +121,7 @@ jobs:
           echo ""
           echo "=== Checking for testOnly=true ==="
           if grep -q 'android:testOnly="true"' "$MANIFEST"; then
-            echo "::error::FAIL: merged manifest contains android:testOnly=true — APK will not install via Package Installer"
+            echo "::error::FAIL: merged manifest contains android:testOnly=true - APK will not install via Package Installer"
             grep 'android:testOnly' "$MANIFEST"
             exit 1
           fi
@@ -137,10 +137,10 @@ jobs:
           fi
           echo "APK: $APK"
           echo "=== aapt dump badging (testOnly) ==="
-          aapt dump badging "$APK" 2>&1 | grep -i testonly || echo "(no testOnly found — OK)"
+          aapt dump badging "$APK" 2>&1 | grep -i testonly || echo "(no testOnly found - OK)"
           echo ""
           echo "=== aapt dump xmltree (testOnly) ==="
-          aapt dump xmltree "$APK" AndroidManifest.xml 2>&1 | grep -i testonly || echo "(no testOnly found — OK)"
+          aapt dump xmltree "$APK" AndroidManifest.xml 2>&1 | grep -i testonly || echo "(no testOnly found - OK)"
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4

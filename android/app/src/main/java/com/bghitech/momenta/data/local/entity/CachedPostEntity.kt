@@ -1,9 +1,17 @@
 package com.bghitech.momenta.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "cached_posts")
+@Entity(
+    tableName = "cached_posts",
+    indices = [
+        Index(value = ["challengeDate", "createdAt"]),
+        Index(value = ["challengeDate", "cachedAt"]),
+        Index(value = ["isLiked"])
+    ]
+)
 data class CachedPostEntity(
     @PrimaryKey val id: String,
     val username: String,

@@ -1,8 +1,7 @@
 package com.bghitech.momenta.data.repository
 
-import com.bghitech.momenta.BuildConfig
-import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.common.safeApiCall
 import com.bghitech.momenta.core.datastore.TokenStore
 import com.bghitech.momenta.data.remote.MomentaApi
 import com.bghitech.momenta.domain.repository.SettingsRepository
@@ -23,12 +22,10 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun checkConnection(): AppResult<Unit> {
-        return try {
+        return safeApiCall {
             api.health()
             api.ready()
-            AppResult.Success(Unit)
-        } catch (e: Exception) {
-            AppResult.Error(AppError.Network)
+            Unit
         }
     }
 

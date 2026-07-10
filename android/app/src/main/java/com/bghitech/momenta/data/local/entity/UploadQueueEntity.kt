@@ -1,9 +1,16 @@
 package com.bghitech.momenta.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "upload_queue")
+@Entity(
+    tableName = "upload_queue",
+    indices = [
+        Index(value = ["status", "createdAt"]),
+        Index(value = ["challengeDate"])
+    ]
+)
 data class UploadQueueEntity(
     @PrimaryKey val localId: String,
     val challengeId: String,

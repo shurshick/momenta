@@ -15,27 +15,26 @@ class Settings(BaseSettings):
     app_latest_android_app_name: str = "Момент"
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
-    app_latest_android_version_name: str = "0.2.52"
-    app_latest_android_version_code: int = 52
+    app_latest_android_version_name: str = "0.2.53"
+    app_latest_android_version_code: int = 53
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
     app_latest_android_apk_url: str = (
-        "https://github.com/shurshick/momenta/releases/download/v0.2.52/app-prod-debug.apk"
+        "https://github.com/shurshick/momenta/releases/download/v0.2.53/app-prod-debug.apk"
     )
     app_latest_android_apk_sha256: str = (
-        "3c8d7b70e36f129ffbff697c1f17f4bc19d9e61908dd53bbaf05b837854832a6"
+        "a3e9e317b6c9d9e0dce8573bdf9fd528c181ad50b72f9f78675d447ca0a3cb14"
     )
-    app_latest_android_apk_size_bytes: int | None = 30964985
+    app_latest_android_apk_size_bytes: int | None = 30988462
     app_latest_android_release_url: str = (
-        "https://github.com/shurshick/momenta/releases/tag/v0.2.52"
+        "https://github.com/shurshick/momenta/releases/tag/v0.2.53"
     )
     app_latest_android_release_notes: str = (
-        "Исправлена кодировка русских строк|"
-        "Добавлена CI-защита от mojibake|"
-        "Лучший момент дня теперь выбирается строго из сегодняшних постов|"
-        "Worker больше не активирует посты с битой media|"
-        "Добавлены индексы, CounterService и repair-counters|"
-        "Версии сервера и Android выровнены для v0.2.52"
+        "Добавлен единый safeApiCall и нормальная модель AppError|"
+        "Auth path переведен на memory-first токены без runBlocking в OkHttp|"
+        "Room теперь экспортирует схему и получил baseline schema v4|"
+        "Локальный cache подготовлен к FeedStore индексами и Flow-запросом|"
+        "Destructive migration пока разрешена до ограниченного тестирования"
     )
     app_latest_android_published_at: str = "2026-07-10T00:00:00Z"
 

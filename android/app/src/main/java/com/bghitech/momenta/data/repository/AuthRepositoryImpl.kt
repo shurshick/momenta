@@ -2,6 +2,7 @@ package com.bghitech.momenta.data.repository
 
 import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.common.safeApiCall
 import com.bghitech.momenta.core.datastore.TokenStore
 import com.bghitech.momenta.data.mapper.toDomain
 import com.bghitech.momenta.data.remote.MomentaApi
@@ -13,11 +14,6 @@ import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,35 +24,32 @@ class AuthRepositoryImpl @Inject constructor(
 ) : AuthRepository {
 
     override suspend fun login(usernameOrEmail: String, password: String): AppResult<AuthToken> {
-        return try {
+        return safeApiCall {
             val response = api.login(LoginRequest(usernameOrEmail, password))
             tokenStore.saveTokens(response.accessToken, response.refreshToken, response.user.id, response.user.username)
-            AppResult.Success(AuthToken(response.accessToken, response.refreshToken, response.tokenType))
-        } catch (e: Exception) {
-            AppResult.Error(mapError(e))
+            AuthToken(response.accessToken, response.refreshToken, response.tokenType)
         }
     }
 
     override suspend fun register(username: String, email: String, password: String): AppResult<AuthToken> {
-        return try {
+        return safeApiCall {
             val response = api.register(RegisterRequest(username, email, password))
             tokenStore.saveTokens(response.accessToken, response.refreshToken, response.user.id, response.user.username)
-            AppResult.Success(AuthToken(response.accessToken, response.refreshToken, response.tokenType))
-        } catch (e: Exception) {
-            AppResult.Error(mapError(e))
+            AuthToken(response.accessToken, response.refreshToken, response.tokenType)
         }
     }
 
     override suspend fun refreshToken(): AppResult<AuthToken> {
-        return try {
-            val refreshToken = tokenStore.getRefreshToken() ?: return AppResult.Error(AppError.Unauthorized)
+        val refreshToken = tokenStore.getRefreshToken() ?: return AppResult.Error(AppError.Unauthorized)
+        val result = safeApiCall {
             val response = api.refresh(RefreshRequest(refreshToken))
             tokenStore.saveTokens(response.accessToken, response.refreshToken, "", "")
-            AppResult.Success(AuthToken(response.accessToken, response.refreshToken, response.tokenType))
-        } catch (e: Exception) {
-            tokenStore.clearTokens()
-            AppResult.Error(mapError(e))
+            AuthToken(response.accessToken, response.refreshToken, response.tokenType)
         }
+        if (result is AppResult.Error) {
+            tokenStore.clearTokens()
+        }
+        return result
     }
 
     override suspend fun logout() {
@@ -65,44 +58,12 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getMe(): AppResult<User> {
-        return try {
-            val user = api.getMe()
-            AppResult.Success(user.toDomain())
-        } catch (e: Exception) {
-            AppResult.Error(mapError(e))
+        return safeApiCall {
+            api.getMe().toDomain()
         }
     }
 
     override suspend fun isLoggedIn(): Boolean = tokenStore.getAccessToken() != null
 
     override fun observeAuthState(): Flow<Boolean> = tokenStore.observeToken().map { it != null }
-
-    private fun mapError(e: Exception): AppError {
-        return when (e) {
-            is HttpException -> {
-                val serverMessage = try {
-                    e.response()?.errorBody()?.string()?.let { body ->
-                        val element = Json.parseToJsonElement(body)
-                        element.jsonObject["detail"]?.jsonPrimitive?.content
-                    }
-                } catch (_: Exception) { null }
-
-                when (e.code()) {
-                    401 -> AppError.Unauthorized
-                    409 -> AppError.Validation(serverMessage ?: "Данные уже заняты")
-                    in 400..499 -> AppError.Validation(serverMessage ?: "Ошибка запроса")
-                    in 500..599 -> AppError.Server
-                    else -> AppError.Unknown(serverMessage ?: e.message())
-                }
-            }
-            is IOException -> {
-                if (e.message?.contains("timeout") == true || e.message?.contains("Unable to resolve host") == true) {
-                    AppError.Network
-                } else {
-                    AppError.Unknown(e.message)
-                }
-            }
-            else -> AppError.Unknown(e.message)
-        }
-    }
 }

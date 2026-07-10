@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.common.userMessage
 import com.bghitech.momenta.domain.usecase.LoginUseCase
 import com.bghitech.momenta.domain.usecase.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,12 +47,10 @@ class AuthViewModel @Inject constructor(
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        error = when (result.error) {
-                            AppError.Network -> "Нет подключения к серверу"
-                            AppError.Unauthorized -> "Неверный логин или пароль"
-                            AppError.Server -> "Ошибка сервера, попробуйте позже"
-                            is AppError.Validation -> result.error.message
-                            is AppError.Unknown -> result.error.message ?: "Произошла ошибка"
+                        error = if (result.error == AppError.Unauthorized) {
+                            "Неверный логин или пароль"
+                        } else {
+                            result.error.userMessage("Произошла ошибка")
                         }
                     )
                 }
@@ -68,13 +67,7 @@ class AuthViewModel @Inject constructor(
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        error = when (result.error) {
-                            AppError.Network -> "Нет подключения к серверу"
-                            AppError.Unauthorized -> "Неверный логин или пароль"
-                            AppError.Server -> "Ошибка сервера, попробуйте позже"
-                            is AppError.Validation -> result.error.message
-                            is AppError.Unknown -> result.error.message ?: "Произошла ошибка"
-                        }
+                        error = result.error.userMessage("Произошла ошибка")
                     )
                 }
             }

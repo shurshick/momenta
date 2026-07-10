@@ -23,7 +23,10 @@ object DatabaseModule {
             context,
             MomentaDatabase::class.java,
             "momenta_database"
-        ).fallbackToDestructiveMigration().build()
+        )
+            // Allowed until limited testing starts: local feed/upload cache may be reset.
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides fun provideChallengeDao(db: MomentaDatabase): ChallengeDao = db.challengeDao()

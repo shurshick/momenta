@@ -1,5 +1,24 @@
 # Changelog
 
+## [v0.2.53] - 2026-07-10
+
+### Added
+
+- **Android**: добавлен единый `safeApiCall` и расширенная модель `AppError` для 400/401/403/409/5xx/network/parse ошибок.
+- **Android**: включен Room `exportSchema`, добавлен baseline schema `4.json`.
+- **Android**: локальный cache подготовлен к FeedStore: индексы для `cached_posts`/`upload_queue` и Flow-запрос для постов дня.
+
+### Changed
+
+- **Android**: репозитории переведены на общий API error mapper вместо разрозненных `try/catch`.
+- **Android**: auth path переведен на memory-first токены без `runBlocking` в OkHttp interceptor/authenticator.
+- **Android**: destructive Room migration пока оставлена явно разрешенной до ограниченного тестирования.
+
+### Fixed
+
+- **Android**: исправлены видимые mojibake-строки в названии приложения, auth/publish ошибках и report reason.
+- **CI**: убраны битые символы из Android release workflow logs.
+
 ## [v0.2.52] - 2026-07-10
 
 ### Added

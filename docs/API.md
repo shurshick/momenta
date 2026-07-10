@@ -35,21 +35,20 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.52",
-  "version_code": 52,
+  "version_name": "0.2.53",
+  "version_code": 53,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.52/app-prod-debug.apk",
-  "apk_sha256": "3c8d7b70e36f129ffbff697c1f17f4bc19d9e61908dd53bbaf05b837854832a6",
-  "apk_size_bytes": 30964985,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.52",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.53/app-prod-debug.apk",
+  "apk_sha256": "a3e9e317b6c9d9e0dce8573bdf9fd528c181ad50b72f9f78675d447ca0a3cb14",
+  "apk_size_bytes": 30988462,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.53",
   "release_notes": [
-    "Исправлена кодировка русских строк",
-    "Добавлена CI-защита от mojibake",
-    "Лучший момент дня теперь выбирается строго из сегодняшних постов",
-    "Worker больше не активирует посты с битой media",
-    "Добавлены индексы, CounterService и repair-counters",
-    "Версии сервера и Android выровнены для v0.2.52"
+    "Добавлен единый safeApiCall и нормальная модель AppError",
+    "Auth path переведен на memory-first токены без runBlocking в OkHttp",
+    "Room теперь экспортирует схему и получил baseline schema v4",
+    "Локальный cache подготовлен к FeedStore индексами и Flow-запросом",
+    "Destructive migration пока разрешена до ограниченного тестирования"
   ],
   "published_at": "2026-07-10T00:00:00Z"
 }

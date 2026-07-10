@@ -3,7 +3,6 @@ package com.bghitech.momenta.data.remote.interceptor
 import com.bghitech.momenta.BuildConfig
 import com.bghitech.momenta.core.datastore.AuthTokenProvider
 import com.bghitech.momenta.core.datastore.TokenStore
-import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -18,7 +17,6 @@ import javax.inject.Singleton
 
 @Singleton
 class AuthInterceptor @Inject constructor(
-    private val tokenStore: TokenStore,
     private val tokenProvider: AuthTokenProvider
 ) : Interceptor {
 
@@ -28,7 +26,7 @@ class AuthInterceptor @Inject constructor(
             return chain.proceed(originalRequest)
         }
 
-        val accessToken = tokenProvider.accessToken() ?: runBlocking { tokenStore.getAccessToken() }
+        val accessToken = tokenProvider.accessToken()
 
         val request = if (accessToken != null) {
             originalRequest.newBuilder()
@@ -71,7 +69,7 @@ class TokenAuthenticator @Inject constructor(
         if (responseCount(response) >= 2) return null
 
         val requestToken = response.request.header("Authorization")?.removePrefix("Bearer ")
-        val cachedToken = tokenProvider.accessToken() ?: runBlocking { tokenStore.getAccessToken() }
+        val cachedToken = tokenProvider.accessToken()
         if (!cachedToken.isNullOrBlank() && cachedToken != requestToken) {
             return response.request.newBuilder()
                 .header("Authorization", "Bearer $cachedToken")
@@ -79,7 +77,7 @@ class TokenAuthenticator @Inject constructor(
         }
 
         val newAccessToken = synchronized(refreshLock) {
-            val currentToken = tokenProvider.accessToken() ?: runBlocking { tokenStore.getAccessToken() }
+            val currentToken = tokenProvider.accessToken()
             if (!currentToken.isNullOrBlank() && currentToken != requestToken) {
                 currentToken
             } else {
@@ -95,9 +93,9 @@ class TokenAuthenticator @Inject constructor(
     }
 
     private fun refreshAccessToken(): String? {
-        val refreshToken = tokenProvider.refreshToken() ?: runBlocking { tokenStore.getRefreshToken() }
+        val refreshToken = tokenProvider.refreshToken()
         if (refreshToken.isNullOrBlank()) {
-            runBlocking { tokenStore.clearTokens() }
+            tokenStore.clearTokensSync()
             return null
         }
 
@@ -114,7 +112,7 @@ class TokenAuthenticator @Inject constructor(
 
             refreshClient.newCall(request).execute().use { refreshResponse ->
                 if (!refreshResponse.isSuccessful) {
-                    runBlocking { tokenStore.clearTokens() }
+                    tokenStore.clearTokensSync()
                     return null
                 }
 
@@ -123,14 +121,14 @@ class TokenAuthenticator @Inject constructor(
                 val accessToken = json.optString("access_token")
                 val newRefreshToken = json.optString("refresh_token")
                 if (accessToken.isBlank() || newRefreshToken.isBlank()) {
-                    runBlocking { tokenStore.clearTokens() }
+                    tokenStore.clearTokensSync()
                     return null
                 }
-                runBlocking { tokenStore.saveTokens(accessToken, newRefreshToken, "", "") }
+                tokenStore.saveTokensSync(accessToken, newRefreshToken, "", "")
                 accessToken
             }
         } catch (_: Exception) {
-            runBlocking { tokenStore.clearTokens() }
+            tokenStore.clearTokensSync()
             null
         }
     }

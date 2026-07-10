@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия: **v0.2.52**.
+Текущая стабильная версия: **v0.2.53**.
 
 ## Что уже есть
 
@@ -59,12 +59,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.52
+image: ghcr.io/shurshick/momenta:v0.2.53
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-Для **v0.2.52** добавлена миграция БД `005`.
+Для **v0.2.53** обновлена Android-основа: safeApiCall, AppError, auth tokens без runBlocking и Room schema export.
 
 ## Обновления Android
 
@@ -78,8 +78,8 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.52](https://github.com/shurshick/momenta/releases/tag/v0.2.52)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.52`
+- Release: [v0.2.53](https://github.com/shurshick/momenta/releases/tag/v0.2.53)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.53`
 - Android APK: `app-prod-debug.apk`
 
 ## Документы

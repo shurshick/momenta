@@ -1,7 +1,7 @@
 package com.bghitech.momenta.data.repository
 
-import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.common.safeApiCall
 import com.bghitech.momenta.data.local.dao.PostDao
 import com.bghitech.momenta.data.mapper.*
 import com.bghitech.momenta.data.remote.MomentaApi
@@ -21,21 +21,20 @@ class FeedRepositoryImpl @Inject constructor(
     private var nextCursor: String? = null
 
     override suspend fun getTodayFeed(cursor: String?, limit: Int): AppResult<List<Post>> {
-        return try {
+        return safeApiCall {
             val response = api.getTodayFeed(cursor, limit)
             nextCursor = response.nextCursor
-            AppResult.Success(response.items.map { it.toDomain() }.todayOnly())
-        } catch (e: Exception) {
-            AppResult.Error(AppError.Network)
+            response.items.map { it.toDomain() }.todayOnly()
         }
     }
 
     override suspend fun getBestMoment(): AppResult<Post?> {
-        return try {
-            AppResult.Success(api.getBestMoment().post?.toDomain())
-        } catch (e: Exception) {
-            val cached = getCachedFeed()
-            AppResult.Success(cached.sortedByDescending { it.likesCount }.take(10).randomOrNull())
+        return when (val result = safeApiCall { api.getBestMoment().post?.toDomain() }) {
+            is AppResult.Success -> result
+            is AppResult.Error -> {
+                val cached = getCachedFeed()
+                AppResult.Success(cached.sortedByDescending { it.likesCount }.take(10).randomOrNull())
+            }
         }
     }
 
@@ -55,10 +54,9 @@ class FeedRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getUserSuggestions(): AppResult<List<User>> {
-        return try {
-            AppResult.Success(api.getUserSuggestions().items.map { it.toDomain() })
-        } catch (e: Exception) {
-            AppResult.Success(getCachedFeed().activeUsers())
+        return when (val result = safeApiCall { api.getUserSuggestions().items.map { it.toDomain() } }) {
+            is AppResult.Success -> result
+            is AppResult.Error -> AppResult.Success(getCachedFeed().activeUsers())
         }
     }
 

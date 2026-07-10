@@ -3,7 +3,9 @@ package com.bghitech.momenta.feature.publish
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.common.userMessage
 import com.bghitech.momenta.core.media.ImageCompressor
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.usecase.PublishMomentUseCase
@@ -41,8 +43,11 @@ class PublishViewModel @Inject constructor(
             try {
                 compressedFile = imageCompressor.compressForUpload(File(imagePath))
                 _state.value = _state.value.copy(isCompressing = false)
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(isCompressing = false, error = "Ошибка обработки изображения")
+            } catch (_: Exception) {
+                _state.value = _state.value.copy(
+                    isCompressing = false,
+                    error = "Ошибка обработки изображения"
+                )
             }
         }
     }
@@ -62,16 +67,17 @@ class PublishViewModel @Inject constructor(
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(
                         isUploading = false,
-                        error = when (result.error) {
-                            is com.bghitech.momenta.core.common.AppError.Validation -> result.error.message
-                            is com.bghitech.momenta.core.common.AppError.Unknown -> result.error.message ?: "Ошибка публикации"
-                            com.bghitech.momenta.core.common.AppError.Server -> "Ошибка сервера, попробуйте позже"
-                            com.bghitech.momenta.core.common.AppError.Network -> "Нет подключения к серверу"
-                            else -> "Ошибка публикации"
-                        }
+                        error = publishErrorMessage(result.error)
                     )
                 }
             }
+        }
+    }
+
+    private fun publishErrorMessage(error: AppError): String {
+        return when (error) {
+            is AppError.Conflict -> error.message.ifBlank { "Вы уже опубликовали момент сегодня" }
+            else -> error.userMessage("Ошибка публикации")
         }
     }
 }
