@@ -1,6 +1,6 @@
 ﻿services:
   momenta-api:
-    image: ghcr.io/shurshick/momenta:v0.2.56
+    image: ghcr.io/shurshick/momenta:v0.2.57
     container_name: momenta-api
     pull_policy: always
     restart: unless-stopped
@@ -61,7 +61,7 @@
       retries: 5
 
   momenta-worker:
-    image: ghcr.io/shurshick/momenta:v0.2.56
+    image: ghcr.io/shurshick/momenta:v0.2.57
     container_name: momenta-worker
     pull_policy: always
     restart: unless-stopped

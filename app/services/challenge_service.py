@@ -177,10 +177,12 @@ def _challenge_to_today_payload(
 
 async def _has_user_posted(db: AsyncSession, user_id: str, d: date) -> bool:
     result = await db.execute(
-        select(Post).where(
+        select(Post.id)
+        .where(
             Post.user_id == uuid.UUID(user_id),
             Post.challenge_date == d,
             Post.status.in_(["active", "processing", "uploading"]),
         )
+        .limit(1)
     )
     return result.scalar_one_or_none() is not None

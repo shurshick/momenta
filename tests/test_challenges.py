@@ -186,3 +186,41 @@ async def test_today_participants_count_ignores_deleted_posts(
 
     assert response.status_code == 200
     assert response.json()["participants_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_get_today_challenge_handles_multiple_user_posts(
+    client,
+    auth_headers,
+    test_user,
+    test_challenge,
+    db_session,
+):
+    db_session.add_all(
+        [
+            Post(
+                id=uuid.uuid4(),
+                user_id=test_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=current_app_date(),
+                media_type="photo",
+                original_url="https://example.com/active.jpg",
+                status="active",
+            ),
+            Post(
+                id=uuid.uuid4(),
+                user_id=test_user.id,
+                challenge_id=test_challenge.id,
+                challenge_date=current_app_date(),
+                media_type="photo",
+                original_url="https://example.com/processing.jpg",
+                status="processing",
+            ),
+        ]
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/v1/challenges/today", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["user_posted"] is True
