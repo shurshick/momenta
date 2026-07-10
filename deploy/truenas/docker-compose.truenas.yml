@@ -45,8 +45,8 @@
       APP_MIN_SUPPORTED_ANDROID_VERSION_CODE: 1
       APP_LATEST_ANDROID_MANDATORY: "false"
       APP_LATEST_ANDROID_APK_URL: https://github.com/shurshick/momenta/releases/download/v0.2.53/app-prod-debug.apk
-      APP_LATEST_ANDROID_APK_SHA256: a3e9e317b6c9d9e0dce8573bdf9fd528c181ad50b72f9f78675d447ca0a3cb14
-      APP_LATEST_ANDROID_APK_SIZE_BYTES: 30988462
+      APP_LATEST_ANDROID_APK_SHA256: 325d6dd28155ee6a96e3e752d8d859a978083fca3ecefa3ebf363f42dab97925
+      APP_LATEST_ANDROID_APK_SIZE_BYTES: 30967433
       APP_LATEST_ANDROID_RELEASE_URL: https://github.com/shurshick/momenta/releases/tag/v0.2.53
       APP_LATEST_ANDROID_RELEASE_NOTES: Добавлен единый safeApiCall и нормальная модель AppError|Auth path переведен на memory-first токены без runBlocking в OkHttp|Room теперь экспортирует схему и получил baseline schema v4|Локальный cache подготовлен к FeedStore индексами и Flow-запросом|Destructive migration пока разрешена до ограниченного тестирования
       APP_LATEST_ANDROID_PUBLISHED_AT: 2026-07-10T00:00:00Z

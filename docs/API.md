@@ -40,8 +40,8 @@ Example response:
   "min_supported_version_code": 1,
   "mandatory": false,
   "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.53/app-prod-debug.apk",
-  "apk_sha256": "a3e9e317b6c9d9e0dce8573bdf9fd528c181ad50b72f9f78675d447ca0a3cb14",
-  "apk_size_bytes": 30988462,
+  "apk_sha256": "325d6dd28155ee6a96e3e752d8d859a978083fca3ecefa3ebf363f42dab97925",
+  "apk_size_bytes": 30967433,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.53",
   "release_notes": [
     "Добавлен единый safeApiCall и нормальная модель AppError",
