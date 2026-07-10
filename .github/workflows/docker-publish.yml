@@ -69,9 +69,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Restore update signing keystore
         env:
           MOMENTA_UPDATE_KEYSTORE_BASE64: ${{ secrets.MOMENTA_UPDATE_KEYSTORE_BASE64 }}
