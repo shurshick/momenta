@@ -164,13 +164,28 @@ fun ProfileScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
-            Text(
-                text = "Профиль",
-                color = MomentaText,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Профиль",
+                    color = MomentaText,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = onSettingsClick) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = MomentaTextSecondary,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            }
             if (state.isLoading) {
                 ProfileLoadingSkeleton()
             } else {
@@ -185,7 +200,6 @@ fun ProfileScreen(
                 }
                 ProfileContent(
                     state = state,
-                    onSettingsClick = onSettingsClick,
                     onEditClick = { showEditDialog = true },
                     onAvatarClick = { showAvatarDialog = true }
                 )
@@ -197,7 +211,6 @@ fun ProfileScreen(
 @Composable
 private fun ProfileContent(
     state: ProfileUiState,
-    onSettingsClick: () -> Unit,
     onEditClick: () -> Unit,
     onAvatarClick: () -> Unit
 ) {
@@ -221,7 +234,6 @@ private fun ProfileContent(
             state = state,
             onEditClick = onEditClick,
             onAvatarClick = onAvatarClick,
-            onSettingsClick = onSettingsClick,
             modifier = Modifier.weight(1f)
         )
 
@@ -295,7 +307,6 @@ private fun ProfileIdentityBlock(
     state: ProfileUiState,
     onEditClick: () -> Unit,
     onAvatarClick: () -> Unit,
-    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -304,13 +315,11 @@ private fun ProfileIdentityBlock(
     ) {
         Box(
             modifier = Modifier
-                .width(148.dp)
-                .height(120.dp)
+                .size(114.dp)
         ) {
             Surface(
                 modifier = Modifier
                     .size(114.dp)
-                    .align(Alignment.TopStart)
                     .clip(CircleShape)
                     .clickable(onClick = onAvatarClick),
                 color = Color.Transparent,
@@ -338,20 +347,6 @@ private fun ProfileIdentityBlock(
                         size = 100.dp
                     )
                 }
-            }
-            IconButton(
-                onClick = onSettingsClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 2.dp)
-                    .size(34.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    tint = MomentaTextSecondary,
-                    modifier = Modifier.size(24.dp)
-                )
             }
         }
 

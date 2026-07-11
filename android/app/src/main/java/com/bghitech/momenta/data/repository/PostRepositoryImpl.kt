@@ -55,7 +55,9 @@ class PostRepositoryImpl @Inject constructor(
                 commentsCount = 0,
                 viewsCount = 0,
                 challengeDate = AppDateUtils.todayKey(),
-                createdAt = ""
+                createdAt = "",
+                isMine = true,
+                canDelete = true
             )
         }
     }

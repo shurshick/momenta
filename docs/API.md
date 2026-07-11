@@ -35,20 +35,20 @@ Example response:
   "package_name": "com.bghitech.momenta",
   "platform": "android",
   "channel": "stable",
-  "version_name": "0.2.56",
-  "version_code": 56,
+  "version_name": "0.2.60",
+  "version_code": 60,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.56/app-prod-debug.apk",
-  "apk_sha256": "33af798744b396dce95bf193cb47e6cd707da965586654f7fc39247b4d9efcc3",
-  "apk_size_bytes": 30969405,
-  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.56",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.60/app-prod-debug.apk",
+  "apk_sha256": "063b4f2c09fef7df792d4124a685798113f0e3565c6c5d4bf71d50706484b4b9",
+  "apk_size_bytes": 27253289,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.60",
   "release_notes": [
-    "Задание дня больше не зависит от авторизации",
-    "Карточка дня открывается даже при истекшем токене",
-    "Успешный ответ задания больше не скрывается ошибкой локального cache"
+    "Вернулась кнопка удаления своего свежего момента",
+    "Исправлены артефакты у встроенных аватаров",
+    "Шестеренка профиля перенесена в правый верхний угол"
   ],
-  "published_at": "2026-07-10T00:00:00Z"
+  "published_at": "2026-07-11T00:00:00Z"
 }
 ```
 

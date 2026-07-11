@@ -112,7 +112,7 @@ class PublishViewModel @Inject constructor(
             createdAt = nowIsoUtc(),
             isLiked = false,
             isMine = true,
-            canDelete = false
+            canDelete = true
         )
     }
 
