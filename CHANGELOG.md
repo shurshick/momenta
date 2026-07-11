@@ -1,5 +1,16 @@
 # Changelog
 
+## [v0.2.61] - 2026-07-11
+
+### Added
+
+- **CI**: добавлена проверка согласованности Android update metadata в `app/config.py`, TrueNAS YAML и API docs.
+- **Backend**: усилены smoke-тесты `/api/v1/meta` и `/api/v1/app/latest`.
+
+### Changed
+
+- **Release**: server-only релиз; актуальный Android APK остается `0.2.60`.
+
 ## [v0.2.60] - 2026-07-11
 
 ### Fixed

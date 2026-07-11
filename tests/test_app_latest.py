@@ -1,3 +1,5 @@
+import re
+
 from app.config import Settings, settings
 
 
@@ -14,6 +16,20 @@ async def test_app_latest_is_public(client):
     assert data["apk_url"].endswith(".apk")
     assert "jwt" not in data
     assert "secret" not in data
+
+
+async def test_app_latest_metadata_is_release_ready(client):
+    response = await client.get("/api/v1/app/latest")
+
+    assert response.status_code == 200
+    data = response.json()
+    version = data["version_name"]
+    assert data["apk_url"].endswith("/app-prod-debug.apk")
+    assert f"/download/v{version}/" in data["apk_url"]
+    assert data["release_url"].endswith(f"/v{version}")
+    assert re.fullmatch(r"[0-9a-f]{64}", data["apk_sha256"])
+    assert data["apk_size_bytes"] > 0
+    assert data["release_notes"]
 
 
 async def test_app_latest_uses_config_values(client, monkeypatch):

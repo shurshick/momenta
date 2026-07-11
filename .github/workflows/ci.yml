@@ -23,6 +23,9 @@ jobs:
       - name: Check mojibake
         run: python scripts/check_mojibake.py
 
+      - name: Check Android update metadata
+        run: uv run --python 3.12 --extra dev python scripts/check_android_update_metadata.py
+
       - name: Check Alembic heads
         run: >
           uv run --python 3.12 --extra dev python -c

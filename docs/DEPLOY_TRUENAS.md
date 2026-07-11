@@ -43,7 +43,7 @@ ghcr.io/shurshick/momenta
 Для тестового стенда удобно использовать `latest`. Для production лучше фиксировать тег:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.60
+image: ghcr.io/shurshick/momenta:v0.2.61
 ```
 
 Если TrueNAS не может скачать образ, сделайте package публичным:
@@ -212,7 +212,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-11T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.60`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.61`.
 2. Запустите app заново.
 
 После обновления проверьте:

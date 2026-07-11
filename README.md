@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.60**.
+Текущая стабильная версия сервера: **v0.2.61**.
 
 ## Что уже есть
 
@@ -59,12 +59,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.60
+image: ghcr.io/shurshick/momenta:v0.2.61
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.60** исправлены удаление свежего своего поста, встроенные аватары и header профиля.
+В **v0.2.61** добавлены smoke-проверки metadata обновлений и усилены тесты публичных meta/latest endpoint.
 
 ## Обновления Android
 
@@ -78,8 +78,8 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.60](https://github.com/shurshick/momenta/releases/tag/v0.2.60)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.60`
+- Release: [v0.2.61](https://github.com/shurshick/momenta/releases/tag/v0.2.61)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.61`
 - Android APK: актуальная версия приложения `0.2.60`
 
 ## Документы

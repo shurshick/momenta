@@ -1,5 +1,7 @@
 import pytest
 
+from app.version import RELEASE_VERSION
+
 
 @pytest.mark.asyncio
 async def test_health_returns_ok(client):
@@ -21,3 +23,4 @@ async def test_meta(client):
     data = response.json()
     assert "name" in data
     assert "version" in data
+    assert data["version"] == RELEASE_VERSION
