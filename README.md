@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.62**.
+Текущая стабильная версия сервера: **v0.2.63**.
 
 ## Что уже есть
 
@@ -59,12 +59,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.62
+image: ghcr.io/shurshick/momenta:v0.2.63
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.62** Android update metadata берётся из GitHub Release asset `android-update.json`; ручные APK sha/size/version больше не нужны в config/docs/TrueNAS.
+В **v0.2.63** исправлено положение баннера обновления на Android; он больше не залезает на системную строку.
 
 ## Обновления Android
 
@@ -80,7 +80,7 @@ GET /api/v1/app/latest
 
 - Release: [v0.2.61](https://github.com/shurshick/momenta/releases/tag/v0.2.61)
 - Docker image: `ghcr.io/shurshick/momenta:v0.2.61`
-- Android APK: актуальная версия приложения `0.2.60`
+- Android APK: актуальная версия приложения `0.2.63`
 
 ## Документы
 
