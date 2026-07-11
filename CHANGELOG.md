@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.2.62] - 2026-07-11
+
+### Added
+
+- **Backend**: `/api/v1/app/latest` теперь берёт Android metadata из GitHub Release asset `android-update.json` и кеширует последний валидный ответ в БД.
+- **Release**: Android APK workflow сам генерирует `android-update.json` с version, sha256, size, APK URL и release notes.
+- **CI**: проверка Android update metadata теперь ловит возврат ручных APK sha/size/version в docs/TrueNAS.
+
+### Changed
+
+- **Deploy**: server-only релизы больше не требуют обновлять Android APK metadata вручную.
+
 ## [v0.2.61] - 2026-07-11
 
 ### Added

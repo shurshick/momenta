@@ -15,26 +15,15 @@ class Settings(BaseSettings):
     app_latest_android_app_name: str = "Момент"
     app_latest_android_package_name: str = "com.bghitech.momenta"
     app_latest_android_channel: str = "stable"
-    app_latest_android_version_name: str = "0.2.60"
-    app_latest_android_version_code: int = 60
     app_min_supported_android_version_code: int = 1
     app_latest_android_mandatory: bool = False
-    app_latest_android_apk_url: str = (
-        "https://github.com/shurshick/momenta/releases/download/v0.2.60/app-prod-debug.apk"
-    )
-    app_latest_android_apk_sha256: str = (
-        "26fc5a418f37d41f336e690b1711ce4d833a6a31e2713fc81486170888bfcb0d"
-    )
-    app_latest_android_apk_size_bytes: int | None = 27253273
-    app_latest_android_release_url: str = (
-        "https://github.com/shurshick/momenta/releases/tag/v0.2.60"
-    )
-    app_latest_android_release_notes: str = (
-        "Вернулась кнопка удаления своего свежего момента|"
-        "Исправлены артефакты у встроенных аватаров|"
-        "Шестеренка профиля перенесена в правый верхний угол"
-    )
-    app_latest_android_published_at: str = "2026-07-11T00:00:00Z"
+    app_update_source: str = "github"
+    app_update_github_repo: str = "shurshick/momenta"
+    app_update_github_api_base_url: str = "https://api.github.com"
+    app_update_github_token: str = ""
+    app_update_metadata_asset_name: str = "android-update.json"
+    app_update_cache_ttl_seconds: int = 300
+    app_update_request_timeout_seconds: float = 10.0
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000
@@ -92,19 +81,11 @@ class Settings(BaseSettings):
             if media_type.strip()
         ]
 
-    @property
-    def app_latest_android_release_note_list(self) -> List[str]:
-        return [
-            note.strip()
-            for note in self.app_latest_android_release_notes.split("|")
-            if note.strip()
-        ]
-
-    @field_validator("app_latest_android_apk_size_bytes", mode="before")
+    @field_validator("app_update_cache_ttl_seconds", mode="before")
     @classmethod
-    def empty_string_to_none(cls, value):
+    def empty_string_to_default_cache_ttl(cls, value):
         if value == "":
-            return None
+            return 300
         return value
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}

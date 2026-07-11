@@ -26,6 +26,8 @@ Authorization: Bearer <access_token>
 ## App
 
 - `GET /api/v1/app/latest` — Public Android update metadata. Does not require auth.
+  Backend reads the latest GitHub Release that contains `android-update.json`, caches it,
+  and skips server-only releases without APK metadata.
 
 Example response:
 

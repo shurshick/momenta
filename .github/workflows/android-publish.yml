@@ -76,18 +76,88 @@ jobs:
           fi
           echo "OK: no android:testOnly=true found in merged manifest"
 
+      - name: Generate update metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          APK_DIR="android/app/build/outputs/apk/prod/debug"
+          APK_PATH="$(find "$APK_DIR" -maxdepth 1 -name '*.apk' | head -n 1)"
+          FINAL_APK="$APK_DIR/app-prod-debug.apk"
+          if [ -z "$APK_PATH" ]; then
+            echo "::error::APK not found in $APK_DIR"
+            exit 1
+          fi
+          if [ "$APK_PATH" != "$FINAL_APK" ]; then
+            cp "$APK_PATH" "$FINAL_APK"
+          fi
+
+          VERSION_NAME="$(grep -m1 'versionName = ' android/app/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')"
+          VERSION_CODE="$(grep -m1 'versionCode = ' android/app/build.gradle.kts | sed -E 's/.*= ([0-9]+).*/\1/')"
+          if [ "v$VERSION_NAME" != "$RELEASE_TAG" ]; then
+            echo "::error::Release tag $RELEASE_TAG does not match Android versionName $VERSION_NAME"
+            exit 1
+          fi
+
+          APK_SHA256="$(sha256sum "$FINAL_APK" | awk '{print $1}')"
+          APK_SIZE_BYTES="$(stat -c%s "$FINAL_APK")"
+          RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
+          APK_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/app-prod-debug.apk"
+          RELEASE_BODY="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body -q '.body // ""')"
+          PUBLISHED_AT="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json publishedAt -q '.publishedAt // ""')"
+
+          export VERSION_NAME VERSION_CODE APK_SHA256 APK_SIZE_BYTES RELEASE_URL APK_URL RELEASE_BODY PUBLISHED_AT
+          python - <<'PY'
+          import json
+          import os
+
+          notes = []
+          for line in os.environ["RELEASE_BODY"].splitlines():
+              line = line.strip()
+              if not line or line.startswith(("```", "APK:", "Metadata:", "Docker:", "sha256:", "size:")):
+                  continue
+              notes.append(line.removeprefix("-").strip())
+
+          metadata = {
+              "app_name": "Момент",
+              "package_name": "com.bghitech.momenta",
+              "platform": "android",
+              "channel": "stable",
+              "version_name": os.environ["VERSION_NAME"],
+              "version_code": int(os.environ["VERSION_CODE"]),
+              "min_supported_version_code": 1,
+              "mandatory": False,
+              "apk_url": os.environ["APK_URL"],
+              "apk_sha256": os.environ["APK_SHA256"],
+              "apk_size_bytes": int(os.environ["APK_SIZE_BYTES"]),
+              "release_url": os.environ["RELEASE_URL"],
+              "release_notes": notes,
+              "published_at": os.environ["PUBLISHED_AT"],
+          }
+
+          with open("android-update.json", "w", encoding="utf-8") as fh:
+              json.dump(metadata, fh, ensure_ascii=False, indent=2)
+              fh.write("\n")
+          PY
+
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-debug
-          path: android/app/build/outputs/apk/prod/debug/*.apk
+          name: android-update
+          path: |
+            android/app/build/outputs/apk/prod/debug/app-prod-debug.apk
+            android-update.json
           retention-days: 30
 
-      - name: Upload APK to release
+      - name: Upload APK and metadata to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${{ inputs.release_tag }}" \
-            android/app/build/outputs/apk/prod/debug/*.apk \
+            android/app/build/outputs/apk/prod/debug/app-prod-debug.apk \
+            android-update.json \
             --repo "${{ github.repository }}" \
             --clobber

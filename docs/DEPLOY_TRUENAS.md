@@ -185,19 +185,18 @@ Android-приложение проверяет обновления через 
 curl -s http://TRUENAS_IP:8010/api/v1/app/latest
 ```
 
-Для релиза можно задать эти переменные окружения у `momenta-api`:
+Backend сам берёт Android metadata из GitHub Release asset `android-update.json`.
+Server-only релизы пропускаются, потому что в них этого asset нет.
+
+Настройки у `momenta-api`:
 
 ```env
-APP_LATEST_ANDROID_VERSION_NAME=0.2.60
-APP_LATEST_ANDROID_VERSION_CODE=60
 APP_MIN_SUPPORTED_ANDROID_VERSION_CODE=1
 APP_LATEST_ANDROID_MANDATORY=false
-APP_LATEST_ANDROID_APK_URL=https://github.com/shurshick/momenta/releases/download/v0.2.60/app-prod-debug.apk
-APP_LATEST_ANDROID_APK_SHA256=26fc5a418f37d41f336e690b1711ce4d833a6a31e2713fc81486170888bfcb0d
-APP_LATEST_ANDROID_APK_SIZE_BYTES=27253273
-APP_LATEST_ANDROID_RELEASE_URL=https://github.com/shurshick/momenta/releases/tag/v0.2.60
-APP_LATEST_ANDROID_RELEASE_NOTES=Вернулась кнопка удаления своего свежего момента|Исправлены артефакты у встроенных аватаров|Шестеренка профиля перенесена в правый верхний угол
-APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-11T00:00:00Z
+APP_UPDATE_SOURCE=github
+APP_UPDATE_GITHUB_REPO=shurshick/momenta
+APP_UPDATE_METADATA_ASSET_NAME=android-update.json
+APP_UPDATE_CACHE_TTL_SECONDS=300
 ```
 
 `APP_VERSION` не используется для Android-обновлений. Версия сервера и версия APK теперь живут отдельно.
@@ -212,7 +211,7 @@ APP_LATEST_ANDROID_PUBLISHED_AT=2026-07-11T00:00:00Z
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.61`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.62`.
 2. Запустите app заново.
 
 После обновления проверьте:

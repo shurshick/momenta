@@ -12,6 +12,7 @@ from app.models.challenge import Challenge
 from app.models.user import User
 from app.security import get_password_hash
 from app.services.challenge_service import current_app_date
+from app.services.setting_service import invalidate_cache
 
 
 @pytest.fixture(scope="session")
@@ -28,7 +29,9 @@ async def engine(tmp_path_factory):
 
 @pytest.fixture(autouse=True)
 async def cleanup_db(engine):
+    invalidate_cache()
     yield
+    invalidate_cache()
     async with engine.begin() as conn:
         for table in (
             "audit_logs",

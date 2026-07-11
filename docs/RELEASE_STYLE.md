@@ -14,17 +14,16 @@
 Docker: ghcr.io/shurshick/momenta:vX.Y.Z
 ```
 
-- Android-релиз публикуется только когда менялся APK. APK-блок всегда одинаковый:
+- Android-релиз публикуется только когда менялся APK. Workflow прикрепляет:
 
 ```text
 APK: app-prod-debug.apk
-sha256: <sha>
-size: <bytes>
+Metadata: android-update.json
 Docker: ghcr.io/shurshick/momenta:vX.Y.Z
 ```
 
 - Docker image публикуется workflow `Docker Publish`.
-- APK прикрепляется отдельно ручным workflow `Android APK Publish` с нужным release tag.
+- APK и `android-update.json` прикрепляются ручным workflow `Android APK Publish` с нужным release tag.
 
 ## README
 
@@ -34,9 +33,8 @@ Docker: ghcr.io/shurshick/momenta:vX.Y.Z
 
 ## Docs
 
-- В `docs/API.md` держать актуальный пример `/api/v1/app/latest`.
-- В `docs/DEPLOY_TRUENAS.md` держать актуальный Docker tag и env-блок.
-- Release notes в env писать одной строкой через `|`, без markdown.
+- В `docs/API.md` держать пример `/api/v1/app/latest`.
+- В `docs/DEPLOY_TRUENAS.md` держать актуальный Docker tag и env-блок без ручных APK sha/size/version.
 
 ## Encoding
 

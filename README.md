@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.61**.
+Текущая стабильная версия сервера: **v0.2.62**.
 
 ## Что уже есть
 
@@ -59,12 +59,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.61
+image: ghcr.io/shurshick/momenta:v0.2.62
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.61** добавлены smoke-проверки metadata обновлений и усилены тесты публичных meta/latest endpoint.
+В **v0.2.62** Android update metadata берётся из GitHub Release asset `android-update.json`; ручные APK sha/size/version больше не нужны в config/docs/TrueNAS.
 
 ## Обновления Android
 
@@ -74,7 +74,7 @@ Android больше не ходит напрямую в GitHub Releases API. П
 GET /api/v1/app/latest
 ```
 
-Сервер отдает `version_name`, `version_code`, `apk_url`, `apk_sha256`, `mandatory` и release notes. Метаданные задаются переменными окружения backend, отдельно от версии сервера.
+Сервер отдает `version_name`, `version_code`, `apk_url`, `apk_sha256`, `mandatory` и release notes. Метаданные генерирует Android release workflow, сервер кеширует последний релиз с `android-update.json`.
 
 ## Релизы
 

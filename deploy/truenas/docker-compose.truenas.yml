@@ -1,6 +1,6 @@
 ﻿services:
   momenta-api:
-    image: ghcr.io/shurshick/momenta:v0.2.61
+    image: ghcr.io/shurshick/momenta:v0.2.62
     container_name: momenta-api
     pull_policy: always
     restart: unless-stopped
@@ -41,16 +41,12 @@
       APP_LATEST_ANDROID_APP_NAME: Момент
       APP_LATEST_ANDROID_PACKAGE_NAME: com.bghitech.momenta
       APP_LATEST_ANDROID_CHANNEL: stable
-      APP_LATEST_ANDROID_VERSION_NAME: 0.2.60
-      APP_LATEST_ANDROID_VERSION_CODE: 60
       APP_MIN_SUPPORTED_ANDROID_VERSION_CODE: 1
       APP_LATEST_ANDROID_MANDATORY: "false"
-      APP_LATEST_ANDROID_APK_URL: https://github.com/shurshick/momenta/releases/download/v0.2.60/app-prod-debug.apk
-      APP_LATEST_ANDROID_APK_SHA256: 26fc5a418f37d41f336e690b1711ce4d833a6a31e2713fc81486170888bfcb0d
-      APP_LATEST_ANDROID_APK_SIZE_BYTES: 27253273
-      APP_LATEST_ANDROID_RELEASE_URL: https://github.com/shurshick/momenta/releases/tag/v0.2.60
-      APP_LATEST_ANDROID_RELEASE_NOTES: Вернулась кнопка удаления своего свежего момента|Исправлены артефакты у встроенных аватаров|Шестеренка профиля перенесена в правый верхний угол
-      APP_LATEST_ANDROID_PUBLISHED_AT: 2026-07-11T00:00:00Z
+      APP_UPDATE_SOURCE: github
+      APP_UPDATE_GITHUB_REPO: shurshick/momenta
+      APP_UPDATE_METADATA_ASSET_NAME: android-update.json
+      APP_UPDATE_CACHE_TTL_SECONDS: 300
     ports:
       - "8010:8000"
     volumes:
@@ -62,7 +58,7 @@
       retries: 5
 
   momenta-worker:
-    image: ghcr.io/shurshick/momenta:v0.2.61
+    image: ghcr.io/shurshick/momenta:v0.2.62
     container_name: momenta-worker
     pull_policy: always
     restart: unless-stopped
