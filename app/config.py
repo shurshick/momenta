@@ -23,9 +23,9 @@ class Settings(BaseSettings):
         "https://github.com/shurshick/momenta/releases/download/v0.2.60/app-prod-debug.apk"
     )
     app_latest_android_apk_sha256: str = (
-        "063b4f2c09fef7df792d4124a685798113f0e3565c6c5d4bf71d50706484b4b9"
+        "26fc5a418f37d41f336e690b1711ce4d833a6a31e2713fc81486170888bfcb0d"
     )
-    app_latest_android_apk_size_bytes: int | None = 27253289
+    app_latest_android_apk_size_bytes: int | None = 27253273
     app_latest_android_release_url: str = (
         "https://github.com/shurshick/momenta/releases/tag/v0.2.60"
     )

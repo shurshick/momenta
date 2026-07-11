@@ -46,8 +46,8 @@
       APP_MIN_SUPPORTED_ANDROID_VERSION_CODE: 1
       APP_LATEST_ANDROID_MANDATORY: "false"
       APP_LATEST_ANDROID_APK_URL: https://github.com/shurshick/momenta/releases/download/v0.2.60/app-prod-debug.apk
-      APP_LATEST_ANDROID_APK_SHA256: 063b4f2c09fef7df792d4124a685798113f0e3565c6c5d4bf71d50706484b4b9
-      APP_LATEST_ANDROID_APK_SIZE_BYTES: 27253289
+      APP_LATEST_ANDROID_APK_SHA256: 26fc5a418f37d41f336e690b1711ce4d833a6a31e2713fc81486170888bfcb0d
+      APP_LATEST_ANDROID_APK_SIZE_BYTES: 27253273
       APP_LATEST_ANDROID_RELEASE_URL: https://github.com/shurshick/momenta/releases/tag/v0.2.60
       APP_LATEST_ANDROID_RELEASE_NOTES: Вернулась кнопка удаления своего свежего момента|Исправлены артефакты у встроенных аватаров|Шестеренка профиля перенесена в правый верхний угол
       APP_LATEST_ANDROID_PUBLISHED_AT: 2026-07-11T00:00:00Z

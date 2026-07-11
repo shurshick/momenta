@@ -40,8 +40,8 @@ Example response:
   "min_supported_version_code": 1,
   "mandatory": false,
   "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.60/app-prod-debug.apk",
-  "apk_sha256": "063b4f2c09fef7df792d4124a685798113f0e3565c6c5d4bf71d50706484b4b9",
-  "apk_size_bytes": 27253289,
+  "apk_sha256": "26fc5a418f37d41f336e690b1711ce4d833a6a31e2713fc81486170888bfcb0d",
+  "apk_size_bytes": 27253273,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.60",
   "release_notes": [
     "Вернулась кнопка удаления своего свежего момента",
