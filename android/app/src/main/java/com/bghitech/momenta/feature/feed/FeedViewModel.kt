@@ -46,6 +46,7 @@ class FeedViewModel @Inject constructor(
     private var syncJob: Job? = null
     private var feedObservationJob: Job? = null
     private var observedDate: String? = null
+    private var lastSuccessfulSyncAt: Long = 0L
 
     init {
         observeFeedStore()
@@ -53,15 +54,26 @@ class FeedViewModel @Inject constructor(
         loadUserSuggestions()
     }
 
-    fun loadFeed(force: Boolean = false) {
+    fun loadFeed(force: Boolean = false, showLoading: Boolean = true) {
         if (_state.value.isLoading && !force) return
         if (force) syncJob?.cancel()
-        syncJob = viewModelScope.launch { syncFeed() }
+        syncJob = viewModelScope.launch { syncFeed(showLoading) }
     }
 
     fun refresh() {
         observeFeedStore()
         loadFeed(force = true)
+    }
+
+    fun onScreenResumed() {
+        val dateChanged = observedDate != AppDateUtils.todayKey()
+        observeFeedStore()
+        if (syncJob?.isActive == true) return
+
+        val stale = android.os.SystemClock.elapsedRealtime() - lastSuccessfulSyncAt >= RESUME_SYNC_INTERVAL_MS
+        if (dateChanged || stale) {
+            loadFeed(force = true, showLoading = dateChanged || _state.value.items.isEmpty())
+        }
     }
 
     fun loadMore() {
@@ -227,10 +239,13 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    private suspend fun syncFeed() {
-        _state.value = _state.value.copy(isLoading = true, error = null)
+    private suspend fun syncFeed(showLoading: Boolean) {
+        if (showLoading) {
+            _state.value = _state.value.copy(isLoading = true, error = null)
+        }
         when (getTodayFeedUseCase()) {
             is AppResult.Success -> {
+                lastSuccessfulSyncAt = android.os.SystemClock.elapsedRealtime()
                 _state.value = _state.value.copy(isLoading = false, isOffline = false, error = null)
             }
             is AppResult.Error -> {
@@ -242,6 +257,10 @@ class FeedViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private companion object {
+        const val RESUME_SYNC_INTERVAL_MS = 60_000L
     }
 
     private fun loadUserSuggestions() {

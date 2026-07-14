@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.67**.
+Текущая стабильная версия сервера: **v0.2.68**.
 
 ## Что уже есть
 
@@ -64,12 +64,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.67
+image: ghcr.io/shurshick/momenta:v0.2.68
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.67** добавлено приватное избранное с Room-first кешем, быстрым удалением и отправкой сохранённых моментов.
+В **v0.2.68** возврат в ленту больше не запускает грубое видимое обновление, а индикатор загрузки использует официальный знак.
 
 ## Обновления Android
 
@@ -83,9 +83,9 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.67](https://github.com/shurshick/momenta/releases/tag/v0.2.67)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.67`
-- Android APK: актуальная версия приложения `0.2.67`
+- Release: [v0.2.68](https://github.com/shurshick/momenta/releases/tag/v0.2.68)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.68`
+- Android APK: актуальная версия приложения `0.2.68`
 
 ## Документы
 
