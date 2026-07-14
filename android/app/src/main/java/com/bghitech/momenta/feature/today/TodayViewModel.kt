@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.core.common.userMessage
+import com.bghitech.momenta.core.util.AppDateUtils
 import com.bghitech.momenta.domain.model.Challenge
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.repository.FeedRepository
@@ -22,10 +23,14 @@ data class TodayUiState(
     val isBestMomentLoading: Boolean = false,
     val feedLoaded: Boolean = false,
     val userPostedToday: Boolean = false,
-    val isOffline: Boolean = false,
+    val challengeOffline: Boolean = false,
+    val bestMomentOffline: Boolean = false,
     val challengeError: String? = null,
     val bestMomentError: String? = null
-)
+) {
+    val isOffline: Boolean
+        get() = challengeOffline || bestMomentOffline
+}
 
 @HiltViewModel
 class TodayViewModel @Inject constructor(
@@ -38,8 +43,7 @@ class TodayViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        loadChallenge()
-        refreshBestMoment()
+        refresh()
     }
 
     fun loadChallenge() {
@@ -61,14 +65,14 @@ class TodayViewModel @Inject constructor(
                         isChallengeLoading = false,
                         challenge = result.data,
                         userPostedToday = result.data.userPosted,
-                        isOffline = false,
+                        challengeOffline = false,
                         challengeError = null
                     )
                 }
                 is AppResult.Error -> {
                     _state.value = _state.value.copy(
                         isChallengeLoading = false,
-                        isOffline = cached == null,
+                        challengeOffline = true,
                         challengeError = if (cached == null) {
                             result.error.userMessage("Не удалось загрузить задание дня")
                         } else {
@@ -87,6 +91,31 @@ class TodayViewModel @Inject constructor(
         }
     }
 
+    fun refresh() {
+        dropExpiredDayState()
+        loadChallenge()
+        refreshBestMoment()
+    }
+
+    private fun dropExpiredDayState() {
+        val today = AppDateUtils.todayKey()
+        val current = _state.value
+        val challenge = current.challenge?.takeIf { it.date == today }
+        val bestPost = current.bestPost?.takeIf { it.challengeDate == today }
+        if (challenge != current.challenge || bestPost != current.bestPost) {
+            _state.value = current.copy(
+                challenge = challenge,
+                bestPost = bestPost,
+                feedLoaded = false,
+                userPostedToday = challenge?.userPosted ?: false,
+                challengeOffline = false,
+                bestMomentOffline = false,
+                challengeError = null,
+                bestMomentError = null
+            )
+        }
+    }
+
     private suspend fun loadBestPost() {
         _state.value = _state.value.copy(isBestMomentLoading = true, bestMomentError = null)
         val cached = getTodayFeedUseCase.getCached()
@@ -102,6 +131,7 @@ class TodayViewModel @Inject constructor(
                     bestPost = fallbackPost,
                     feedLoaded = true,
                     isBestMomentLoading = false,
+                    bestMomentOffline = false,
                     bestMomentError = null
                 )
             }
@@ -111,6 +141,7 @@ class TodayViewModel @Inject constructor(
                     bestPost = fallbackPost,
                     feedLoaded = fallbackPost != null || cached.isNotEmpty(),
                     isBestMomentLoading = false,
+                    bestMomentOffline = true,
                     bestMomentError = if (fallbackPost == null) {
                         "Лучший момент дня пока не найден"
                     } else {

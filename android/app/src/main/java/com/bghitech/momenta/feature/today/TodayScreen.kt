@@ -58,6 +58,7 @@ import com.bghitech.momenta.core.design.MomentaCard
 import com.bghitech.momenta.core.design.MomentaGreen
 import com.bghitech.momenta.core.design.MomentaLargeShape
 import com.bghitech.momenta.core.design.MomentaLogoMark
+import com.bghitech.momenta.core.design.MomentaOfflineBanner
 import com.bghitech.momenta.core.design.MomentaPrimaryButton
 import com.bghitech.momenta.core.design.MomentaScreen
 import com.bghitech.momenta.core.design.MomentaSecondaryButton
@@ -82,7 +83,7 @@ fun TodayScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refreshBestMoment()
+                viewModel.refresh()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -97,6 +98,11 @@ fun TodayScreen(
                 .padding(horizontal = 20.dp)
         ) {
             Header()
+
+            if (state.isOffline && (state.challenge != null || state.bestPost != null)) {
+                MomentaOfflineBanner()
+                Spacer(modifier = Modifier.height(10.dp))
+            }
 
             ChallengeSection(
                 state = state,

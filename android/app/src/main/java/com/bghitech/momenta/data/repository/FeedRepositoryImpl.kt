@@ -41,15 +41,12 @@ class FeedRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getBestMoment(): AppResult<Post?> {
-        return when (val result = safeApiCall { api.getBestMoment().post?.toDomain() }) {
-            is AppResult.Success -> result
-            is AppResult.Error -> {
-                val cached = getCachedFeed()
-                AppResult.Success(cached.sortedByDescending { it.likesCount }.take(10).randomOrNull())
+    override suspend fun getBestMoment(): AppResult<Post?> =
+        safeApiCall {
+            api.getBestMoment().post?.toDomain()?.takeIf {
+                it.challengeDate == AppDateUtils.todayKey()
             }
         }
-    }
 
     override suspend fun getNextCursor(): String? = nextCursor
 

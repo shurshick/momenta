@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.65**.
+Текущая стабильная версия сервера: **v0.2.66**.
 
 ## Что уже есть
 
@@ -36,6 +36,11 @@ cd android
 Готовый APK лежит в релизах GitHub:
 [Latest release](https://github.com/shurshick/momenta/releases/latest)
 
+## Бренд
+
+Канонический официальный знак с прозрачным фоном: [assets/brand/momenta-logo-official.png](assets/brand/momenta-logo-official.png).
+Android использует его копию из `drawable-nodpi`; CI проверяет прозрачность и полное совпадение файлов.
+
 ## Backend
 
 Локальный запуск:
@@ -59,12 +64,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.65
+image: ghcr.io/shurshick/momenta:v0.2.66
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.65** статистика профиля переведена на единый сервис счётчиков, а Android очищает кеш профиля при смене сессии.
+В **v0.2.66** главная и лента корректно обновляются после публикации и смены app day, а сохранённые данные честно помечаются как офлайн.
 
 ## Обновления Android
 
@@ -78,9 +83,9 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.65](https://github.com/shurshick/momenta/releases/tag/v0.2.65)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.65`
-- Android APK: актуальная версия приложения `0.2.65`
+- Release: [v0.2.66](https://github.com/shurshick/momenta/releases/tag/v0.2.66)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.66`
+- Android APK: актуальная версия приложения `0.2.66`
 
 ## Документы
 

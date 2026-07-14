@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import coil.compose.rememberAsyncImagePainter
 import com.bghitech.momenta.core.design.*
 import com.bghitech.momenta.core.util.DateUtils
@@ -55,7 +58,6 @@ fun FeedScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-    var selectedTab by remember { mutableIntStateOf(0) }
     val isRefreshing = state.isLoading && state.items.isNotEmpty()
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -64,6 +66,17 @@ fun FeedScreen(
     var requestedFocusReloadFor by remember { mutableStateOf<String?>(null) }
     var handledFocusPostId by remember { mutableStateOf<String?>(null) }
     var fullscreenPost by remember { mutableStateOf<Post?>(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(focusPostId, state.items, state.isLoading) {
         val targetId = focusPostId ?: return@LaunchedEffect
@@ -117,38 +130,6 @@ fun FeedScreen(
         Column(modifier = Modifier.fillMaxSize()) {
         MomentaScreenHeader(title = "Мир сейчас")
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        ) {
-            listOf("Мир сейчас", "Подписки").forEachIndexed { index, title ->
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { selectedTab = index }
-                        .padding(bottom = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = title,
-                        color = if (selectedTab == index) MomentaGreen else MomentaTextSecondary,
-                        fontSize = 17.sp,
-                        fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
-                    )
-                    if (selectedTab == index) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .width(54.dp)
-                                .height(3.dp)
-                                .background(MomentaGreen, MomentaSmallShape)
-                        )
-                    }
-                }
-            }
-        }
-
         LazyRow(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp)
@@ -174,6 +155,12 @@ fun FeedScreen(
                     )
                 }
             }
+        }
+
+        if (state.isOffline && state.items.isNotEmpty()) {
+            MomentaOfflineBanner(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+            )
         }
 
         Box(

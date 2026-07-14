@@ -17,15 +17,8 @@ class ChallengeRepositoryImpl @Inject constructor(
     private val challengeDao: ChallengeDao
 ) : ChallengeRepository {
 
-    override suspend fun getTodayChallenge(): AppResult<Challenge> {
-        return when (val result = safeApiCall { api.getTodayChallenge().toDomain() }) {
-            is AppResult.Success -> result
-            is AppResult.Error -> {
-                val cached = getCachedChallenge()
-                if (cached != null) AppResult.Success(cached) else result
-            }
-        }
-    }
+    override suspend fun getTodayChallenge(): AppResult<Challenge> =
+        safeApiCall { api.getTodayChallenge().toDomain() }
 
     override suspend fun getCachedChallenge(): Challenge? {
         return challengeDao.getChallengeByDate(AppDateUtils.todayKey())?.toDomain()

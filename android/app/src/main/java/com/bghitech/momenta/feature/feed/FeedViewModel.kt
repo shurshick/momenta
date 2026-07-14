@@ -3,6 +3,7 @@ package com.bghitech.momenta.feature.feed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.util.AppDateUtils
 import com.bghitech.momenta.domain.model.Comment
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.model.User
@@ -43,6 +44,8 @@ class FeedViewModel @Inject constructor(
     private val _state = MutableStateFlow(FeedUiState())
     val state = _state.asStateFlow()
     private var syncJob: Job? = null
+    private var feedObservationJob: Job? = null
+    private var observedDate: String? = null
 
     init {
         observeFeedStore()
@@ -57,6 +60,7 @@ class FeedViewModel @Inject constructor(
     }
 
     fun refresh() {
+        observeFeedStore()
         loadFeed(force = true)
     }
 
@@ -183,12 +187,20 @@ class FeedViewModel @Inject constructor(
     }
 
     private fun observeFeedStore() {
-        viewModelScope.launch {
+        val today = AppDateUtils.todayKey()
+        if (observedDate == today && feedObservationJob?.isActive == true) return
+        observedDate = today
+        feedObservationJob?.cancel()
+        _state.value = _state.value.copy(
+            items = emptyList(),
+            isOffline = false,
+            error = null
+        )
+        feedObservationJob = viewModelScope.launch {
             feedRepository.observeTodayFeed().collect { posts ->
                 _state.value = _state.value.copy(
                     items = posts,
                     suggestedUsers = posts.suggestedUsers().ifEmpty { _state.value.suggestedUsers },
-                    isOffline = false,
                     error = if (posts.isNotEmpty()) null else _state.value.error
                 )
             }
@@ -205,7 +217,7 @@ class FeedViewModel @Inject constructor(
                 val hasCached = _state.value.items.isNotEmpty()
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    isOffline = !hasCached,
+                    isOffline = true,
                     error = if (hasCached) null else "Не удалось загрузить ленту"
                 )
             }
