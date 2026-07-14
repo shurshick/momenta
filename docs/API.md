@@ -120,3 +120,14 @@ The same user can report the same post only once. Duplicate reports return `409`
 - Feed should prefer preview/thumb URLs when available.
 - `/ready` is the best endpoint for deployment health checks because it verifies PostgreSQL, Redis, and S3.
 
+# Избранное
+
+Избранное приватно и доступно только владельцу токена. Удалённые и неактивные посты в список не попадают.
+
+```http
+PUT /api/v1/posts/{post_id}/bookmark
+DELETE /api/v1/posts/{post_id}/bookmark
+GET /api/v1/me/bookmarks?cursor={cursor}&limit=20
+```
+
+Добавление и удаление идемпотентны. Элементы возвращаются от новых закладок к старым; `next_cursor` передаётся без изменений в следующий запрос.

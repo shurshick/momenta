@@ -2,10 +2,12 @@ package com.bghitech.momenta.data.repository
 
 import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
+import com.bghitech.momenta.core.datastore.TokenStore
 import com.bghitech.momenta.data.local.dao.ChallengeDao
 import com.bghitech.momenta.data.local.dao.PostDao
 import com.bghitech.momenta.data.remote.MomentaApi
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
@@ -31,7 +33,9 @@ class FeedTodayRepositoryTest {
     fun bestMomentNetworkErrorIsNotMaskedByCache() = runTest {
         val api = mockk<MomentaApi>()
         coEvery { api.getBestMoment() } throws IOException("offline")
-        val repository = FeedRepositoryImpl(api, mockk<PostDao>())
+        val tokenStore = mockk<TokenStore>()
+        every { tokenStore.getUserIdSync() } returns "test-user"
+        val repository = FeedRepositoryImpl(api, mockk<PostDao>(), tokenStore)
 
         val result = repository.getBestMoment()
 

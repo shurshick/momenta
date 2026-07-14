@@ -1,9 +1,11 @@
 import uuid
 from collections.abc import Sequence
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.bookmark import Bookmark
 from app.models.post import Post
 from app.models.reaction import Reaction
 from app.models.user import User
@@ -28,6 +30,7 @@ async def build_feed_items(
     users = {user.id: user for user in users_result.scalars().all()}
 
     liked_post_ids: set[uuid.UUID] = set()
+    bookmarked_at: dict[uuid.UUID, datetime] = {}
     if current_user_uuid:
         likes_result = await db.execute(
             select(Reaction.post_id).where(
@@ -37,6 +40,13 @@ async def build_feed_items(
             )
         )
         liked_post_ids = {row[0] for row in likes_result.all()}
+        bookmarks_result = await db.execute(
+            select(Bookmark.post_id, Bookmark.created_at).where(
+                Bookmark.post_id.in_(post_ids),
+                Bookmark.user_id == current_user_uuid,
+            )
+        )
+        bookmarked_at = {row[0]: row[1] for row in bookmarks_result.all()}
 
     return [
         _build_item(
@@ -44,6 +54,7 @@ async def build_feed_items(
             users.get(post.user_id),
             current_user_uuid,
             liked_post_ids,
+            bookmarked_at,
             delete_window_minutes,
         )
         for post in posts
@@ -55,6 +66,7 @@ def _build_item(
     user: User | None,
     current_user_id: uuid.UUID | None,
     liked_post_ids: set[uuid.UUID],
+    bookmarked_at: dict[uuid.UUID, datetime],
     delete_window_minutes: int,
 ) -> PostFeedItem:
     return PostFeedItem(
@@ -78,6 +90,8 @@ def _build_item(
         challenge_date=post.challenge_date,
         created_at=post.created_at,
         is_liked=post.id in liked_post_ids,
+        is_bookmarked=post.id in bookmarked_at,
+        bookmarked_at=bookmarked_at.get(post.id),
         is_mine=current_user_id == post.user_id if current_user_id else False,
         can_delete=can_delete_post(post, current_user_id, delete_window_minutes),
     )

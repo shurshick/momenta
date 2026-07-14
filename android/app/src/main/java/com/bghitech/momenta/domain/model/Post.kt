@@ -15,6 +15,8 @@ data class Post(
     val challengeDate: String,
     val createdAt: String,
     val isLiked: Boolean = false,
+    val isBookmarked: Boolean = false,
+    val bookmarkedAt: String? = null,
     val isMine: Boolean = false,
     val canDelete: Boolean = false
 )

@@ -15,6 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Favorite
@@ -67,6 +69,7 @@ fun FeedScreen(
     var handledFocusPostId by remember { mutableStateOf<String?>(null) }
     var fullscreenPost by remember { mutableStateOf<Post?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -105,11 +108,15 @@ fun FeedScreen(
         )
     }
 
-    fullscreenPost?.let { post ->
+    fullscreenPost?.let { selected ->
+        val post = state.items.firstOrNull { it.id == selected.id } ?: selected
         MomentaMediaViewer(
             imageUrl = post.previewUrl.ifBlank { post.thumbUrl.orEmpty() },
             title = post.user.displayName ?: post.user.username,
             caption = post.caption,
+            isBookmarked = post.isBookmarked,
+            onBookmarkClick = { viewModel.toggleBookmark(post.id, post.isBookmarked) },
+            onShareClick = { sharePost(context, post) },
             onDismiss = { fullscreenPost = null }
         )
     }
@@ -223,6 +230,7 @@ fun FeedScreen(
                             FeedPostCard(
                                 post = post,
                                 onLikeClick = { viewModel.toggleLike(post.id, post.isLiked) },
+                                onBookmarkClick = { viewModel.toggleBookmark(post.id, post.isBookmarked) },
                                 onCommentsClick = { viewModel.openComments(post) },
                                 onOpenContent = { fullscreenPost = post },
                                 onReport = { viewModel.reportPost(post.id) },
@@ -312,6 +320,7 @@ private fun FeedLoadingSkeleton() {
 private fun FeedPostCard(
     post: Post,
     onLikeClick: () -> Unit,
+    onBookmarkClick: () -> Unit,
     onCommentsClick: () -> Unit,
     onOpenContent: () -> Unit,
     onReport: () -> Unit,
@@ -474,18 +483,36 @@ private fun FeedPostCard(
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                FeedActionPill(onClick = onBookmarkClick) {
+                    Icon(
+                        imageVector = if (post.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        contentDescription = if (post.isBookmarked) "Удалить из избранного" else "В избранное",
+                        tint = if (post.isBookmarked) MomentaGreen else MomentaTextSecondary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
                 FeedActionPill(onClick = {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, "Момент от ${post.user.displayName ?: post.user.username} в Момента: ${post.previewUrl}")
-                    }
-                    context.startActivity(Intent.createChooser(intent, "Поделиться моментом"))
+                    sharePost(context, post)
                 }) {
                     Icon(Icons.Default.Share, contentDescription = "Поделиться", tint = MomentaTextSecondary, modifier = Modifier.size(22.dp))
                 }
             }
         }
     }
+}
+
+private fun sharePost(context: android.content.Context, post: Post) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(
+            Intent.EXTRA_TEXT,
+            "Момент от ${post.user.displayName ?: post.user.username} в Момента: ${post.previewUrl}"
+        )
+    }
+    context.startActivity(Intent.createChooser(intent, "Поделиться моментом"))
 }
 
 @Composable

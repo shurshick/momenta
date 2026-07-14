@@ -104,6 +104,8 @@ class TokenStore @Inject constructor(
         return tokenProvider.refreshToken()
     }
 
+    fun getUserIdSync(): String? = tokenPrefs.getString(Keys.USER_ID_NAME, null)
+
     suspend fun clearTokens() {
         clearTokensSync()
     }

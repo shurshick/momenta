@@ -37,6 +37,7 @@ async def cleanup_db(engine):
             "audit_logs",
             "media_assets",
             "comments",
+            "bookmarks",
             "reactions",
             "reports",
             "posts",

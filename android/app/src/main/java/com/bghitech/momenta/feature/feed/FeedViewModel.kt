@@ -94,6 +94,26 @@ class FeedViewModel @Inject constructor(
         }
     }
 
+    fun toggleBookmark(postId: String, currentlyBookmarked: Boolean) {
+        viewModelScope.launch {
+            val oldPost = _state.value.items.firstOrNull { it.id == postId } ?: return@launch
+            val optimisticPost = oldPost.copy(
+                isBookmarked = !currentlyBookmarked,
+                bookmarkedAt = if (currentlyBookmarked) null else java.time.Instant.now().toString()
+            )
+            feedRepository.updateCachedPost(optimisticPost)
+            val result = if (currentlyBookmarked) {
+                postRepository.unbookmarkPost(postId)
+            } else {
+                postRepository.bookmarkPost(postId)
+            }
+            if (result is AppResult.Error) {
+                feedRepository.updateCachedPost(oldPost)
+                _state.value = _state.value.copy(error = "Не удалось обновить избранное")
+            }
+        }
+    }
+
     fun reportPost(postId: String) {
         viewModelScope.launch {
             postRepository.reportPost(postId, "inappropriate")

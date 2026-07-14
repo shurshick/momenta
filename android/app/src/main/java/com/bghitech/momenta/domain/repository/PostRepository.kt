@@ -15,6 +15,8 @@ interface PostRepository {
     ): AppResult<Post>
     suspend fun likePost(postId: String): AppResult<Unit>
     suspend fun unlikePost(postId: String): AppResult<Unit>
+    suspend fun bookmarkPost(postId: String): AppResult<Unit>
+    suspend fun unbookmarkPost(postId: String): AppResult<Unit>
     suspend fun reportPost(postId: String, reason: String): AppResult<Unit>
     suspend fun deletePost(postId: String): AppResult<Unit>
     suspend fun getComments(postId: String): AppResult<List<Comment>>

@@ -34,6 +34,10 @@ data class PostDto(
     val createdAt: String? = null,
     @SerialName("is_liked")
     val isLiked: Boolean = false,
+    @SerialName("is_bookmarked")
+    val isBookmarked: Boolean = false,
+    @SerialName("bookmarked_at")
+    val bookmarkedAt: String? = null,
     @SerialName("is_mine")
     val isMine: Boolean = false,
     @SerialName("can_delete")

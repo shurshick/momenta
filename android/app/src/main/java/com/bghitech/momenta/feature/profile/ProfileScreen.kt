@@ -1,5 +1,6 @@
 package com.bghitech.momenta.feature.profile
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -26,6 +27,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -50,6 +54,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -102,6 +107,7 @@ fun ProfileScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 viewModel.loadProfile(force = true, showLoading = false)
+                viewModel.loadBookmarks()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -201,7 +207,8 @@ fun ProfileScreen(
                 ProfileContent(
                     state = state,
                     onEditClick = { showEditDialog = true },
-                    onAvatarClick = { showAvatarDialog = true }
+                    onAvatarClick = { showAvatarDialog = true },
+                    onRemoveBookmark = viewModel::removeBookmark
                 )
             }
         }
@@ -212,15 +219,25 @@ fun ProfileScreen(
 private fun ProfileContent(
     state: ProfileUiState,
     onEditClick: () -> Unit,
-    onAvatarClick: () -> Unit
+    onAvatarClick: () -> Unit,
+    onRemoveBookmark: (Post) -> Unit
 ) {
     var previewPost by remember { mutableStateOf<Post?>(null) }
+    var showBookmarks by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     previewPost?.let { post ->
         MomentaMediaViewer(
             imageUrl = post.previewUrl.ifBlank { post.thumbUrl.orEmpty() },
             title = state.displayName,
             caption = post.caption,
+            isBookmarked = post.isBookmarked,
+            onBookmarkClick = if (post.isBookmarked) {
+                { onRemoveBookmark(post) }
+            } else {
+                null
+            },
+            onShareClick = { shareProfilePost(context, post) },
             onDismiss = { previewPost = null }
         )
     }
@@ -249,33 +266,43 @@ private fun ProfileContent(
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            MomentaLogoMark(size = 28)
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = "Недавние моменты",
-                color = MomentaText,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-        if (state.recentPosts.size > 9) {
-            Text(
-                text = "Смотреть все ›",
-                color = MomentaGreen,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
+        ProfileSectionTab(
+            text = "Мои моменты",
+            selected = !showBookmarks,
+            icon = { Icon(Icons.Default.GridView, null, modifier = Modifier.size(18.dp)) },
+            modifier = Modifier.weight(1f),
+            onClick = { showBookmarks = false }
+        )
+        ProfileSectionTab(
+            text = "Избранное",
+            selected = showBookmarks,
+            icon = { Icon(Icons.Default.Bookmark, null, modifier = Modifier.size(18.dp)) },
+            modifier = Modifier.weight(1f),
+            onClick = { showBookmarks = true }
+        )
     }
 
     Spacer(modifier = Modifier.height(7.dp))
 
-    if (state.recentPosts.isEmpty()) {
+    if (showBookmarks && state.isBookmarksLoading && state.bookmarkedPosts.isEmpty()) {
+        Text("Загружаем избранное…", color = MomentaTextSecondary, fontSize = 14.sp)
+    } else if (showBookmarks && state.bookmarkedPosts.isEmpty()) {
+        EmptyBookmarks()
+    } else if (!showBookmarks && state.recentPosts.isEmpty()) {
         EmptyProfileMoments()
+    } else if (showBookmarks) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            state.bookmarkedPosts.forEach { post ->
+                FavoritePostRow(
+                    post = post,
+                    onOpen = { previewPost = post },
+                    onShare = { shareProfilePost(context, post) },
+                    onRemove = { onRemoveBookmark(post) }
+                )
+            }
+        }
     } else {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -300,6 +327,114 @@ private fun ProfileContent(
             }
         }
     }
+}
+
+@Composable
+private fun ProfileSectionTab(
+    text: String,
+    selected: Boolean,
+    icon: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier.height(44.dp).clickable(onClick = onClick),
+        shape = MomentaMediumShape,
+        color = if (selected) MomentaGreen.copy(alpha = 0.16f) else MomentaSurfaceAlt,
+        border = BorderStroke(1.dp, if (selected) MomentaGreen.copy(alpha = 0.5f) else MomentaDivider)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalContentColor provides if (selected) MomentaGreen else MomentaTextSecondary
+            ) { icon() }
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = text,
+                color = if (selected) MomentaGreen else MomentaTextSecondary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+private fun FavoritePostRow(
+    post: Post,
+    onOpen: () -> Unit,
+    onShare: () -> Unit,
+    onRemove: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MomentaMediumShape,
+        color = MomentaSurfaceAlt
+    ) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(post.thumbUrl ?: post.previewUrl),
+                contentDescription = post.caption ?: "Избранный момент",
+                modifier = Modifier.size(82.dp).clip(MomentaMediumShape).clickable(onClick = onOpen),
+                contentScale = ContentScale.Crop
+            )
+            Column(modifier = Modifier.weight(1f).padding(horizontal = 10.dp)) {
+                Text(
+                    text = post.user.displayName ?: post.user.username,
+                    color = MomentaText,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (!post.caption.isNullOrBlank()) {
+                    Text(
+                        text = post.caption,
+                        color = MomentaTextSecondary,
+                        fontSize = 13.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            IconButton(onClick = onShare) {
+                Icon(Icons.Default.Share, contentDescription = "Поделиться", tint = MomentaTextSecondary)
+            }
+            IconButton(onClick = onRemove) {
+                Icon(Icons.Default.Bookmark, contentDescription = "Удалить из избранного", tint = MomentaGreen)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyBookmarks() {
+    MomentaCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Сохранённые моменты появятся здесь",
+            color = MomentaTextSecondary,
+            fontSize = 14.sp,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+private fun shareProfilePost(context: android.content.Context, post: Post) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(
+            Intent.EXTRA_TEXT,
+            "Момент от ${post.user.displayName ?: post.user.username} в Момента: ${post.previewUrl}"
+        )
+    }
+    context.startActivity(Intent.createChooser(intent, "Поделиться моментом"))
 }
 
 @Composable

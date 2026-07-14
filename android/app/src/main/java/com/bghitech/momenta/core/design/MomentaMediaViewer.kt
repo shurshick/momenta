@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -41,6 +45,9 @@ fun MomentaMediaViewer(
     imageUrl: String,
     title: String,
     caption: String?,
+    isBookmarked: Boolean = false,
+    onBookmarkClick: (() -> Unit)? = null,
+    onShareClick: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     var scale by remember(imageUrl) { mutableFloatStateOf(1f) }
@@ -88,14 +95,29 @@ fun MomentaMediaViewer(
                         },
                     contentScale = ContentScale.Fit
                 )
-                IconButton(
-                    onClick = onDismiss,
+                Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .statusBarsPadding()
                         .padding(12.dp)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Закрыть", tint = MomentaText)
+                    onBookmarkClick?.let { action ->
+                        IconButton(onClick = action) {
+                            Icon(
+                                if (isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                contentDescription = if (isBookmarked) "Удалить из избранного" else "В избранное",
+                                tint = if (isBookmarked) MomentaGreen else MomentaText
+                            )
+                        }
+                    }
+                    onShareClick?.let { action ->
+                        IconButton(onClick = action) {
+                            Icon(Icons.Default.Share, contentDescription = "Поделиться", tint = MomentaText)
+                        }
+                    }
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Закрыть", tint = MomentaText)
+                    }
                 }
                 Column(
                     modifier = Modifier

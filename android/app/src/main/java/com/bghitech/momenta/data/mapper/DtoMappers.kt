@@ -41,6 +41,8 @@ fun PostDto.toDomain(): Post = Post(
     challengeDate = challengeDate ?: "",
     createdAt = createdAt ?: "",
     isLiked = isLiked,
+    isBookmarked = isBookmarked,
+    bookmarkedAt = bookmarkedAt,
     isMine = isMine,
     canDelete = canDelete
 )
@@ -99,7 +101,8 @@ fun CachedChallengeEntity.toDomain(): Challenge = Challenge(
     participantsCount = participantsCount
 )
 
-fun Post.toCachedEntity(): CachedPostEntity = CachedPostEntity(
+fun Post.toCachedEntity(accountId: String): CachedPostEntity = CachedPostEntity(
+    accountId = accountId,
     id = id,
     username = user.username,
     displayName = user.displayName,
@@ -117,6 +120,8 @@ fun Post.toCachedEntity(): CachedPostEntity = CachedPostEntity(
     challengeDate = challengeDate,
     createdAt = createdAt,
     isLiked = isLiked,
+    isBookmarked = isBookmarked,
+    bookmarkedAt = bookmarkedAt,
     isMine = isMine,
     canDelete = canDelete,
     syncState = "remote"
@@ -137,6 +142,8 @@ fun CachedPostEntity.toDomain(): Post = Post(
     challengeDate = challengeDate,
     createdAt = createdAt,
     isLiked = isLiked,
+    isBookmarked = isBookmarked,
+    bookmarkedAt = bookmarkedAt,
     isMine = isMine,
     canDelete = canDelete
 )

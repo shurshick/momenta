@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.auth import get_current_user_id
 from app.config import settings
 from app.db import get_db
+from app.models.bookmark import Bookmark
 from app.models.media_asset import MediaAsset
 from app.models.reaction import Reaction
 from app.models.user import User
@@ -112,6 +113,7 @@ async def get_post(
     user_result = await db.execute(select(User).where(User.id == post.user_id))
     user = user_result.scalar_one_or_none()
     is_liked = False
+    bookmark = None
     if user_id:
         likes_result = await db.execute(
             select(Reaction).where(
@@ -121,6 +123,12 @@ async def get_post(
             )
         )
         is_liked = likes_result.scalar_one_or_none() is not None
+        bookmark = await db.scalar(
+            select(Bookmark).where(
+                Bookmark.post_id == post.id,
+                Bookmark.user_id == uuid.UUID(user_id),
+            )
+        )
     return {
         "id": str(post.id),
         "user": {
@@ -141,6 +149,8 @@ async def get_post(
         "views_count": post.views_count,
         "created_at": post.created_at,
         "is_liked": is_liked,
+        "is_bookmarked": bookmark is not None,
+        "bookmarked_at": bookmark.created_at if bookmark else None,
         "is_mine": uuid.UUID(user_id) == post.user_id,
         "can_delete": can_delete_post(
             post,

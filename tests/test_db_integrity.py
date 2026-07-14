@@ -7,6 +7,7 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 
 from app.cli import repair_counters_for_session
+from app.models.bookmark import Bookmark
 from app.models.comment import Comment
 from app.models.post import Post
 from app.models.reaction import Reaction
@@ -127,13 +128,15 @@ async def test_feed_indexes_exist(engine):
         "ix_posts_status_created_desc",
         "ix_comments_post_status_created",
         "ix_reports_post_status",
+        "ix_bookmarks_user_created_desc",
+        "ix_bookmarks_post_id",
     }
 
     async with engine.begin() as conn:
         names = await conn.run_sync(
             lambda sync_conn: {
                 index["name"]
-                for table in ("posts", "comments", "reports")
+                for table in ("posts", "comments", "reports", "bookmarks")
                 for index in inspect(sync_conn).get_indexes(table)
             }
         )
@@ -143,4 +146,28 @@ async def test_feed_indexes_exist(engine):
 
 def test_alembic_single_head():
     heads = ScriptDirectory.from_config(Config("alembic.ini")).get_heads()
-    assert heads == ["006"]
+    assert heads == ["007"]
+
+
+@pytest.mark.asyncio
+async def test_bookmark_unique_constraint(test_user, test_challenge, db_session):
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/bookmark-unique.jpg",
+        status="active",
+    )
+    db_session.add(post)
+    await db_session.commit()
+    db_session.add_all(
+        [
+            Bookmark(post_id=post.id, user_id=test_user.id),
+            Bookmark(post_id=post.id, user_id=test_user.id),
+        ]
+    )
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
+    await db_session.rollback()

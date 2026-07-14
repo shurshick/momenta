@@ -61,6 +61,18 @@ interface MomentaApi {
     @DELETE("/api/v1/posts/{id}/like")
     suspend fun unlikePost(@Path("id") postId: String): ApiMessageDto
 
+    @PUT("/api/v1/posts/{id}/bookmark")
+    suspend fun bookmarkPost(@Path("id") postId: String): ApiMessageDto
+
+    @DELETE("/api/v1/posts/{id}/bookmark")
+    suspend fun unbookmarkPost(@Path("id") postId: String): ApiMessageDto
+
+    @GET("/api/v1/me/bookmarks")
+    suspend fun getBookmarks(
+        @Query("cursor") cursor: String? = null,
+        @Query("limit") limit: Int = 50
+    ): FeedResponseDto
+
     @POST("/api/v1/posts/{id}/report")
     suspend fun reportPost(
         @Path("id") postId: String,

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.repository.ProfileRepository
+import com.bghitech.momenta.domain.repository.FeedRepository
+import com.bghitech.momenta.domain.repository.PostRepository
 import com.bghitech.momenta.domain.usecase.GetMyProfileUseCase
 import com.bghitech.momenta.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +27,8 @@ data class ProfileUiState(
     val streakCount: Int = 0,
     val likesCount: Int = 0,
     val recentPosts: List<Post> = emptyList(),
+    val bookmarkedPosts: List<Post> = emptyList(),
+    val isBookmarksLoading: Boolean = false,
     val avatarOptions: List<String> = (1..40).map { index -> "avatar_%02d".format(index) },
     val isSaving: Boolean = false,
     val error: String? = null
@@ -34,6 +38,8 @@ data class ProfileUiState(
 class ProfileViewModel @Inject constructor(
     private val getMyProfileUseCase: GetMyProfileUseCase,
     private val profileRepository: ProfileRepository,
+    private val feedRepository: FeedRepository,
+    private val postRepository: PostRepository,
     private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
@@ -43,6 +49,37 @@ class ProfileViewModel @Inject constructor(
 
     init {
         loadProfile()
+        observeBookmarks()
+        loadBookmarks()
+    }
+
+    fun loadBookmarks() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isBookmarksLoading = true)
+            when (feedRepository.syncBookmarks()) {
+                is AppResult.Success -> _state.value = _state.value.copy(isBookmarksLoading = false)
+                is AppResult.Error -> _state.value = _state.value.copy(isBookmarksLoading = false)
+            }
+        }
+    }
+
+    fun removeBookmark(post: Post) {
+        viewModelScope.launch {
+            val optimistic = post.copy(isBookmarked = false, bookmarkedAt = null)
+            feedRepository.updateCachedPost(optimistic)
+            if (postRepository.unbookmarkPost(post.id) is AppResult.Error) {
+                feedRepository.updateCachedPost(post)
+                _state.value = _state.value.copy(error = "Не удалось удалить из избранного")
+            }
+        }
+    }
+
+    private fun observeBookmarks() {
+        viewModelScope.launch {
+            feedRepository.observeBookmarks().collect { posts ->
+                _state.value = _state.value.copy(bookmarkedPosts = posts)
+            }
+        }
     }
 
     fun loadProfile(force: Boolean = false, showLoading: Boolean = true) {

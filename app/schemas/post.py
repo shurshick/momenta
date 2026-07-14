@@ -18,6 +18,8 @@ class PostOut(BaseModel):
     challenge_date: date | None = None
     created_at: datetime | None = None
     is_liked: bool = False
+    is_bookmarked: bool = False
+    bookmarked_at: datetime | None = None
     is_mine: bool = False
     can_delete: bool = False
 
@@ -39,6 +41,8 @@ class PostFeedItem(BaseModel):
     challenge_date: date | None = None
     created_at: datetime | None = None
     is_liked: bool = False
+    is_bookmarked: bool = False
+    bookmarked_at: datetime | None = None
     is_mine: bool = False
     can_delete: bool = False
 

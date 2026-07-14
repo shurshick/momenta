@@ -2,18 +2,20 @@ package com.bghitech.momenta.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.Index
-import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "cached_posts",
+    primaryKeys = ["accountId", "id"],
     indices = [
-        Index(value = ["challengeDate", "createdAt"]),
-        Index(value = ["challengeDate", "cachedAt"]),
-        Index(value = ["isLiked"])
+        Index(value = ["accountId", "challengeDate", "createdAt"]),
+        Index(value = ["accountId", "challengeDate", "cachedAt"]),
+        Index(value = ["accountId", "isLiked"]),
+        Index(value = ["accountId", "isBookmarked", "bookmarkedAt"])
     ]
 )
 data class CachedPostEntity(
-    @PrimaryKey val id: String,
+    val accountId: String,
+    val id: String,
     val username: String,
     val displayName: String?,
     val avatarUrl: String?,
@@ -30,6 +32,8 @@ data class CachedPostEntity(
     val viewsCount: Int,
     val createdAt: String,
     val isLiked: Boolean,
+    val isBookmarked: Boolean,
+    val bookmarkedAt: String?,
     val isMine: Boolean,
     val canDelete: Boolean,
     val syncState: String = "remote",

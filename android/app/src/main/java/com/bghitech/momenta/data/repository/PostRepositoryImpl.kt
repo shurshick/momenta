@@ -76,6 +76,16 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun bookmarkPost(postId: String): AppResult<Unit> = safeApiCall {
+        api.bookmarkPost(postId)
+        Unit
+    }
+
+    override suspend fun unbookmarkPost(postId: String): AppResult<Unit> = safeApiCall {
+        api.unbookmarkPost(postId)
+        Unit
+    }
+
     override suspend fun reportPost(postId: String, reason: String): AppResult<Unit> {
         return safeApiCall {
             api.reportPost(postId, ReportRequestDto(reason))

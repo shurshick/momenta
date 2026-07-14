@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1 import (
     app_info,
     auth,
+    bookmarks,
     challenges,
     comments,
     feed,
@@ -17,6 +18,7 @@ router = APIRouter()
 router.include_router(app_info.router)
 router.include_router(health.router)
 router.include_router(auth.router)
+router.include_router(bookmarks.router)
 router.include_router(challenges.router)
 router.include_router(posts.router)
 router.include_router(feed.router)
