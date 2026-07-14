@@ -1,7 +1,24 @@
+from datetime import date, timedelta
+
 import pytest
 
+from app.api.v1.users import _calculate_streak_count
 from app.models.post import Post
 from app.models.user import User
+
+
+async def _add_streak_post(db_session, user, challenge, challenge_date, status="active"):
+    db_session.add(
+        Post(
+            user_id=user.id,
+            challenge_id=challenge.id,
+            challenge_date=challenge_date,
+            media_type="image",
+            original_url=f"https://media.test/{challenge_date}-{status}.jpg",
+            preview_url=f"https://media.test/{challenge_date}-{status}-preview.jpg",
+            status=status,
+        )
+    )
 
 
 @pytest.mark.asyncio
@@ -141,3 +158,57 @@ async def test_my_profile_likes_count_sums_active_post_likes(
     data = response.json()
     assert data["moments_count"] == 2
     assert data["likes_count"] == 11
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("day_offsets", "expected"),
+    [
+        ([0, -1, -2], 3),
+        ([-1, -2], 2),
+        ([-1], 1),
+        ([-2, -3], 0),
+    ],
+)
+async def test_profile_streak_allows_current_day_grace_period(
+    db_session,
+    test_user,
+    test_challenge,
+    monkeypatch,
+    day_offsets,
+    expected,
+):
+    today = date(2026, 7, 14)
+    monkeypatch.setattr("app.api.v1.users.current_app_date", lambda: today)
+    for offset in day_offsets:
+        await _add_streak_post(
+            db_session,
+            test_user,
+            test_challenge,
+            today + timedelta(days=offset),
+        )
+    await db_session.commit()
+
+    assert await _calculate_streak_count(db_session, test_user.id) == expected
+
+
+@pytest.mark.asyncio
+async def test_profile_streak_ignores_deleted_and_hidden_posts(
+    db_session,
+    test_user,
+    test_challenge,
+    monkeypatch,
+):
+    today = date(2026, 7, 14)
+    monkeypatch.setattr("app.api.v1.users.current_app_date", lambda: today)
+    await _add_streak_post(db_session, test_user, test_challenge, today, status="deleted")
+    await _add_streak_post(
+        db_session,
+        test_user,
+        test_challenge,
+        today - timedelta(days=1),
+        status="hidden",
+    )
+    await db_session.commit()
+
+    assert await _calculate_streak_count(db_session, test_user.id) == 0

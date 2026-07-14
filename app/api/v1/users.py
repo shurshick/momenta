@@ -70,7 +70,8 @@ async def _build_profile(db: AsyncSession, user: User) -> UserProfile:
 
 
 async def _calculate_streak_count(db: AsyncSession, user_id: uuid.UUID) -> int:
-    since = current_app_date() - timedelta(days=365)
+    today = current_app_date()
+    since = today - timedelta(days=365)
     result = await db.execute(
         select(Post.challenge_date)
         .where(
@@ -81,8 +82,16 @@ async def _calculate_streak_count(db: AsyncSession, user_id: uuid.UUID) -> int:
         .group_by(Post.challenge_date)
     )
     posted_dates = {row[0] for row in result.all()}
+
+    yesterday = today - timedelta(days=1)
+    if today in posted_dates:
+        cursor = today
+    elif yesterday in posted_dates:
+        cursor = yesterday
+    else:
+        return 0
+
     streak_count = 0
-    cursor = current_app_date()
     while cursor in posted_dates:
         streak_count += 1
         cursor -= timedelta(days=1)
