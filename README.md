@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.64**.
+Текущая стабильная версия сервера: **v0.2.65**.
 
 ## Что уже есть
 
@@ -59,12 +59,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.64
+image: ghcr.io/shurshick/momenta:v0.2.65
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.64** исправлен счётчик серии дней в профиле: до конца текущего дня живая серия считается от вчерашней публикации.
+В **v0.2.65** статистика профиля переведена на единый сервис счётчиков, а Android очищает кеш профиля при смене сессии.
 
 ## Обновления Android
 
@@ -78,9 +78,9 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.64](https://github.com/shurshick/momenta/releases/tag/v0.2.64)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.64`
-- Android APK: актуальная версия приложения `0.2.63`
+- Release: [v0.2.65](https://github.com/shurshick/momenta/releases/tag/v0.2.65)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.65`
+- Android APK: актуальная версия приложения `0.2.65`
 
 ## Документы
 

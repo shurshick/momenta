@@ -1,5 +1,4 @@
 import uuid
-from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
@@ -18,6 +17,7 @@ from app.schemas.user import (
 )
 from app.services.auth_service import get_user_by_id
 from app.services.challenge_service import current_app_date
+from app.services.counter_service import CounterService
 
 router = APIRouter(prefix="/api/v1", tags=["users"])
 
@@ -25,20 +25,10 @@ AVATAR_KEYS = [f"avatar_{index:02d}" for index in range(1, 41)]
 
 
 async def _build_profile(db: AsyncSession, user: User) -> UserProfile:
-    moments_count = (
-        await db.execute(
-            select(func.count(Post.id)).where(Post.user_id == user.id, Post.status == "active")
-        )
-    ).scalar() or 0
-
-    likes_count = (
-        await db.execute(
-            select(func.coalesce(func.sum(Post.likes_count), 0)).where(
-                Post.user_id == user.id,
-                Post.status == "active",
-            )
-        )
-    ).scalar() or 0
+    counters = await CounterService(db).user_counter_values(
+        user.id,
+        app_date=current_app_date(),
+    )
 
     recent_result = await db.execute(
         select(Post.id, Post.preview_url, Post.thumb_url, Post.created_at)
@@ -57,9 +47,9 @@ async def _build_profile(db: AsyncSession, user: User) -> UserProfile:
         country=user.country,
         city=user.city,
         locale=user.locale,
-        moments_count=moments_count,
-        streak_count=await _calculate_streak_count(db, user.id),
-        likes_count=likes_count,
+        moments_count=counters.moments_count,
+        streak_count=counters.streak_count,
+        likes_count=counters.likes_count,
         recent_posts=[
             {"id": str(row[0]), "preview_url": row[1], "thumb_url": row[2], "created_at": row[3]}
             for row in recent_result.all()
@@ -67,35 +57,6 @@ async def _build_profile(db: AsyncSession, user: User) -> UserProfile:
         created_at=user.created_at,
         last_seen_at=user.last_seen_at,
     )
-
-
-async def _calculate_streak_count(db: AsyncSession, user_id: uuid.UUID) -> int:
-    today = current_app_date()
-    since = today - timedelta(days=365)
-    result = await db.execute(
-        select(Post.challenge_date)
-        .where(
-            Post.user_id == user_id,
-            Post.status == "active",
-            Post.challenge_date >= since,
-        )
-        .group_by(Post.challenge_date)
-    )
-    posted_dates = {row[0] for row in result.all()}
-
-    yesterday = today - timedelta(days=1)
-    if today in posted_dates:
-        cursor = today
-    elif yesterday in posted_dates:
-        cursor = yesterday
-    else:
-        return 0
-
-    streak_count = 0
-    while cursor in posted_dates:
-        streak_count += 1
-        cursor -= timedelta(days=1)
-    return streak_count
 
 
 @router.get("/users/suggestions", response_model=UserSummaryListResponse)

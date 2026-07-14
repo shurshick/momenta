@@ -1,5 +1,6 @@
 import uuid
 from dataclasses import dataclass
+from datetime import date, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +9,7 @@ from app.models.comment import Comment
 from app.models.post import Post
 from app.models.reaction import Reaction
 from app.models.report import Report
+from app.services.challenge_service import current_app_date
 
 
 @dataclass(frozen=True)
@@ -21,6 +23,7 @@ class PostCounterValues:
 class UserCounterValues:
     moments_count: int
     likes_count: int
+    streak_count: int
 
 
 class CounterService:
@@ -105,7 +108,11 @@ class CounterService:
         post.views_count = max((post.views_count or 0) + delta, 0)
         return post.views_count
 
-    async def user_counter_values(self, user_id: uuid.UUID) -> UserCounterValues:
+    async def user_counter_values(
+        self,
+        user_id: uuid.UUID,
+        app_date: date | None = None,
+    ) -> UserCounterValues:
         moments_count = (
             await self.db.execute(
                 select(func.count(Post.id)).where(
@@ -116,10 +123,42 @@ class CounterService:
         ).scalar() or 0
         likes_count = (
             await self.db.execute(
-                select(func.coalesce(func.sum(Post.likes_count), 0)).where(
+                select(func.count(Reaction.id))
+                .join(Post, Post.id == Reaction.post_id)
+                .where(
                     Post.user_id == user_id,
                     Post.status == "active",
+                    Reaction.type == "like",
                 )
             )
         ).scalar() or 0
-        return UserCounterValues(moments_count=moments_count, likes_count=likes_count)
+
+        today = app_date or current_app_date()
+        result = await self.db.execute(
+            select(Post.challenge_date)
+            .where(
+                Post.user_id == user_id,
+                Post.status == "active",
+                Post.challenge_date >= today - timedelta(days=365),
+            )
+            .group_by(Post.challenge_date)
+        )
+        posted_dates = {row[0] for row in result.all()}
+        yesterday = today - timedelta(days=1)
+        if today in posted_dates:
+            cursor = today
+        elif yesterday in posted_dates:
+            cursor = yesterday
+        else:
+            cursor = None
+
+        streak_count = 0
+        while cursor is not None and cursor in posted_dates:
+            streak_count += 1
+            cursor -= timedelta(days=1)
+
+        return UserCounterValues(
+            moments_count=moments_count,
+            likes_count=likes_count,
+            streak_count=streak_count,
+        )

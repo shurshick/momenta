@@ -10,4 +10,5 @@ interface ProfileRepository {
     suspend fun getAvatars(): AppResult<List<String>>
     suspend fun getCachedProfile(): Profile?
     suspend fun cacheProfile(profile: Profile)
+    suspend fun clearCache()
 }

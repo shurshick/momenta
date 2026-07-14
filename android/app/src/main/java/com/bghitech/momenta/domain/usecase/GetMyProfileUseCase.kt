@@ -8,13 +8,7 @@ import javax.inject.Inject
 class GetMyProfileUseCase @Inject constructor(
     private val profileRepository: ProfileRepository
 ) {
-    suspend operator fun invoke(): AppResult<Profile> {
-        val result = profileRepository.getMyProfile()
-        if (result is AppResult.Success) {
-            profileRepository.cacheProfile(result.data)
-        }
-        return result
-    }
+    suspend operator fun invoke(): AppResult<Profile> = profileRepository.getMyProfile()
 
     suspend fun getCached(): Profile? = profileRepository.getCachedProfile()
 }

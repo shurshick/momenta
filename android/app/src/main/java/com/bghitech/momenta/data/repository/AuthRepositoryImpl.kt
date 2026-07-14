@@ -12,6 +12,7 @@ import com.bghitech.momenta.data.remote.dto.RegisterRequest
 import com.bghitech.momenta.domain.model.AuthToken
 import com.bghitech.momenta.domain.model.User
 import com.bghitech.momenta.domain.repository.AuthRepository
+import com.bghitech.momenta.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -20,13 +21,15 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val api: MomentaApi,
-    private val tokenStore: TokenStore
+    private val tokenStore: TokenStore,
+    private val profileRepository: ProfileRepository
 ) : AuthRepository {
 
     override suspend fun login(usernameOrEmail: String, password: String): AppResult<AuthToken> {
         return safeApiCall {
             val response = api.login(LoginRequest(usernameOrEmail, password))
             tokenStore.saveTokens(response.accessToken, response.refreshToken, response.user.id, response.user.username)
+            profileRepository.clearCache()
             AuthToken(response.accessToken, response.refreshToken, response.tokenType)
         }
     }
@@ -35,6 +38,7 @@ class AuthRepositoryImpl @Inject constructor(
         return safeApiCall {
             val response = api.register(RegisterRequest(username, email, password))
             tokenStore.saveTokens(response.accessToken, response.refreshToken, response.user.id, response.user.username)
+            profileRepository.clearCache()
             AuthToken(response.accessToken, response.refreshToken, response.tokenType)
         }
     }
@@ -48,6 +52,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
         if (result is AppResult.Error) {
             tokenStore.clearTokens()
+            profileRepository.clearCache()
         }
         return result
     }
@@ -55,6 +60,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun logout() {
         try { api.logout() } catch (_: Exception) { }
         tokenStore.clearTokens()
+        profileRepository.clearCache()
     }
 
     override suspend fun getMe(): AppResult<User> {

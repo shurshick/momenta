@@ -26,7 +26,11 @@ class ProfileRepositoryImpl @Inject constructor(
             is AppResult.Success -> result
             is AppResult.Error -> {
                 val cached = getCachedProfile()
-                if (cached != null) AppResult.Success(cached) else AppResult.Error(AppError.Network)
+                if (cached != null && result.error.canUseCachedProfile()) {
+                    AppResult.Success(cached)
+                } else {
+                    result
+                }
             }
         }
     }
@@ -55,4 +59,11 @@ class ProfileRepositoryImpl @Inject constructor(
     override suspend fun cacheProfile(profile: Profile) {
         cachedProfile = profile
     }
+
+    override suspend fun clearCache() {
+        cachedProfile = null
+    }
+
+    private fun AppError.canUseCachedProfile(): Boolean =
+        this == AppError.Network || this == AppError.Server
 }
