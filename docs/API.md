@@ -83,7 +83,7 @@ Only one active/processing/uploading post per user per challenge date is allowed
 ## Feed
 
 - `GET /api/v1/feed/today?cursor=&limit=20` — Global feed
-- `GET /api/v1/feed/today/best-random` — Random post from today's top moments. Returns `post: null` if today has no active posts.
+- `GET /api/v1/feed/today/best` — Highest-rated active post from the current app day. Returns `post: null` if today is empty.
 - `GET /api/v1/feed/country/{code}?cursor=&limit=20` — Country feed
 - `GET /api/v1/feed/user/{id}?cursor=&limit=20` — User feed
 

@@ -13,6 +13,7 @@ import com.bghitech.momenta.domain.repository.FeedRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 @Singleton
@@ -25,12 +26,15 @@ class FeedRepositoryImpl @Inject constructor(
     private var nextCursor: String? = null
 
     override fun observeTodayFeed(): Flow<List<Post>> {
-        return postDao.observePostsByChallengeDate(accountId(), AppDateUtils.todayKey())
+        val accountId = accountId() ?: return flowOf(emptyList())
+        return postDao.observePostsByChallengeDate(accountId, AppDateUtils.todayKey())
             .map { entities -> entities.map { it.toDomain() }.todayOnly() }
     }
 
-    override fun observeBookmarks(): Flow<List<Post>> =
-        postDao.observeBookmarks(accountId()).map { entities -> entities.map { it.toDomain() } }
+    override fun observeBookmarks(): Flow<List<Post>> {
+        val accountId = accountId() ?: return flowOf(emptyList())
+        return postDao.observeBookmarks(accountId).map { entities -> entities.map { it.toDomain() } }
+    }
 
     override suspend fun getTodayFeed(cursor: String?, limit: Int): AppResult<List<Post>> {
         return safeApiCall {
@@ -56,44 +60,53 @@ class FeedRepositoryImpl @Inject constructor(
     override suspend fun getNextCursor(): String? = nextCursor
 
     override suspend fun getCachedFeed(): List<Post> {
-        return postDao.getPostsByChallengeDate(accountId(), AppDateUtils.todayKey()).map { it.toDomain() }.todayOnly()
+        val accountId = accountId() ?: return emptyList()
+        return postDao.getPostsByChallengeDate(accountId, AppDateUtils.todayKey()).map { it.toDomain() }.todayOnly()
     }
 
     override suspend fun cacheFeed(posts: List<Post>) {
-        postDao.insertPosts(posts.todayOnly().map { it.toCachedEntity(accountId()) })
+        val accountId = accountId() ?: return
+        postDao.insertPosts(posts.todayOnly().map { it.toCachedEntity(accountId) })
     }
 
     override suspend fun replaceCachedFeed(posts: List<Post>) {
+        val accountId = accountId() ?: return
         val today = AppDateUtils.todayKey()
-        postDao.replaceRemotePosts(accountId(), today, posts.todayOnly().map { it.toCachedEntity(accountId()) })
+        postDao.replaceRemotePosts(accountId, today, posts.todayOnly().map { it.toCachedEntity(accountId) })
     }
 
     override suspend fun upsertLocalPost(post: Post) {
-        postDao.insertPost(post.toCachedEntity(accountId()).copy(syncState = "pending"))
+        val accountId = accountId() ?: return
+        postDao.insertPost(post.toCachedEntity(accountId).copy(syncState = "pending"))
     }
 
     override suspend fun replaceLocalPost(localId: String, post: Post) {
-        postDao.replacePostId(accountId(), localId, post.toCachedEntity(accountId()).copy(syncState = "uploaded"))
+        val accountId = accountId() ?: return
+        postDao.replacePostId(accountId, localId, post.toCachedEntity(accountId).copy(syncState = "uploaded"))
     }
 
     override suspend fun removeLocalPost(postId: String) {
-        postDao.deleteById(accountId(), postId)
+        val accountId = accountId() ?: return
+        postDao.deleteById(accountId, postId)
     }
 
     override suspend fun updateCachedPost(post: Post) {
-        postDao.insertPost(post.toCachedEntity(accountId()))
+        val accountId = accountId() ?: return
+        postDao.insertPost(post.toCachedEntity(accountId))
     }
 
-    override suspend fun syncBookmarks(): AppResult<List<Post>> = safeApiCall {
-        val posts = mutableListOf<Post>()
-        var cursor: String? = null
-        do {
-            val response = api.getBookmarks(cursor = cursor, limit = 50)
-            posts += response.items.map { it.toDomain() }
-            cursor = response.nextCursor
-        } while (cursor != null)
-        postDao.replaceBookmarks(accountId(), posts.map { it.toCachedEntity(accountId()) })
-        posts
+    override suspend fun syncBookmarks(cursor: String?): AppResult<String?> = safeApiCall {
+        val response = api.getBookmarks(cursor = cursor, limit = 30)
+        val posts = response.items.map { it.toDomain() }
+        accountId()?.let { accountId ->
+            val entities = posts.map { it.toCachedEntity(accountId) }
+            if (cursor == null) {
+                postDao.replaceBookmarks(accountId, entities)
+            } else {
+                postDao.insertPosts(entities)
+            }
+        }
+        response.nextCursor
     }
 
     override suspend fun getUserSuggestions(): AppResult<List<User>> {
@@ -108,7 +121,7 @@ class FeedRepositoryImpl @Inject constructor(
         return filter { it.challengeDate == today }
     }
 
-    private fun accountId(): String = tokenStore.getUserIdSync().orEmpty()
+    private fun accountId(): String? = tokenStore.getUserIdSync()?.takeIf { it.isNotBlank() }
 
     private fun List<Post>.activeUsers(): List<User> =
         groupBy { it.user.username }

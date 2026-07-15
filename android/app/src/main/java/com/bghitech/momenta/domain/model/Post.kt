@@ -18,5 +18,6 @@ data class Post(
     val isBookmarked: Boolean = false,
     val bookmarkedAt: String? = null,
     val isMine: Boolean = false,
-    val canDelete: Boolean = false
+    val canDelete: Boolean = false,
+    val syncState: String = "remote"
 )

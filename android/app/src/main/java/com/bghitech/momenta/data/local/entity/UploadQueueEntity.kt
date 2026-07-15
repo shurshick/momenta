@@ -7,16 +7,19 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "upload_queue",
     indices = [
-        Index(value = ["status", "createdAt"]),
-        Index(value = ["challengeDate"])
+        Index(value = ["accountId", "status", "createdAt"]),
+        Index(value = ["accountId", "challengeDate"])
     ]
 )
 data class UploadQueueEntity(
     @PrimaryKey val localId: String,
+    val accountId: String,
     val challengeId: String,
     val challengeDate: String,
     val filePath: String,
     val caption: String?,
+    val country: String?,
+    val city: String?,
     val mediaType: String,
     val status: String = "pending",
     val retryCount: Int = 0,

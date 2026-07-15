@@ -39,11 +39,7 @@ services:
     restart: unless-stopped
     command: ["python", "-c", "from app.worker.tasks import run_worker; run_worker()"]
     depends_on:
-      momenta-postgres:
-        condition: service_healthy
-      momenta-redis:
-        condition: service_healthy
-      momenta-minio:
+      momenta-api:
         condition: service_healthy
     env_file:
       - .env

@@ -54,10 +54,15 @@ jobs:
           java-version: "17"
           distribution: temurin
 
-      - name: Build dev debug APK
+      - name: Run Android unit tests
         working-directory: android
         run: |
           chmod +x gradlew
+          ./gradlew testDevDebugUnitTest testProdDebugUnitTest
+
+      - name: Build dev debug APK
+        working-directory: android
+        run: |
           ./gradlew assembleDevDebug
 
       - name: Build prod debug APK

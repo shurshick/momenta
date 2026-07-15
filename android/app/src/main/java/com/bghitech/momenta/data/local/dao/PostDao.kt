@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PostDao {
+    @Query("SELECT * FROM cached_posts WHERE accountId = :accountId AND id = :postId LIMIT 1")
+    suspend fun getById(accountId: String, postId: String): CachedPostEntity?
+
     @Query("SELECT * FROM cached_posts WHERE accountId = :accountId ORDER BY createdAt DESC, cachedAt DESC")
     suspend fun getAllPosts(accountId: String): List<CachedPostEntity>
 

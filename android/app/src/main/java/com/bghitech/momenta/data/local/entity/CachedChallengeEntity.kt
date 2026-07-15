@@ -1,11 +1,16 @@
 package com.bghitech.momenta.data.local.entity
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.Index
 
-@Entity(tableName = "cached_challenge")
+@Entity(
+    tableName = "cached_challenge",
+    primaryKeys = ["accountId", "id"],
+    indices = [Index(value = ["accountId", "date"])]
+)
 data class CachedChallengeEntity(
-    @PrimaryKey val id: String,
+    val accountId: String,
+    val id: String,
     val date: String,
     val title: String,
     val description: String?,

@@ -91,6 +91,7 @@ class FeedViewModel @Inject constructor(
     fun toggleLike(postId: String, currentlyLiked: Boolean) {
         viewModelScope.launch {
             val oldPost = _state.value.items.firstOrNull { it.id == postId } ?: return@launch
+            if (oldPost.syncState == "pending") return@launch
             val likesDelta = if (currentlyLiked) -1 else 1
             val optimisticPost = oldPost.copy(
                 isLiked = !currentlyLiked,
@@ -109,6 +110,7 @@ class FeedViewModel @Inject constructor(
     fun toggleBookmark(postId: String, currentlyBookmarked: Boolean) {
         viewModelScope.launch {
             val oldPost = _state.value.items.firstOrNull { it.id == postId } ?: return@launch
+            if (oldPost.syncState == "pending") return@launch
             val optimisticPost = oldPost.copy(
                 isBookmarked = !currentlyBookmarked,
                 bookmarkedAt = if (currentlyBookmarked) null else java.time.Instant.now().toString()
@@ -128,6 +130,7 @@ class FeedViewModel @Inject constructor(
 
     fun reportPost(postId: String) {
         viewModelScope.launch {
+            if (_state.value.items.firstOrNull { it.id == postId }?.syncState == "pending") return@launch
             postRepository.reportPost(postId, "inappropriate")
         }
     }
@@ -150,6 +153,7 @@ class FeedViewModel @Inject constructor(
     }
 
     fun openComments(post: Post) {
+        if (post.syncState == "pending") return
         _state.value = _state.value.copy(
             commentsPost = post,
             comments = emptyList(),

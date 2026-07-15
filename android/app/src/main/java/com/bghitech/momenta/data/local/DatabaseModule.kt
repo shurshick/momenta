@@ -24,8 +24,7 @@ object DatabaseModule {
             MomentaDatabase::class.java,
             "momenta_database"
         )
-            // Allowed until limited testing starts: local feed/upload cache may be reset.
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
             .build()
     }
 

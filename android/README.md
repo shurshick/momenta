@@ -91,7 +91,7 @@ Base: `/api/v1`
 - `POST /auth/refresh` — обновление токена
 - `GET /challenges/today` — задание дня
 - `GET /feed/today` — лента
-- `GET /feed/today/best-random` — случайный лучший момент дня из топа
+- `GET /feed/today/best` — лучший момент дня по лайкам и времени публикации
 - `POST /posts` — загрузка момента
 - `DELETE /posts/{id}` — удалить свой момент в настроенное окно удаления, по умолчанию 60 минут
 - `POST /posts/{id}/like` — лайк

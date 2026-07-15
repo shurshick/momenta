@@ -6,8 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.core.common.userMessage
+import com.bghitech.momenta.core.datastore.TokenStore
 import com.bghitech.momenta.core.media.ImageCompressor
+import com.bghitech.momenta.core.upload.UploadManager
 import com.bghitech.momenta.core.util.AppDateUtils
+import com.bghitech.momenta.data.local.dao.UploadQueueDao
+import com.bghitech.momenta.data.local.entity.UploadQueueEntity
 import com.bghitech.momenta.domain.model.Post
 import com.bghitech.momenta.domain.model.Profile
 import com.bghitech.momenta.domain.model.User
@@ -40,7 +44,10 @@ class PublishViewModel @Inject constructor(
     private val imageCompressor: ImageCompressor,
     private val publishMomentUseCase: PublishMomentUseCase,
     private val feedRepository: FeedRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val uploadQueueDao: UploadQueueDao,
+    private val uploadManager: UploadManager,
+    private val tokenStore: TokenStore
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PublishUiState())
@@ -81,13 +88,60 @@ class PublishViewModel @Inject constructor(
                     )
                 }
                 is AppResult.Error -> {
-                    feedRepository.removeLocalPost(localPost.id)
-                    _state.value = _state.value.copy(
-                        isUploading = false,
-                        error = publishErrorMessage(result.error)
-                    )
+                    if (result.error == AppError.Network || result.error == AppError.Server) {
+                        queueUpload(localPost, challengeId, file, caption, country, city)
+                    } else {
+                        feedRepository.removeLocalPost(localPost.id)
+                        _state.value = _state.value.copy(
+                            isUploading = false,
+                            error = publishErrorMessage(result.error)
+                        )
+                    }
                 }
             }
+        }
+    }
+
+    private suspend fun queueUpload(
+        localPost: Post,
+        challengeId: String,
+        file: File,
+        caption: String?,
+        country: String?,
+        city: String?
+    ) {
+        val accountId = tokenStore.getUserIdSync()?.takeIf { it.isNotBlank() }
+        if (accountId == null) {
+            feedRepository.removeLocalPost(localPost.id)
+            _state.value = _state.value.copy(isUploading = false, error = "Нужен вход в аккаунт")
+            return
+        }
+        try {
+            uploadQueueDao.insert(
+                UploadQueueEntity(
+                    localId = localPost.id,
+                    accountId = accountId,
+                    challengeId = challengeId,
+                    challengeDate = localPost.challengeDate,
+                    filePath = file.absolutePath,
+                    caption = caption,
+                    country = country,
+                    city = city,
+                    mediaType = localPost.mediaType
+                )
+            )
+            uploadManager.enqueueUpload(accountId, localPost.id)
+            _state.value = _state.value.copy(
+                isUploading = false,
+                uploaded = true,
+                uploadedPost = null
+            )
+        } catch (_: Exception) {
+            feedRepository.removeLocalPost(localPost.id)
+            _state.value = _state.value.copy(
+                isUploading = false,
+                error = "Не удалось сохранить публикацию в очередь"
+            )
         }
     }
 
@@ -112,7 +166,8 @@ class PublishViewModel @Inject constructor(
             createdAt = nowIsoUtc(),
             isLiked = false,
             isMine = true,
-            canDelete = true
+            canDelete = false,
+            syncState = "pending"
         )
     }
 

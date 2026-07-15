@@ -20,10 +20,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.items as lazyItems
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,6 +74,7 @@ import com.bghitech.momenta.core.design.MomentaGreen
 import com.bghitech.momenta.core.design.MomentaGreenAlpha
 import com.bghitech.momenta.core.design.MomentaLargeShape
 import com.bghitech.momenta.core.design.MomentaLogoMark
+import com.bghitech.momenta.core.design.MomentaLoadingMark
 import com.bghitech.momenta.core.design.MomentaMediaViewer
 import com.bghitech.momenta.core.design.MomentaMediumShape
 import com.bghitech.momenta.core.design.MomentaOfflineBanner
@@ -163,7 +165,6 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
             Row(
@@ -212,7 +213,10 @@ fun ProfileScreen(
                     state = state,
                     onEditClick = { showEditDialog = true },
                     onAvatarClick = { showAvatarDialog = true },
-                    onRemoveBookmark = viewModel::removeBookmark
+                    onRemoveBookmark = viewModel::removeBookmark,
+                    onLoadMoreOwnPosts = viewModel::loadMoreOwnPosts,
+                    onLoadMoreBookmarks = viewModel::loadMoreBookmarks,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -224,7 +228,10 @@ private fun ProfileContent(
     state: ProfileUiState,
     onEditClick: () -> Unit,
     onAvatarClick: () -> Unit,
-    onRemoveBookmark: (Post) -> Unit
+    onRemoveBookmark: (Post) -> Unit,
+    onLoadMoreOwnPosts: () -> Unit,
+    onLoadMoreBookmarks: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var previewPost by remember { mutableStateOf<Post?>(null) }
     var showBookmarks by remember { mutableStateOf(false) }
@@ -246,87 +253,113 @@ private fun ProfileContent(
         )
     }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.Top
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(bottom = 16.dp)
     ) {
-        ProfileIdentityBlock(
-            state = state,
-            onEditClick = onEditClick,
-            onAvatarClick = onAvatarClick,
-            modifier = Modifier.weight(1f)
-        )
-
-        ProfileStatsColumn(
-            streakCount = state.streakCount,
-            momentsCount = state.momentsCount,
-            likesCount = state.likesCount,
-            modifier = Modifier.width(152.dp)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        ProfileSectionTab(
-            text = "Мои моменты",
-            selected = !showBookmarks,
-            icon = { Icon(Icons.Default.GridView, null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.weight(1f),
-            onClick = { showBookmarks = false }
-        )
-        ProfileSectionTab(
-            text = "Избранное",
-            selected = showBookmarks,
-            icon = { Icon(Icons.Default.Bookmark, null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.weight(1f),
-            onClick = { showBookmarks = true }
-        )
-    }
-
-    Spacer(modifier = Modifier.height(7.dp))
-
-    if (showBookmarks && state.isBookmarksLoading && state.bookmarkedPosts.isEmpty()) {
-        Text("Загружаем избранное…", color = MomentaTextSecondary, fontSize = 14.sp)
-    } else if (showBookmarks && state.bookmarkedPosts.isEmpty()) {
-        EmptyBookmarks()
-    } else if (!showBookmarks && state.recentPosts.isEmpty()) {
-        EmptyProfileMoments()
-    } else if (showBookmarks) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            state.bookmarkedPosts.forEach { post ->
-                FavoritePostRow(
-                    post = post,
-                    onOpen = { previewPost = post },
-                    onShare = { shareProfilePost(context, post) },
-                    onRemove = { onRemoveBookmark(post) }
+        item(key = "profile-summary") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                ProfileIdentityBlock(
+                    state = state,
+                    onEditClick = onEditClick,
+                    onAvatarClick = onAvatarClick,
+                    modifier = Modifier.weight(1f)
+                )
+                ProfileStatsColumn(
+                    streakCount = state.streakCount,
+                    momentsCount = state.momentsCount,
+                    likesCount = state.likesCount,
+                    modifier = Modifier.width(152.dp)
                 )
             }
         }
-    } else {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            state.recentPosts.take(9).chunked(3).forEach { rowPosts ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    rowPosts.forEach { post ->
-                        RecentPostTile(
-                            post = post,
-                            modifier = Modifier.weight(1f),
-                            onClick = { previewPost = post }
-                        )
+
+        item(key = "profile-tabs") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ProfileSectionTab(
+                    text = "Мои моменты",
+                    selected = !showBookmarks,
+                    icon = { Icon(Icons.Default.GridView, null, modifier = Modifier.size(18.dp)) },
+                    modifier = Modifier.weight(1f),
+                    onClick = { showBookmarks = false }
+                )
+                ProfileSectionTab(
+                    text = "Избранное",
+                    selected = showBookmarks,
+                    icon = { Icon(Icons.Default.Bookmark, null, modifier = Modifier.size(18.dp)) },
+                    modifier = Modifier.weight(1f),
+                    onClick = { showBookmarks = true }
+                )
+            }
+        }
+
+        if (showBookmarks) {
+            if (state.bookmarkedPosts.isEmpty()) {
+                item(key = "empty-bookmarks") {
+                    if (state.isBookmarksLoading) {
+                        Text("Загружаем избранное…", color = MomentaTextSecondary, fontSize = 14.sp)
+                    } else {
+                        EmptyBookmarks()
                     }
-                    repeat(3 - rowPosts.size) {
-                        Spacer(modifier = Modifier.weight(1f))
+                }
+            } else {
+                lazyItems(
+                    items = state.bookmarkedPosts,
+                    key = { post -> "bookmark-${post.id}" }
+                ) { post ->
+                    FavoritePostRow(
+                        post = post,
+                        onOpen = { previewPost = post },
+                        onShare = { shareProfilePost(context, post) },
+                        onRemove = { onRemoveBookmark(post) }
+                    )
+                }
+            }
+            if (state.bookmarksNextCursor != null) {
+                item(key = "more-bookmarks") {
+                    LaunchedEffect(state.bookmarksNextCursor) { onLoadMoreBookmarks() }
+                    MomentaLoadingMark(size = 30)
+                }
+            }
+        } else {
+            val ownPosts = state.ownPosts.ifEmpty { state.recentPosts }
+            if (ownPosts.isEmpty() && !state.isOwnPostsLoading) {
+                item(key = "empty-own-posts") { EmptyProfileMoments() }
+            } else {
+                val rows = ownPosts.chunked(3)
+                lazyItems(
+                    items = rows,
+                    key = { row -> "own-row-${row.firstOrNull()?.id.orEmpty()}" }
+                ) { rowPosts ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        rowPosts.forEach { post ->
+                            RecentPostTile(
+                                post = post,
+                                modifier = Modifier.weight(1f),
+                                onClick = { previewPost = post }
+                            )
+                        }
+                        repeat(3 - rowPosts.size) { Spacer(modifier = Modifier.weight(1f)) }
                     }
+                }
+            }
+            if (state.ownPostsNextCursor != null) {
+                item(key = "more-own-posts") {
+                    LaunchedEffect(state.ownPostsNextCursor) { onLoadMoreOwnPosts() }
+                    MomentaLoadingMark(size = 30)
                 }
             }
         }

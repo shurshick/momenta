@@ -18,6 +18,7 @@ import javax.inject.Inject
 
 data class ProfileUiState(
     val isLoading: Boolean = true,
+    val userId: String = "",
     val username: String = "",
     val displayName: String = "",
     val avatarUrl: String? = null,
@@ -27,7 +28,11 @@ data class ProfileUiState(
     val streakCount: Int = 0,
     val likesCount: Int = 0,
     val recentPosts: List<Post> = emptyList(),
+    val ownPosts: List<Post> = emptyList(),
+    val ownPostsNextCursor: String? = null,
+    val isOwnPostsLoading: Boolean = false,
     val bookmarkedPosts: List<Post> = emptyList(),
+    val bookmarksNextCursor: String? = null,
     val isBookmarksLoading: Boolean = false,
     val isOffline: Boolean = false,
     val avatarOptions: List<String> = (1..40).map { index -> "avatar_%02d".format(index) },
@@ -48,6 +53,7 @@ class ProfileViewModel @Inject constructor(
     val state = _state.asStateFlow()
     private var loadJob: Job? = null
     private var bookmarksJob: Job? = null
+    private var ownPostsJob: Job? = null
     private var lastProfileAttemptAt: Long = 0L
     private var lastBookmarksAttemptAt: Long = 0L
 
@@ -57,18 +63,51 @@ class ProfileViewModel @Inject constructor(
         loadBookmarks()
     }
 
-    fun loadBookmarks(force: Boolean = false) {
+    fun loadBookmarks(force: Boolean = false, loadMore: Boolean = false) {
         if (bookmarksJob?.isActive == true && !force) return
         if (force) bookmarksJob?.cancel()
+        val cursor = if (loadMore) _state.value.bookmarksNextCursor ?: return else null
         bookmarksJob = viewModelScope.launch {
             lastBookmarksAttemptAt = monotonicTimeMillis()
             _state.value = _state.value.copy(isBookmarksLoading = true)
-            when (feedRepository.syncBookmarks()) {
-                is AppResult.Success -> _state.value = _state.value.copy(isBookmarksLoading = false)
+            when (val result = feedRepository.syncBookmarks(cursor)) {
+                is AppResult.Success -> _state.value = _state.value.copy(
+                    isBookmarksLoading = false,
+                    bookmarksNextCursor = result.data
+                )
                 is AppResult.Error -> _state.value = _state.value.copy(isBookmarksLoading = false)
             }
         }
     }
+
+    fun loadMoreBookmarks() = loadBookmarks(loadMore = true)
+
+    fun loadOwnPosts(force: Boolean = false, loadMore: Boolean = false) {
+        val userId = _state.value.userId.takeIf { it.isNotBlank() } ?: return
+        if (ownPostsJob?.isActive == true && !force) return
+        if (force) ownPostsJob?.cancel()
+        val cursor = if (loadMore) _state.value.ownPostsNextCursor ?: return else null
+        ownPostsJob = viewModelScope.launch {
+            _state.value = _state.value.copy(isOwnPostsLoading = true)
+            when (val result = profileRepository.getUserPosts(userId, cursor)) {
+                is AppResult.Success -> {
+                    val posts = if (cursor == null) {
+                        result.data.first
+                    } else {
+                        (_state.value.ownPosts + result.data.first).distinctBy { it.id }
+                    }
+                    _state.value = _state.value.copy(
+                        ownPosts = posts,
+                        ownPostsNextCursor = result.data.second,
+                        isOwnPostsLoading = false
+                    )
+                }
+                is AppResult.Error -> _state.value = _state.value.copy(isOwnPostsLoading = false)
+            }
+        }
+    }
+
+    fun loadMoreOwnPosts() = loadOwnPosts(loadMore = true)
 
     fun onScreenResumed() {
         val now = monotonicTimeMillis()
@@ -120,6 +159,7 @@ class ProfileViewModel @Inject constructor(
             when (val result = getMyProfileUseCase()) {
                 is AppResult.Success -> {
                     mapProfile(result.data)
+                    loadOwnPosts(force = true)
                     _state.value = _state.value.copy(
                         isLoading = false,
                         isOffline = false,
@@ -187,7 +227,9 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun mapProfile(profile: com.bghitech.momenta.domain.model.Profile) {
+        val existingOwnPosts = _state.value.ownPosts.takeIf { _state.value.userId == profile.id && it.isNotEmpty() }
         _state.value = _state.value.copy(
+            userId = profile.id,
             username = "@${profile.username}",
             displayName = profile.displayName ?: profile.username,
             avatarUrl = profile.avatarUrl,
@@ -196,7 +238,8 @@ class ProfileViewModel @Inject constructor(
             momentsCount = profile.momentsCount,
             streakCount = profile.streakCount,
             likesCount = profile.likesCount,
-            recentPosts = profile.recentPosts
+            recentPosts = profile.recentPosts,
+            ownPosts = existingOwnPosts ?: profile.recentPosts
         )
     }
 

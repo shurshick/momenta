@@ -5,11 +5,11 @@ import com.bghitech.momenta.data.local.entity.UploadQueueEntity
 
 @Dao
 interface UploadQueueDao {
-    @Query("SELECT * FROM upload_queue WHERE status = :status ORDER BY createdAt ASC")
-    suspend fun getByStatus(status: String): List<UploadQueueEntity>
+    @Query("SELECT * FROM upload_queue WHERE localId = :localId LIMIT 1")
+    suspend fun getById(localId: String): UploadQueueEntity?
 
-    @Query("SELECT * FROM upload_queue ORDER BY createdAt DESC")
-    suspend fun getAll(): List<UploadQueueEntity>
+    @Query("SELECT * FROM upload_queue WHERE accountId = :accountId AND status IN ('pending', 'uploading', 'failed') ORDER BY createdAt ASC")
+    suspend fun getPendingForAccount(accountId: String): List<UploadQueueEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: UploadQueueEntity)
@@ -25,4 +25,7 @@ interface UploadQueueDao {
 
     @Query("UPDATE upload_queue SET status = :status, retryCount = retryCount + 1, updatedAt = :updatedAt WHERE localId = :localId")
     suspend fun markFailed(localId: String, status: String = "failed", updatedAt: Long = System.currentTimeMillis())
+
+    @Query("DELETE FROM upload_queue WHERE localId = :localId")
+    suspend fun deleteById(localId: String)
 }

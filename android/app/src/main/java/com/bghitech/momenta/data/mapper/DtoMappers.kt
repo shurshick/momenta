@@ -77,7 +77,8 @@ fun RecentPostDto.toDomain(): Post = Post(
     isLiked = false
 )
 
-fun Challenge.toCachedEntity(): CachedChallengeEntity = CachedChallengeEntity(
+fun Challenge.toCachedEntity(accountId: String): CachedChallengeEntity = CachedChallengeEntity(
+    accountId = accountId,
     id = id,
     date = date,
     title = title,
@@ -124,7 +125,7 @@ fun Post.toCachedEntity(accountId: String): CachedPostEntity = CachedPostEntity(
     bookmarkedAt = bookmarkedAt,
     isMine = isMine,
     canDelete = canDelete,
-    syncState = "remote"
+    syncState = syncState
 )
 
 fun CachedPostEntity.toDomain(): Post = Post(
@@ -145,7 +146,8 @@ fun CachedPostEntity.toDomain(): Post = Post(
     isBookmarked = isBookmarked,
     bookmarkedAt = bookmarkedAt,
     isMine = isMine,
-    canDelete = canDelete
+    canDelete = canDelete && syncState != "pending",
+    syncState = syncState
 )
 
 fun CommentDto.toDomain(): Comment = Comment(

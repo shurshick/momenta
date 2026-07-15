@@ -5,13 +5,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy import select, text
+from sqlalchemy import select
 
 from app.admin.routes import router as admin_router
 from app.api.v1 import router as api_router
 from app.config import settings
 from app.db import async_session_factory, engine
-from app.models.base import Base
 from app.models.setting import Setting
 from app.models.user import User
 from app.security import get_password_hash
@@ -25,21 +24,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-        await conn.execute(
-            text(
-                "CREATE TABLE IF NOT EXISTS alembic_version "
-                "(version_num VARCHAR(32) NOT NULL PRIMARY KEY)"
-            )
-        )
-        current_revision = await conn.execute(
-            text("SELECT version_num FROM alembic_version LIMIT 1")
-        )
-        if current_revision.scalar_one_or_none() is None:
-            await conn.execute(text("INSERT INTO alembic_version (version_num) VALUES ('006')"))
-
     async with async_session_factory() as db:
         try:
             ensure_bucket()

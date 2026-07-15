@@ -10,10 +10,11 @@ import javax.inject.Singleton
 
 @Singleton
 class UploadManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val uploadQueueDao: com.bghitech.momenta.data.local.dao.UploadQueueDao
 ) {
-    fun enqueueUpload(localId: String) {
-        val workData = workDataOf("local_id" to localId)
+    fun enqueueUpload(accountId: String, localId: String) {
+        val workData = workDataOf("account_id" to accountId, "local_id" to localId)
 
         val request = OneTimeWorkRequestBuilder<UploadPostWorker>()
             .setInputData(workData)
@@ -27,19 +28,29 @@ class UploadManager @Inject constructor(
                 30,
                 TimeUnit.SECONDS
             )
-            .addTag("upload_$localId")
+            .addTag(accountTag(accountId))
             .build()
 
         WorkManager.getInstance(context)
             .enqueueUniqueWork(
-                "upload_$localId",
+                workName(accountId, localId),
                 ExistingWorkPolicy.REPLACE,
                 request
             )
     }
 
-    fun cancelUpload(localId: String) {
-        WorkManager.getInstance(context)
-            .cancelUniqueWork("upload_$localId")
+    suspend fun resumePendingUploads(accountId: String) {
+        uploadQueueDao.getPendingForAccount(accountId).forEach { entity ->
+            uploadQueueDao.updateStatus(entity.localId, "pending")
+            enqueueUpload(accountId, entity.localId)
+        }
     }
+
+    fun cancelUploads(accountId: String) {
+        WorkManager.getInstance(context).cancelAllWorkByTag(accountTag(accountId))
+    }
+
+    private fun workName(accountId: String, localId: String) = "upload_${accountId}_$localId"
+
+    private fun accountTag(accountId: String) = "uploads_$accountId"
 }

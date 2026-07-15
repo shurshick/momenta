@@ -107,7 +107,7 @@ async def get_post(
     post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)
 ):
     post = await get_post_by_id(db, uuid.UUID(post_id))
-    if not post or post.status == "deleted":
+    if not post or post.status != "active":
         raise HTTPException(status_code=404)
     await increment_views(db, post.id)
     user_result = await db.execute(select(User).where(User.id == post.user_id))

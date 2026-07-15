@@ -1,4 +1,3 @@
-import random
 import uuid
 from datetime import date
 
@@ -30,14 +29,15 @@ async def today_feed(
     return {"items": items, "next_cursor": next_cursor}
 
 
-@router.get("/today/best-random", response_model=BestMomentResponse)
-async def today_best_random(
+@router.get("/today/best", response_model=BestMomentResponse)
+@router.get("/today/best-random", response_model=BestMomentResponse, include_in_schema=False)
+async def today_best(
     user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)
 ):
     posts = await _top_active_posts(db, challenge_date=current_app_date())
     if not posts:
         return {"post": None}
-    items = await build_feed_items(db, [random.choice(posts)], user_id)
+    items = await build_feed_items(db, [posts[0]], user_id)
     return {"post": items[0] if items else None}
 
 

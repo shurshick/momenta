@@ -18,6 +18,6 @@ interface FeedRepository {
     suspend fun replaceLocalPost(localId: String, post: Post)
     suspend fun removeLocalPost(postId: String)
     suspend fun updateCachedPost(post: Post)
-    suspend fun syncBookmarks(): AppResult<List<Post>>
+    suspend fun syncBookmarks(cursor: String? = null): AppResult<String?>
     suspend fun getUserSuggestions(): AppResult<List<User>>
 }

@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
-import com.bghitech.momenta.core.media.ImageCompressor
+import com.bghitech.momenta.core.datastore.TokenStore
+import com.bghitech.momenta.data.local.dao.PostDao
 import com.bghitech.momenta.data.local.dao.UploadQueueDao
 import com.bghitech.momenta.data.remote.MomentaApi
 import javax.inject.Inject
@@ -13,8 +14,9 @@ import javax.inject.Singleton
 @Singleton
 class UploadWorkerFactory @Inject constructor(
     private val uploadQueueDao: UploadQueueDao,
+    private val postDao: PostDao,
     private val api: MomentaApi,
-    private val imageCompressor: ImageCompressor
+    private val tokenStore: TokenStore
 ) : WorkerFactory() {
 
     override fun createWorker(
@@ -24,7 +26,14 @@ class UploadWorkerFactory @Inject constructor(
     ): ListenableWorker? {
         return when (workerClassName) {
             UploadPostWorker::class.java.name ->
-                UploadPostWorker(appContext, workerParameters, uploadQueueDao, api, imageCompressor)
+                UploadPostWorker(
+                    appContext,
+                    workerParameters,
+                    uploadQueueDao,
+                    postDao,
+                    api,
+                    tokenStore
+                )
             else -> null
         }
     }

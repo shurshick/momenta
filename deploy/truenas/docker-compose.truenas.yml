@@ -1,6 +1,6 @@
-﻿services:
+services:
   momenta-api:
-    image: ghcr.io/shurshick/momenta:v0.2.69
+    image: ghcr.io/shurshick/momenta:v0.2.70
     container_name: momenta-api
     pull_policy: always
     restart: unless-stopped
@@ -58,7 +58,7 @@
       retries: 5
 
   momenta-worker:
-    image: ghcr.io/shurshick/momenta:v0.2.69
+    image: ghcr.io/shurshick/momenta:v0.2.70
     container_name: momenta-worker
     pull_policy: always
     restart: unless-stopped
@@ -67,11 +67,7 @@
       - -c
       - "import logging; logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s [%(name)s] %(message)s', force=True); from app.worker.tasks import run_worker; run_worker()"
     depends_on:
-      momenta-postgres:
-        condition: service_healthy
-      momenta-redis:
-        condition: service_healthy
-      momenta-minio:
+      momenta-api:
         condition: service_healthy
     environment:
       APP_NAME: Momenta

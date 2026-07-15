@@ -38,10 +38,8 @@ import com.bghitech.momenta.core.design.MomentaSurface
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
 import com.bghitech.momenta.core.navigation.NavRoutes
-import com.bghitech.momenta.feature.circle.CircleScreen
 import com.bghitech.momenta.feature.feed.FeedScreen
 import com.bghitech.momenta.feature.profile.ProfileScreen
-import com.bghitech.momenta.feature.search.SearchScreen
 import com.bghitech.momenta.feature.today.TodayScreen
 import com.bghitech.momenta.feature.updates.AppUpdateInfo
 import com.bghitech.momenta.feature.updates.AppUpdateViewModel
@@ -130,9 +128,6 @@ fun MainScreen(
                         }
                     )
                 }
-                composable(NavRoutes.SEARCH) {
-                    SearchScreen()
-                }
                 composable(NavRoutes.FEED) {
                     FeedScreen(
                         focusPostId = feedFocusPostId,
@@ -142,9 +137,6 @@ fun MainScreen(
                             }
                         }
                     )
-                }
-                composable(NavRoutes.CIRCLE) {
-                    CircleScreen()
                 }
                 composable(NavRoutes.PROFILE) {
                     ProfileScreen(

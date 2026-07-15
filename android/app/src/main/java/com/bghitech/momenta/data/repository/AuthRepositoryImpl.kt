@@ -4,6 +4,7 @@ import com.bghitech.momenta.core.common.AppError
 import com.bghitech.momenta.core.common.AppResult
 import com.bghitech.momenta.core.common.safeApiCall
 import com.bghitech.momenta.core.datastore.TokenStore
+import com.bghitech.momenta.core.upload.UploadManager
 import com.bghitech.momenta.data.mapper.toDomain
 import com.bghitech.momenta.data.remote.MomentaApi
 import com.bghitech.momenta.data.remote.dto.LoginRequest
@@ -22,7 +23,8 @@ import javax.inject.Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val api: MomentaApi,
     private val tokenStore: TokenStore,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val uploadManager: UploadManager
 ) : AuthRepository {
 
     override suspend fun login(usernameOrEmail: String, password: String): AppResult<AuthToken> {
@@ -30,6 +32,7 @@ class AuthRepositoryImpl @Inject constructor(
             val response = api.login(LoginRequest(usernameOrEmail, password))
             tokenStore.saveTokens(response.accessToken, response.refreshToken, response.user.id, response.user.username)
             profileRepository.clearCache()
+            resumePendingUploads(response.user.id)
             AuthToken(response.accessToken, response.refreshToken, response.tokenType)
         }
     }
@@ -39,6 +42,7 @@ class AuthRepositoryImpl @Inject constructor(
             val response = api.register(RegisterRequest(username, email, password))
             tokenStore.saveTokens(response.accessToken, response.refreshToken, response.user.id, response.user.username)
             profileRepository.clearCache()
+            resumePendingUploads(response.user.id)
             AuthToken(response.accessToken, response.refreshToken, response.tokenType)
         }
     }
@@ -58,6 +62,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logout() {
+        tokenStore.getUserIdSync()?.let(uploadManager::cancelUploads)
         try { api.logout() } catch (_: Exception) { }
         tokenStore.clearTokens()
         profileRepository.clearCache()
@@ -72,4 +77,12 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun isLoggedIn(): Boolean = tokenStore.getAccessToken() != null
 
     override fun observeAuthState(): Flow<Boolean> = tokenStore.observeToken().map { it != null }
+
+    private suspend fun resumePendingUploads(userId: String) {
+        try {
+            uploadManager.resumePendingUploads(userId)
+        } catch (_: Exception) {
+            // A stale local queue must never turn a valid login into an auth failure.
+        }
+    }
 }

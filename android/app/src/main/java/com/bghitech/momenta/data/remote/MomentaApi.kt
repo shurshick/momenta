@@ -42,8 +42,15 @@ interface MomentaApi {
         @Query("limit") limit: Int = 20
     ): FeedResponseDto
 
-    @GET("/api/v1/feed/today/best-random")
+    @GET("/api/v1/feed/today/best")
     suspend fun getBestMoment(): BestMomentResponseDto
+
+    @GET("/api/v1/feed/user/{userId}")
+    suspend fun getUserFeed(
+        @Path("userId") userId: String,
+        @Query("cursor") cursor: String? = null,
+        @Query("limit") limit: Int = 30
+    ): FeedResponseDto
 
     @Multipart
     @POST("/api/v1/posts")

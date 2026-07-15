@@ -181,12 +181,32 @@ async def test_feed_returns_today_posts(client, auth_headers):
 
 
 @pytest.mark.asyncio
-async def test_hidden_posts_not_visible(client, auth_headers, test_user, db_session):
-    pass
+@pytest.mark.parametrize("status", ["hidden", "processing", "failed", "deleted"])
+async def test_non_active_post_not_visible_by_id(
+    client, auth_headers, test_user, test_challenge, db_session, status
+):
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/original.jpg",
+        preview_url="https://example.com/preview.webp",
+        status=status,
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    response = await client.get(f"/api/v1/posts/{post.id}", headers=auth_headers)
+
+    assert response.status_code == 404
 
 
 @pytest.mark.asyncio
-async def test_best_random_returns_active_today_post(
+async def test_best_returns_highest_rated_active_today_post(
     client, auth_headers, test_user, test_challenge, db_session
 ):
     from app.models.post import Post
@@ -204,9 +224,22 @@ async def test_best_random_returns_active_today_post(
         status="active",
     )
     db_session.add(post)
+    db_session.add(
+        Post(
+            id=uuid.uuid4(),
+            user_id=test_user.id,
+            challenge_id=test_challenge.id,
+            challenge_date=current_app_date(),
+            media_type="photo",
+            original_url="https://example.com/other-original.jpg",
+            preview_url="https://example.com/other-preview.webp",
+            likes_count=2,
+            status="active",
+        )
+    )
     await db_session.commit()
 
-    response = await client.get("/api/v1/feed/today/best-random", headers=auth_headers)
+    response = await client.get("/api/v1/feed/today/best", headers=auth_headers)
 
     assert response.status_code == 200
     assert response.json()["post"]["id"] == str(post.id)
