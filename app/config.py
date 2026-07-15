@@ -60,6 +60,7 @@ class Settings(BaseSettings):
 
     worker_concurrency: int = 2
     worker_media_max_attempts: int = 3
+    worker_lease_seconds: int = 300
 
     @property
     def cors_origin_list(self) -> List[str]:

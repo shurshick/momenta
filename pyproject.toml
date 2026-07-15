@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "momenta-server"
-version = "0.2.75"
+version = "0.2.76"
 description = "Momenta - social daily challenge backend"
 requires-python = ">=3.12"
 dependencies = [
@@ -27,7 +27,6 @@ dependencies = [
     "aiofiles>=24.1.0",
     "httpx>=0.27.0",
     "python-dotenv>=1.0.1",
-    "rq>=2.0.0",
     "aiosqlite>=0.20.0",
 ]
 

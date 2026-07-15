@@ -150,7 +150,7 @@ http://TRUENAS_IP:8010/admin
 docker exec -it momenta-api alembic current
 ```
 
-Ожидаемый результат: `007 (head)`.
+Ожидаемый результат: `008 (head)`.
 
 Если API не стартовал из-за миграции, сначала смотрите его лог:
 
@@ -217,7 +217,7 @@ APP_UPDATE_CACHE_TTL_SECONDS=300
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.75`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.76`.
 2. Запустите app заново.
 
 После обновления проверьте:
@@ -292,6 +292,8 @@ docker exec -it momenta-postgres pg_isready -U momenta -d momenta
 - `S3_PUBLIC_ENDPOINT` должен смотреть на публичный media-домен.
 - Nginx Proxy Manager должен проксировать media-домен на порт `9010`.
 - `WORKER_MEDIA_MAX_ATTEMPTS` задает число попыток обработки перед статусом `failed`.
+- `WORKER_CONCURRENCY` задаёт число одновременно обрабатываемых постов.
+- `WORKER_LEASE_SECONDS` задаёт срок аренды задачи, после которого зависший пост сможет подобрать другой worker.
 - В админке `/admin/posts?status_filter=failed` можно увидеть ошибку и запустить retry.
 
 ### Rate limit мешает тестам

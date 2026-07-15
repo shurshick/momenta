@@ -3,7 +3,12 @@ import uuid
 import pytest
 
 from app.services.challenge_service import current_app_date
-from app.worker.tasks import _process_post_media, flush_counters, retry_failed_media
+from app.worker.tasks import (
+    _claim_pending_posts,
+    _process_post_media,
+    flush_counters,
+    retry_failed_media,
+)
 
 
 @pytest.mark.asyncio
@@ -90,6 +95,47 @@ async def test_retry_failed_media_resets_post_for_processing(test_user, test_cha
     assert post.processing_attempts == 0
     assert post.last_error is None
     assert post.processed_at is None
+
+
+@pytest.mark.asyncio
+async def test_worker_claim_prevents_duplicate_processing(
+    test_user, test_challenge, db_session, monkeypatch
+):
+    from datetime import datetime, timedelta, timezone
+
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://media.test/original.jpg",
+        status="processing",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    class SessionContext:
+        async def __aenter__(self):
+            return db_session
+
+        async def __aexit__(self, exc_type, exc, traceback):
+            return False
+
+    monkeypatch.setattr("app.worker.tasks.async_session_factory", SessionContext)
+    monkeypatch.setattr("app.worker.tasks.WORKER_ID", "worker-one")
+    assert await _claim_pending_posts() == [post.id]
+
+    monkeypatch.setattr("app.worker.tasks.WORKER_ID", "worker-two")
+    assert await _claim_pending_posts() == []
+
+    post.processing_started_at = datetime.now(timezone.utc) - timedelta(minutes=10)
+    await db_session.commit()
+    assert await _claim_pending_posts() == [post.id]
+    await db_session.refresh(post)
+    assert post.processing_owner == "worker-two"
 
 
 @pytest.mark.asyncio

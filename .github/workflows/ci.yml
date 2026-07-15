@@ -11,6 +11,41 @@ jobs:
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: momenta_test
+          POSTGRES_USER: momenta
+          POSTGRES_PASSWORD: momenta_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U momenta -d momenta_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+psycopg://momenta:momenta_password@127.0.0.1:5432/momenta_test
+      TEST_DATABASE_URL: postgresql+asyncpg://momenta:momenta_password@127.0.0.1:5432/momenta_test
+      REDIS_URL: redis://127.0.0.1:6379/0
+      TEST_REDIS_URL: redis://127.0.0.1:6379/1
+      S3_ENDPOINT: http://127.0.0.1:9000
+      S3_PUBLIC_ENDPOINT: http://127.0.0.1:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: momenta-ci
+      TEST_S3_INTEGRATION: "1"
+      JWT_SECRET: ci_only_jwt_secret_32_characters_minimum
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,6 +54,20 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           cache-dependency-glob: pyproject.toml
+
+      - name: Start MinIO
+        run: |
+          docker run -d --name momenta-ci-minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio:latest server /data --console-address :9001
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:9000/minio/health/live && exit 0
+            sleep 2
+          done
+          docker logs momenta-ci-minio
+          exit 1
 
       - name: Check mojibake
         run: python scripts/check_mojibake.py
@@ -38,8 +87,56 @@ jobs:
           assert len(heads) == 1, heads;
           print(heads[0])"
 
+      - name: Apply migrations to PostgreSQL
+        run: uv run --python 3.12 --extra dev alembic upgrade head
+
       - name: Run pytest
         run: uv run --python 3.12 --extra dev pytest -q
+
+      - name: Build and smoke test Docker image
+        run: |
+          uv run --python 3.12 --extra dev python - <<'PY'
+          import psycopg2
+
+          connection = psycopg2.connect(
+              host="127.0.0.1",
+              port=5432,
+              user="momenta",
+              password="momenta_password",
+              dbname="postgres",
+          )
+          connection.autocommit = True
+          with connection.cursor() as cursor:
+              cursor.execute("DROP DATABASE IF EXISTS momenta_smoke")
+              cursor.execute("CREATE DATABASE momenta_smoke")
+          connection.close()
+          PY
+          docker build -t momenta:ci .
+          docker run -d --name momenta-ci-api --network host \
+            -e APP_ENV=ci \
+            -e DATABASE_URL=postgresql+psycopg://momenta:momenta_password@127.0.0.1:5432/momenta_smoke \
+            -e REDIS_URL=redis://127.0.0.1:6379/0 \
+            -e S3_ENDPOINT=http://127.0.0.1:9000 \
+            -e S3_PUBLIC_ENDPOINT=http://127.0.0.1:9000 \
+            -e S3_ACCESS_KEY=minioadmin \
+            -e S3_SECRET_KEY=minioadmin \
+            -e S3_BUCKET=momenta-ci \
+            -e JWT_SECRET=ci_only_jwt_secret_32_characters_minimum \
+            momenta:ci
+          trap 'docker logs momenta-ci-api || true; docker rm -f momenta-ci-api >/dev/null 2>&1 || true' EXIT
+          for i in {1..45}; do
+            if curl -fsS http://127.0.0.1:8000/ready | grep -q '"status":"ok"'; then
+              curl -fsS http://127.0.0.1:8000/api/v1/meta
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Verify PostgreSQL backup and restore
+        env:
+          POSTGRES_USER: momenta
+        run: ./scripts/ci_backup_restore_smoke.sh "${{ job.services.postgres.id }}"
 
   android:
     name: Android build

@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
@@ -233,6 +234,37 @@ async def test_daily_post_limit_rejects_after_configured_number(
 
     assert response.status_code == 409
     assert response.json()["detail"] == "Лимит 2 моментов в день исчерпан"
+
+
+@pytest.mark.asyncio
+async def test_concurrent_post_creation_respects_daily_limit(
+    engine, test_user, test_challenge
+):
+    if engine.dialect.name != "postgresql":
+        pytest.skip("PostgreSQL advisory lock integration test")
+
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from app.models.post import Post
+    from app.services.post_service import create_post
+
+    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    async def create(suffix: str):
+        async with session_factory() as session:
+            return await create_post(
+                session,
+                test_user.id,
+                test_challenge.id,
+                current_app_date(),
+                "photo",
+                f"https://media.test/{suffix}.jpg",
+            )
+
+    results = await asyncio.gather(create("first"), create("second"), return_exceptions=True)
+
+    assert sum(isinstance(result, Post) for result in results) == 1
+    assert sum(isinstance(result, ValueError) for result in results) == 1
 
 
 @pytest.mark.asyncio

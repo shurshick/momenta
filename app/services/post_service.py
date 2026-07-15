@@ -1,9 +1,10 @@
+import hashlib
 import logging
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
-from sqlalchemy import desc, func, select
+from sqlalchemy import desc, func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,7 +28,11 @@ async def assert_can_create_post(
     db: AsyncSession,
     user_id: uuid.UUID,
     challenge_date: date,
+    *,
+    acquire_lock: bool = False,
 ) -> None:
+    if acquire_lock:
+        await _lock_daily_post_slot(db, user_id, challenge_date)
     limit_str = await get_setting(db, "daily_post_limit", "1")
     try:
         daily_limit = int(limit_str)
@@ -59,6 +64,19 @@ async def assert_can_create_post(
         raise ValueError(f"Лимит {daily_limit} моментов в день исчерпан")
 
 
+async def _lock_daily_post_slot(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    challenge_date: date,
+) -> None:
+    bind = db.get_bind()
+    if bind.dialect.name != "postgresql":
+        return
+    lock_source = f"{user_id}:{challenge_date.isoformat()}".encode("ascii")
+    lock_key = int.from_bytes(hashlib.sha256(lock_source).digest()[:8], "big", signed=True)
+    await db.execute(text("SELECT pg_advisory_xact_lock(:lock_key)"), {"lock_key": lock_key})
+
+
 async def create_post(
     db: AsyncSession,
     user_id: uuid.UUID,
@@ -73,7 +91,7 @@ async def create_post(
     city: Optional[str] = None,
     post_id: uuid.UUID | None = None,
 ) -> Post:
-    await assert_can_create_post(db, user_id, challenge_date)
+    await assert_can_create_post(db, user_id, challenge_date, acquire_lock=True)
 
     post = Post(
         id=post_id or uuid.uuid4(),

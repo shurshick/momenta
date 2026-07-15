@@ -32,6 +32,10 @@ class Post(Base, TimestampMixin):
     reports_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="uploading", nullable=False, index=True)
     processing_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    processing_owner: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    processing_started_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     last_error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -52,3 +56,9 @@ Index(
     Post.created_at.desc(),
 )
 Index("ix_posts_status_created_desc", Post.status, Post.created_at.desc())
+Index(
+    "ix_posts_processing_claim",
+    Post.status,
+    Post.processing_started_at,
+    Post.created_at,
+)

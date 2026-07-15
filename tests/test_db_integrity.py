@@ -126,6 +126,7 @@ async def test_feed_indexes_exist(engine):
         "ix_posts_user_status_created_desc",
         "ix_posts_status_likes_created_desc",
         "ix_posts_status_created_desc",
+        "ix_posts_processing_claim",
         "ix_comments_post_status_created",
         "ix_reports_post_status",
         "ix_bookmarks_user_created_desc",
@@ -146,7 +147,7 @@ async def test_feed_indexes_exist(engine):
 
 def test_alembic_single_head():
     heads = ScriptDirectory.from_config(Config("alembic.ini")).get_heads()
-    assert heads == ["007"]
+    assert heads == ["008"]
 
 
 @pytest.mark.asyncio

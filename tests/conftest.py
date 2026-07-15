@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import pytest
@@ -17,8 +18,11 @@ from app.services.setting_service import invalidate_cache
 
 @pytest.fixture(scope="session")
 async def engine(tmp_path_factory):
-    db_path = tmp_path_factory.mktemp("db") / "test.db"
-    engine = create_async_engine(f"sqlite+aiosqlite:///{db_path}", echo=False)
+    database_url = os.getenv("TEST_DATABASE_URL")
+    if not database_url:
+        db_path = tmp_path_factory.mktemp("db") / "test.db"
+        database_url = f"sqlite+aiosqlite:///{db_path}"
+    engine = create_async_engine(database_url, echo=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield engine
