@@ -60,6 +60,23 @@ async def test_login_wrong_password(client, test_user):
 
 
 @pytest.mark.asyncio
+async def test_login_rate_limit_returns_retry_after(client, monkeypatch):
+    from app.services.rate_limit_service import RateLimitResult
+
+    async def deny_request(*args, **kwargs):
+        return RateLimitResult(allowed=False, retry_after_seconds=37)
+
+    monkeypatch.setattr("app.api.v1.auth.check_rate_limit", deny_request)
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={"username_or_email": "testuser", "password": "password123"},
+    )
+
+    assert response.status_code == 429
+    assert response.headers["Retry-After"] == "37"
+
+
+@pytest.mark.asyncio
 async def test_get_me_with_token(client, auth_headers):
     response = await client.get("/api/v1/auth/me", headers=auth_headers)
     assert response.status_code == 200

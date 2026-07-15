@@ -1,5 +1,6 @@
 import asyncio
 import io
+import json
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -17,6 +18,8 @@ from app.services.redis_service import add_to_feed, get_redis
 from app.services.s3_service import make_object_key, upload_fileobj
 
 logger = logging.getLogger(__name__)
+WORKER_HEARTBEAT_KEY = "worker:heartbeat"
+WORKER_HEARTBEAT_TTL_SECONDS = 45
 
 
 def _log_event(level: int, event: str, status: str, **fields: Any) -> None:
@@ -43,15 +46,19 @@ async def _worker_loop():
         try:
             processing = await process_pending_media()
             reprocessed = await reprocess_broken_posts()
+            flushed_views = await flush_counters()
             _log_event(
                 logging.INFO,
                 "cycle",
                 "done",
                 processing=processing,
                 reprocessed=reprocessed,
+                flushed_views=flushed_views,
             )
         except Exception:
             logger.exception("worker event=cycle status=error")
+        finally:
+            await publish_worker_heartbeat()
         await asyncio.sleep(10)
 
 
@@ -270,19 +277,45 @@ def _safe_error_message(exc: Exception) -> str:
 
 
 async def flush_counters():
-    async with async_session_factory() as db:
-        r = await get_redis()
-        keys = await r.keys("post:views:*")
-        for key in keys:
-            post_id = key.split(":")[-1]
-            count = await r.get(key)
-            if count and int(count) > 0:
-                result = await db.execute(select(Post).where(Post.id == uuid.UUID(post_id)))
+    redis = await get_redis()
+    claimed: list[tuple[str, int]] = []
+    flushed = 0
+    try:
+        async with async_session_factory() as db:
+            async for key in redis.scan_iter(match="post:views:*", count=100):
+                raw_count = await redis.getdel(key)
+                if not raw_count:
+                    continue
+                count = int(raw_count)
+                claimed.append((key, count))
+                try:
+                    post_id = uuid.UUID(key.rsplit(":", 1)[-1])
+                except ValueError:
+                    _log_event(logging.WARNING, "flush_views", "invalid_key", key=key)
+                    continue
+                result = await db.execute(select(Post).where(Post.id == post_id))
                 post = result.scalar_one_or_none()
                 if post:
-                    await CounterService(db).add_post_views(post, int(count))
-                await r.delete(key)
-        await db.commit()
+                    await CounterService(db).add_post_views(post, count)
+                    flushed += count
+            await db.commit()
+    except Exception:
+        for key, count in claimed:
+            try:
+                await redis.incrby(key, count)
+            except Exception:
+                logger.exception("worker event=restore_views status=error key=%s", key)
+        raise
+    return flushed
+
+
+async def publish_worker_heartbeat() -> None:
+    try:
+        redis = await get_redis()
+        payload = json.dumps({"updated_at": datetime.now(timezone.utc).isoformat()})
+        await redis.setex(WORKER_HEARTBEAT_KEY, WORKER_HEARTBEAT_TTL_SECONDS, payload)
+    except Exception:
+        logger.warning("worker event=heartbeat status=error", exc_info=True)
 
 
 async def clean_stuck_posts():

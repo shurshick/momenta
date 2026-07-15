@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.73**.
+Текущая стабильная версия сервера: **v0.2.74**.
 
 ## Что уже есть
 
@@ -23,7 +23,7 @@
 - **Мир сейчас** — лента постов, лайки, комментарии, избранное, жалобы и удаление своих постов.
 - **Создать** — камера, галерея, эффекты, предпросмотр и публикация.
 - **Профиль** — аватар, статистика, свои и избранные моменты.
-- **Настройки** — API URL, информация о приложении, проверка и скачивание обновления.
+- **Настройки** — информация о приложении, проверка и скачивание обновления.
 
 Сборка APK:
 
@@ -64,12 +64,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.73
+image: ghcr.io/shurshick/momenta:v0.2.74
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.73** Android распространяется как подписанный `prodRelease`: без debuggable и сетевых BODY-логов. Временная ошибка refresh больше не удаляет сессию, фиктивная настройка API URL убрана.
+В **v0.2.74** worker переносит просмотры из Redis в PostgreSQL, публикует heartbeat и имеет Docker healthcheck. На login и upload действуют реальные лимиты запросов.
 
 ## Обновления Android
 
@@ -83,8 +83,8 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.73](https://github.com/shurshick/momenta/releases/tag/v0.2.73)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.73`
+- Release: [v0.2.74](https://github.com/shurshick/momenta/releases/tag/v0.2.74)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.74`
 - Android APK: актуальная версия приложения `0.2.73`
 
 ## Документы

@@ -26,6 +26,7 @@ from app.services.post_service import (
     increment_views,
     soft_delete_post,
 )
+from app.services.rate_limit_service import check_rate_limit
 from app.services.s3_service import make_object_key, upload_fileobj
 
 router = APIRouter(prefix="/api/v1/posts", tags=["posts"])
@@ -41,6 +42,18 @@ async def upload_post(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
+    rate_limit = await check_rate_limit(
+        "upload",
+        user_id,
+        settings.rate_limit_upload_per_hour,
+        3600,
+    )
+    if not rate_limit.allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many uploads",
+            headers={"Retry-After": str(rate_limit.retry_after_seconds)},
+        )
     if not media.content_type:
         raise HTTPException(status_code=400, detail="Could not determine media type")
     allowed = settings.allowed_image_types + settings.allowed_video_types

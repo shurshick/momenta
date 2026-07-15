@@ -99,7 +99,11 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
         location = exc.headers.get("Location", "/admin/login") if exc.headers else "/admin/login"
         return RedirectResponse(url=location, status_code=303)
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=exc.headers,
+    )
 
 
 @app.get("/health")

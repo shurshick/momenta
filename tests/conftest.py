@@ -79,6 +79,11 @@ def mock_external_services(monkeypatch):
     async def user_has_not_posted(*args, **kwargs):
         return False
 
+    async def allow_request(*args, **kwargs):
+        from app.services.rate_limit_service import RateLimitResult
+
+        return RateLimitResult(allowed=True, retry_after_seconds=0)
+
     def fake_upload(fileobj, object_key: str, content_type: str) -> str:
         return f"https://media.test/{object_key}"
 
@@ -89,6 +94,8 @@ def mock_external_services(monkeypatch):
     monkeypatch.setattr("app.services.post_service.add_to_feed", noop_async)
     monkeypatch.setattr("app.services.post_service.mark_user_posted", noop_async)
     monkeypatch.setattr("app.api.v1.posts.upload_fileobj", fake_upload)
+    monkeypatch.setattr("app.api.v1.auth.check_rate_limit", allow_request)
+    monkeypatch.setattr("app.api.v1.posts.check_rate_limit", allow_request)
 
 
 @pytest.fixture

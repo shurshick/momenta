@@ -1,12 +1,14 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db import get_db
 from app.schemas.auth import AuthResponse, LoginRequest, RegisterRequest, TokenRefreshRequest
 from app.security import decode_token
 from app.services.auth_service import get_user_by_id, login_user, refresh_token, register_user
+from app.services.rate_limit_service import check_rate_limit
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -48,7 +50,20 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    client_ip = request.client.host if request.client else "unknown"
+    rate_limit = await check_rate_limit(
+        "login",
+        client_ip,
+        settings.rate_limit_login_per_minute,
+        60,
+    )
+    if not rate_limit.allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many login attempts",
+            headers={"Retry-After": str(rate_limit.retry_after_seconds)},
+        )
     try:
         return await login_user(db, req.username_or_email, req.password)
     except ValueError as e:

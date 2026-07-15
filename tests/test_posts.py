@@ -32,6 +32,29 @@ async def test_upload_creates_post(client, auth_headers, test_challenge):
 
 
 @pytest.mark.asyncio
+async def test_upload_rate_limit_returns_retry_after(
+    client, auth_headers, test_challenge, monkeypatch
+):
+    import io
+
+    from app.services.rate_limit_service import RateLimitResult
+
+    async def deny_request(*args, **kwargs):
+        return RateLimitResult(allowed=False, retry_after_seconds=120)
+
+    monkeypatch.setattr("app.api.v1.posts.check_rate_limit", deny_request)
+    response = await client.post(
+        "/api/v1/posts",
+        files={"media": ("test.jpg", io.BytesIO(b"image"), "image/jpeg")},
+        data={"challenge_id": str(test_challenge.id)},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 429
+    assert response.headers["Retry-After"] == "120"
+
+
+@pytest.mark.asyncio
 async def test_upload_today_uses_app_date(client, auth_headers, db_session, monkeypatch):
     import io
 

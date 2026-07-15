@@ -1,5 +1,25 @@
 # Changelog
 
+## [v0.2.74] - 2026-07-15
+
+### Fixed
+
+- **Backend**: просмотры постов теперь регулярно и без потерь переносятся из Redis в PostgreSQL.
+- **Backend**: глобальный обработчик HTTP-ошибок больше не удаляет служебные заголовки ответа.
+
+### Added
+
+- **Worker**: heartbeat в Redis и Docker healthcheck показывают реальное состояние процесса.
+- **Security**: login и upload защищены атомарными rate limits с корректным `Retry-After`.
+
+### Changed
+
+- **Release**: server-only, Android остаётся на `0.2.73`; миграций нет, Alembic head `007`, Room schema `7`.
+
+### Tests
+
+- Добавлены проверки rate limits, HTTP-заголовков и переноса просмотров из Redis.
+
 ## [v0.2.73] - 2026-07-15
 
 ### Fixed
