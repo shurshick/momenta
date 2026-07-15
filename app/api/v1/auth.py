@@ -54,7 +54,7 @@ async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(
     client_ip = request.client.host if request.client else "unknown"
     rate_limit = await check_rate_limit(
         "login",
-        client_ip,
+        f"{client_ip}:{req.username_or_email.casefold()}",
         settings.rate_limit_login_per_minute,
         60,
     )

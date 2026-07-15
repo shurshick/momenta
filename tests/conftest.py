@@ -84,7 +84,7 @@ def mock_external_services(monkeypatch):
 
         return RateLimitResult(allowed=True, retry_after_seconds=0)
 
-    def fake_upload(fileobj, object_key: str, content_type: str) -> str:
+    async def fake_upload(fileobj, object_key: str, content_type: str) -> str:
         return f"https://media.test/{object_key}"
 
     monkeypatch.setattr("app.services.redis_service.add_to_feed", noop_async)
@@ -93,7 +93,7 @@ def mock_external_services(monkeypatch):
     monkeypatch.setattr("app.services.redis_service.flush_feed_cache", noop_async)
     monkeypatch.setattr("app.services.post_service.add_to_feed", noop_async)
     monkeypatch.setattr("app.services.post_service.mark_user_posted", noop_async)
-    monkeypatch.setattr("app.api.v1.posts.upload_fileobj", fake_upload)
+    monkeypatch.setattr("app.api.v1.posts.upload_fileobj_async", fake_upload)
     monkeypatch.setattr("app.api.v1.auth.check_rate_limit", allow_request)
     monkeypatch.setattr("app.api.v1.posts.check_rate_limit", allow_request)
 

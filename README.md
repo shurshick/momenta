@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.74**.
+Текущая стабильная версия сервера: **v0.2.75**.
 
 ## Что уже есть
 
@@ -64,12 +64,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.74
+image: ghcr.io/shurshick/momenta:v0.2.75
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.74** worker переносит просмотры из Redis в PostgreSQL, публикует heartbeat и имеет Docker healthcheck. На login и upload действуют реальные лимиты запросов.
+В **v0.2.75** загрузка медиа больше не читает весь файл в память. Добавлены безопасная очистка удалённых медиа и проверяемые backup/restore-скрипты для TrueNAS.
 
 ## Обновления Android
 
@@ -83,8 +83,8 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.74](https://github.com/shurshick/momenta/releases/tag/v0.2.74)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.74`
+- Release: [v0.2.75](https://github.com/shurshick/momenta/releases/tag/v0.2.75)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.75`
 - Android APK: актуальная версия приложения `0.2.73`
 
 ## Документы

@@ -217,7 +217,7 @@ APP_UPDATE_CACHE_TTL_SECONDS=300
 
 Если используется фиксированный тег:
 
-1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.74`.
+1. Замените тег образа, например на `ghcr.io/shurshick/momenta:v0.2.75`.
 2. Запустите app заново.
 
 После обновления проверьте:
@@ -228,16 +228,31 @@ curl -s http://TRUENAS_IP:8010/api/v1/meta
 
 Версия в админке и `/api/v1/meta` берется из образа. Старый `APP_VERSION` в окружении больше не должен ломать отображение версии.
 
-## 10. Backup
+## 10. Backup и restore
 
-Достаточно бэкапить dataset'ы:
+Скрипт останавливает API и worker, создаёт PostgreSQL custom dump, архивы MinIO/API и файл `SHA256SUMS`:
 
-- `/mnt/pool/app/momenta/postgres`
-- `/mnt/pool/app/momenta/redis`
-- `/mnt/pool/app/momenta/minio`
-- `/mnt/pool/app/momenta/api`
+```bash
+cd /path/to/momenta
+sudo MOMENTA_BACKUP_ROOT=/mnt/pool/backups/momenta ./scripts/backup_truenas.sh
+```
 
-Лучший вариант на TrueNAS — ZFS snapshot.
+Перед restore обязательно остановите тестирование и укажите конкретный каталог backup. Restore сначала проверит SHA-256 и откажется работать без явного подтверждения:
+
+```bash
+cd /path/to/momenta
+sudo MOMENTA_RESTORE_CONFIRM=YES ./scripts/restore_truenas.sh \
+  /mnt/pool/backups/momenta/20260715T120000Z
+```
+
+По умолчанию data root: `/mnt/pool/app/momenta`. Для другого pool задайте `MOMENTA_DATA_ROOT`. ZFS snapshots стоит оставить как второй независимый уровень защиты.
+
+Удалённые более 30 дней медиа сначала проверьте dry-run командой, затем удалите:
+
+```bash
+docker exec momenta-api python -m app.cli cleanup-media --dry-run --older-than-days 30
+docker exec momenta-api python -m app.cli cleanup-media --older-than-days 30
+```
 
 ## 11. Troubleshooting
 
@@ -284,8 +299,8 @@ docker exec -it momenta-postgres pg_isready -U momenta -d momenta
 Настройки:
 
 ```env
-RATE_LIMIT_PER_MINUTE=120
-DAILY_POST_LIMIT=1
+RATE_LIMIT_LOGIN_PER_MINUTE=120
+RATE_LIMIT_UPLOAD_PER_HOUR=100
 ```
 
 После изменения окружения перезапустите app.

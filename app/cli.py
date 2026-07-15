@@ -8,6 +8,7 @@ from app.db import async_session_factory
 from app.models.post import Post
 from app.models.user import User
 from app.services.counter_service import CounterService
+from app.services.media_cleanup_service import MediaCleanupResult, cleanup_media_for_session
 
 
 @dataclass
@@ -23,6 +24,18 @@ async def repair_counters(dry_run: bool = False) -> RepairCountersResult:
     async with async_session_factory() as db:
         result = await repair_counters_for_session(db, dry_run=dry_run)
     return result
+
+
+async def cleanup_media(
+    dry_run: bool = False,
+    older_than_days: int = 30,
+) -> MediaCleanupResult:
+    async with async_session_factory() as db:
+        return await cleanup_media_for_session(
+            db,
+            dry_run=dry_run,
+            older_than_days=older_than_days,
+        )
 
 
 async def repair_counters_for_session(db, dry_run: bool = False) -> RepairCountersResult:
@@ -56,6 +69,9 @@ async def _main_async(argv: list[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
     repair_parser = subparsers.add_parser("repair-counters")
     repair_parser.add_argument("--dry-run", action="store_true")
+    cleanup_parser = subparsers.add_parser("cleanup-media")
+    cleanup_parser.add_argument("--dry-run", action="store_true")
+    cleanup_parser.add_argument("--older-than-days", type=int, default=30)
     args = parser.parse_args(argv)
 
     if args.command == "repair-counters":
@@ -63,6 +79,14 @@ async def _main_async(argv: list[str] | None = None) -> int:
         for key, value in asdict(result).items():
             print(f"{key}={value}")
         return 0
+    if args.command == "cleanup-media":
+        result = await cleanup_media(
+            dry_run=args.dry_run,
+            older_than_days=args.older_than_days,
+        )
+        for key, value in asdict(result).items():
+            print(f"{key}={value}")
+        return 0 if result.delete_failures == 0 else 2
     return 1
 
 

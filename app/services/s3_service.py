@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date
 from typing import BinaryIO
 
@@ -42,10 +43,18 @@ def upload_fileobj(fileobj: BinaryIO, object_key: str, content_type: str) -> str
     return f"{settings.s3_public_endpoint}/{bucket}/{object_key}"
 
 
+async def upload_fileobj_async(fileobj: BinaryIO, object_key: str, content_type: str) -> str:
+    return await asyncio.to_thread(upload_fileobj, fileobj, object_key, content_type)
+
+
 def delete_object(object_key: str):
     s3 = get_s3()
     bucket = settings.s3_bucket
     s3.delete_object(Bucket=bucket, Key=object_key)
+
+
+async def delete_object_async(object_key: str) -> None:
+    await asyncio.to_thread(delete_object, object_key)
 
 
 def make_object_key(d: date, post_id: str, variant: str, ext: str) -> str:

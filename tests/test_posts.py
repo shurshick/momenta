@@ -55,6 +55,46 @@ async def test_upload_rate_limit_returns_retry_after(
 
 
 @pytest.mark.asyncio
+async def test_failed_post_creation_removes_uploaded_object(
+    client, auth_headers, test_challenge, monkeypatch
+):
+    import io
+
+    deleted_keys = []
+
+    async def fail_create(*args, **kwargs):
+        raise ValueError("database rejected post")
+
+    async def record_delete(object_key):
+        deleted_keys.append(object_key)
+
+    monkeypatch.setattr("app.api.v1.posts.create_post", fail_create)
+    monkeypatch.setattr("app.api.v1.posts.delete_object_async", record_delete)
+    response = await client.post(
+        "/api/v1/posts",
+        files={"media": ("test.jpg", io.BytesIO(b"image"), "image/jpeg")},
+        data={"challenge_id": str(test_challenge.id)},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert len(deleted_keys) == 1
+    assert "/original/" in deleted_keys[0]
+
+
+def test_file_size_preserves_stream_position():
+    import io
+
+    from app.api.v1.posts import _file_size
+
+    stream = io.BytesIO(b"123456")
+    stream.seek(2)
+
+    assert _file_size(stream) == 6
+    assert stream.tell() == 2
+
+
+@pytest.mark.asyncio
 async def test_upload_today_uses_app_date(client, auth_headers, db_session, monkeypatch):
     import io
 

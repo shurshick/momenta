@@ -1,5 +1,25 @@
 # Changelog
 
+## [v0.2.75] - 2026-07-15
+
+### Fixed
+
+- **Upload**: API больше не загружает весь файл в RAM для проверки размера.
+- **Storage**: объект S3 удаляется, если создание поста после upload завершилось ошибкой.
+
+### Added
+
+- **CLI**: `cleanup-media` с dry-run удаляет старые объекты удалённых и осиротевших записей.
+- **TrueNAS**: backup/restore-скрипты с PostgreSQL custom dump, архивами MinIO/API и SHA-256 проверкой.
+
+### Changed
+
+- **Release**: server-only, Android остаётся на `0.2.73`; миграций нет, Alembic head `007`, Room schema `7`.
+
+### Tests
+
+- Добавлены проверки streaming upload, удаления неудачной загрузки и dry-run очистки медиа.
+
 ## [v0.2.74] - 2026-07-15
 
 ### Fixed

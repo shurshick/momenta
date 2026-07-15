@@ -1,3 +1,6 @@
+import asyncio
+import logging
+import os
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -27,9 +30,10 @@ from app.services.post_service import (
     soft_delete_post,
 )
 from app.services.rate_limit_service import check_rate_limit
-from app.services.s3_service import make_object_key, upload_fileobj
+from app.services.s3_service import delete_object_async, make_object_key, upload_fileobj_async
 
 router = APIRouter(prefix="/api/v1/posts", tags=["posts"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("", response_model=CreatePostResponse)
@@ -62,8 +66,8 @@ async def upload_post(
     max_size = settings.media_max_image_mb * 1024 * 1024
     if media.content_type.startswith("video/"):
         max_size = settings.media_max_video_mb * 1024 * 1024
-    contents = await media.read()
-    if len(contents) > max_size:
+    media_size = await asyncio.to_thread(_file_size, media.file)
+    if media_size > max_size:
         raise HTTPException(status_code=400, detail="File too large")
     await media.seek(0)
     if challenge_id == "today":
@@ -82,7 +86,7 @@ async def upload_post(
     ext = _safe_extension(media.filename, media.content_type)
     post_id = uuid.uuid4()
     object_key = make_object_key(challenge.challenge_date, str(post_id), "original", ext)
-    public_url = upload_fileobj(media.file, object_key, media.content_type)
+    public_url = await upload_fileobj_async(media.file, object_key, media.content_type)
     try:
         post = await create_post(
             db,
@@ -105,14 +109,30 @@ async def upload_post(
                 public_url=public_url,
                 media_type=media_type,
                 mime_type=media.content_type,
-                size_bytes=len(contents),
+                size_bytes=media_size,
                 status="uploaded",
             )
         )
         await db.commit()
         return {"id": str(post.id), "status": post.status}
     except ValueError as e:
+        await _delete_failed_upload(object_key)
         raise HTTPException(status_code=409, detail=str(e))
+
+
+def _file_size(fileobj) -> int:
+    position = fileobj.tell()
+    fileobj.seek(0, os.SEEK_END)
+    size = fileobj.tell()
+    fileobj.seek(position)
+    return size
+
+
+async def _delete_failed_upload(object_key: str) -> None:
+    try:
+        await delete_object_async(object_key)
+    except Exception:
+        logger.exception("Failed to remove orphan upload: key=%s", object_key)
 
 
 @router.get("/{post_id}")
