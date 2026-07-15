@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.71**.
+Текущая стабильная версия сервера: **v0.2.72**.
 
 ## Что уже есть
 
@@ -64,12 +64,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.71
+image: ghcr.io/shurshick/momenta:v0.2.72
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.71** исправлен верхний ряд пользователей в ленте и удалена неработавшая настройка логирования. Серверных и Room-миграций нет.
+В **v0.2.72** верхний ряд ленты показывает только авторов активных постов текущего дня: сначала по числу публикаций, затем по времени последней публикации. Серверных и Room-миграций нет.
 
 ## Обновления Android
 
@@ -83,9 +83,9 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.71](https://github.com/shurshick/momenta/releases/tag/v0.2.71)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.71`
-- Android APK: актуальная версия приложения `0.2.71`
+- Release: [v0.2.72](https://github.com/shurshick/momenta/releases/tag/v0.2.72)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.72`
+- Android APK: актуальная версия приложения `0.2.72`
 
 ## Документы
 

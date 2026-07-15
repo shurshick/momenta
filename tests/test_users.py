@@ -23,13 +23,15 @@ async def _add_streak_post(db_session, user, challenge, challenge_date, status="
 
 
 @pytest.mark.asyncio
-async def test_user_suggestions_returns_active_users(client, auth_headers, test_user):
+async def test_user_suggestions_excludes_users_without_today_posts(
+    client,
+    auth_headers,
+    test_user,
+):
     response = await client.get("/api/v1/users/suggestions", headers=auth_headers)
 
     assert response.status_code == 200
-    data = response.json()
-    assert "items" in data
-    assert any(item["username"] == test_user.username for item in data["items"])
+    assert response.json()["items"] == []
 
 
 @pytest.mark.asyncio
@@ -96,6 +98,63 @@ async def test_user_suggestions_sort_by_post_activity(
     assert response.status_code == 200
     usernames = [item["username"] for item in response.json()["items"]]
     assert usernames.index("activeuser") < usernames.index("quietuser")
+    assert test_user.username not in usernames
+
+
+@pytest.mark.asyncio
+async def test_user_suggestions_ignore_old_and_deleted_posts(
+    client,
+    auth_headers,
+    db_session,
+    test_user,
+    test_challenge,
+):
+    old_author = User(
+        username="oldauthor",
+        email="old@example.com",
+        display_name="Old Author",
+        password_hash="test",
+        role="user",
+        status="active",
+    )
+    deleted_author = User(
+        username="deletedauthor",
+        email="deleted@example.com",
+        display_name="Deleted Author",
+        password_hash="test",
+        role="user",
+        status="active",
+    )
+    db_session.add_all([old_author, deleted_author])
+    await db_session.flush()
+    db_session.add_all(
+        [
+            Post(
+                user_id=old_author.id,
+                challenge_id=test_challenge.id,
+                challenge_date=test_challenge.challenge_date - timedelta(days=1),
+                media_type="image",
+                original_url="https://media.test/old.jpg",
+                preview_url="https://media.test/old-preview.jpg",
+                status="active",
+            ),
+            Post(
+                user_id=deleted_author.id,
+                challenge_id=test_challenge.id,
+                challenge_date=test_challenge.challenge_date,
+                media_type="image",
+                original_url="https://media.test/deleted-today.jpg",
+                preview_url="https://media.test/deleted-today-preview.jpg",
+                status="deleted",
+            ),
+        ]
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/v1/users/suggestions", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["items"] == []
 
 
 @pytest.mark.asyncio

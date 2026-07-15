@@ -64,24 +64,26 @@ async def list_user_suggestions(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    active_posts = (
+    today_activity = (
         select(
             Post.user_id.label("user_id"),
             func.count(Post.id).label("posts_count"),
             func.max(Post.created_at).label("last_post_at"),
         )
-        .where(Post.status == "active")
+        .where(
+            Post.status == "active",
+            Post.challenge_date == current_app_date(),
+        )
         .group_by(Post.user_id)
         .subquery()
     )
     result = await db.execute(
         select(User)
-        .outerjoin(active_posts, active_posts.c.user_id == User.id)
+        .join(today_activity, today_activity.c.user_id == User.id)
         .where(User.status == "active")
         .order_by(
-            func.coalesce(active_posts.c.posts_count, 0).desc(),
-            active_posts.c.last_post_at.desc().nullslast(),
-            User.last_seen_at.desc().nullslast(),
+            today_activity.c.posts_count.desc(),
+            today_activity.c.last_post_at.desc(),
             User.created_at.desc(),
         )
         .limit(20)
