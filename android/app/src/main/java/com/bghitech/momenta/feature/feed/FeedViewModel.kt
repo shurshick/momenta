@@ -70,7 +70,7 @@ class FeedViewModel @Inject constructor(
         observeFeedStore()
         if (syncJob?.isActive == true) return
 
-        val stale = android.os.SystemClock.elapsedRealtime() - lastSuccessfulSyncAt >= RESUME_SYNC_INTERVAL_MS
+        val stale = monotonicTimeMillis() - lastSuccessfulSyncAt >= RESUME_SYNC_INTERVAL_MS
         if (dateChanged || stale) {
             loadFeed(force = true, showLoading = dateChanged || _state.value.items.isEmpty())
         }
@@ -245,7 +245,7 @@ class FeedViewModel @Inject constructor(
         }
         when (getTodayFeedUseCase()) {
             is AppResult.Success -> {
-                lastSuccessfulSyncAt = android.os.SystemClock.elapsedRealtime()
+                lastSuccessfulSyncAt = monotonicTimeMillis()
                 _state.value = _state.value.copy(isLoading = false, isOffline = false, error = null)
             }
             is AppResult.Error -> {
@@ -261,6 +261,8 @@ class FeedViewModel @Inject constructor(
 
     private companion object {
         const val RESUME_SYNC_INTERVAL_MS = 60_000L
+
+        fun monotonicTimeMillis(): Long = System.nanoTime() / 1_000_000L
     }
 
     private fun loadUserSuggestions() {

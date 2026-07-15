@@ -41,6 +41,7 @@ class TodayViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(TodayUiState())
     val state = _state.asStateFlow()
+    private var lastRefreshAttemptAt: Long = 0L
 
     init {
         refresh()
@@ -92,9 +93,19 @@ class TodayViewModel @Inject constructor(
     }
 
     fun refresh() {
+        lastRefreshAttemptAt = monotonicTimeMillis()
         dropExpiredDayState()
         loadChallenge()
         refreshBestMoment()
+    }
+
+    fun onScreenResumed() {
+        val today = AppDateUtils.todayKey()
+        val dateChanged = _state.value.challenge?.let { it.date != today } == true
+        val stale = monotonicTimeMillis() - lastRefreshAttemptAt >= RESUME_SYNC_INTERVAL_MS
+        if (!_state.value.isChallengeLoading && !_state.value.isBestMomentLoading && (dateChanged || stale)) {
+            refresh()
+        }
     }
 
     private fun dropExpiredDayState() {
@@ -161,4 +172,10 @@ class TodayViewModel @Inject constructor(
     private fun List<Post>.bestMoment(): Post? =
         filter { it.previewUrl.isNotBlank() || !it.thumbUrl.isNullOrBlank() }
             .maxWithOrNull(compareBy<Post> { it.likesCount }.thenBy { it.createdAt })
+
+    private companion object {
+        const val RESUME_SYNC_INTERVAL_MS = 60_000L
+
+        fun monotonicTimeMillis(): Long = System.nanoTime() / 1_000_000L
+    }
 }

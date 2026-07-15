@@ -83,7 +83,7 @@ fun TodayScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refresh()
+                viewModel.onScreenResumed()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -497,20 +497,52 @@ private fun BestMomentSection(
 private fun ChallengeSkeleton() {
     MomentaCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+        contentPadding = PaddingValues(14.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                SkeletonLine(width = 88.dp, height = 12.dp)
-                SkeletonLine(width = 96.dp, height = 12.dp)
+                SkeletonLine(width = 108.dp, height = 38.dp)
+                SkeletonLine(width = 88.dp, height = 18.dp)
             }
-            SkeletonLine(width = 160.dp, height = 22.dp)
-            SkeletonLine(width = 240.dp, height = 14.dp)
-            SkeletonLine(width = 132.dp, height = 14.dp, warm = true)
-            SkeletonLine(width = 180.dp, height = 40.dp)
+            Spacer(modifier = Modifier.height(14.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1.1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    SkeletonLine(width = 150.dp, height = 27.dp)
+                    SkeletonLine(width = 170.dp, height = 15.dp)
+                    SkeletonLine(width = 132.dp, height = 15.dp)
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(0.92f)
+                        .height(108.dp)
+                        .clip(MomentaLargeShape)
+                        .background(MomentaSurfaceAlt)
+                )
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                repeat(2) {
+                    Box(
+                        modifier = Modifier
+                            .weight(if (it == 0) 1.1f else 0.92f)
+                            .height(82.dp)
+                            .clip(MomentaLargeShape)
+                            .background(MomentaSurfaceAlt)
+                    )
+                }
+            }
         }
     }
 }
@@ -521,19 +553,36 @@ private fun BestMomentSkeleton() {
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(0.dp)
     ) {
-        Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1.18f)
+                    .weight(1.25f)
+                    .aspectRatio(1.05f)
+                    .clip(MomentaLargeShape)
                     .background(MomentaSurfaceAlt)
             )
             Column(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.weight(0.9f).padding(horizontal = 14.dp, vertical = 12.dp)
             ) {
-                SkeletonLine(width = 120.dp, height = 16.dp)
-                SkeletonLine(width = 210.dp, height = 13.dp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier.size(38.dp).clip(CircleShape).background(MomentaSurfaceAlt)
+                    )
+                    Spacer(modifier = Modifier.width(9.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        SkeletonLine(width = 76.dp, height = 14.dp)
+                        SkeletonLine(width = 52.dp, height = 11.dp)
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                SkeletonLine(width = 116.dp, height = 14.dp)
+                Spacer(modifier = Modifier.height(6.dp))
+                SkeletonLine(width = 92.dp, height = 14.dp)
+                Spacer(modifier = Modifier.height(14.dp))
+                SkeletonLine(width = 48.dp, height = 20.dp, warm = true)
             }
         }
     }

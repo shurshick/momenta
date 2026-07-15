@@ -41,7 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,6 +75,8 @@ import com.bghitech.momenta.core.design.MomentaLargeShape
 import com.bghitech.momenta.core.design.MomentaLogoMark
 import com.bghitech.momenta.core.design.MomentaMediaViewer
 import com.bghitech.momenta.core.design.MomentaMediumShape
+import com.bghitech.momenta.core.design.MomentaOfflineBanner
+import com.bghitech.momenta.core.design.MomentaPrimaryButton
 import com.bghitech.momenta.core.design.MomentaRoundShape
 import com.bghitech.momenta.core.design.MomentaScreen
 import com.bghitech.momenta.core.design.MomentaSurface
@@ -99,15 +100,10 @@ fun ProfileScreen(
     var showAvatarDialog by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(Unit) {
-        viewModel.loadProfile(force = true, showLoading = false)
-    }
-
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.loadProfile(force = true, showLoading = false)
-                viewModel.loadBookmarks()
+                viewModel.onScreenResumed()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -192,9 +188,17 @@ fun ProfileScreen(
                     )
                 }
             }
-            if (state.isLoading) {
+            if (state.isLoading && state.username.isBlank()) {
                 ProfileLoadingSkeleton()
+            } else if (state.username.isBlank() && state.error != null) {
+                ProfileUnavailable(
+                    message = state.error ?: "Профиль недоступен",
+                    onRetry = { viewModel.loadProfile(force = true) }
+                )
             } else {
+                if (state.isOffline) {
+                    MomentaOfflineBanner(modifier = Modifier.padding(bottom = 8.dp))
+                }
                 val error = state.error
                 if (error != null) {
                     Text(
@@ -714,39 +718,59 @@ private fun ProfileLoadingSkeleton() {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.Top
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Box(
                     modifier = Modifier
-                        .size(78.dp)
+                        .size(114.dp)
                         .clip(CircleShape)
                         .background(MomentaSurfaceAlt)
                 )
-                Spacer(modifier = Modifier.height(14.dp))
-                SkeletonBlock(width = 130.dp, height = 22.dp)
-                Spacer(modifier = Modifier.height(8.dp))
-                SkeletonBlock(width = 96.dp, height = 14.dp)
-                Spacer(modifier = Modifier.height(12.dp))
-                SkeletonBlock(width = 150.dp, height = 14.dp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SkeletonBlock(width = 112.dp, height = 30.dp)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(MomentaSurfaceAlt)
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                SkeletonBlock(width = 92.dp, height = 18.dp)
+                Spacer(modifier = Modifier.height(10.dp))
+                SkeletonBlock(width = 142.dp, height = 17.dp)
+                Spacer(modifier = Modifier.height(4.dp))
+                SkeletonBlock(width = 118.dp, height = 17.dp)
             }
             Column(
-                modifier = Modifier.weight(1.25f),
+                modifier = Modifier.width(152.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                SkeletonStat(fill = true)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SkeletonStat(modifier = Modifier.weight(1f))
-                    SkeletonStat(modifier = Modifier.weight(1f))
-                }
+                repeat(3) { SkeletonStat() }
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        SkeletonBlock(width = 168.dp, height = 20.dp)
-        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            repeat(2) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(44.dp)
+                        .clip(MomentaMediumShape)
+                        .background(MomentaSurfaceAlt)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(7.dp))
         repeat(3) {
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 repeat(3) {
                     Box(
                         modifier = Modifier
@@ -757,22 +781,46 @@ private fun ProfileLoadingSkeleton() {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(6.dp))
         }
     }
 }
 
 @Composable
-private fun SkeletonStat(modifier: Modifier = Modifier, fill: Boolean = false) {
-    MomentaCard(
-        modifier = if (fill) Modifier.fillMaxWidth() else modifier,
-        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp)
+private fun SkeletonStat() {
+    Surface(
+        modifier = Modifier.fillMaxWidth().height(72.dp),
+        color = MomentaSurface.copy(alpha = 0.9f),
+        shape = MomentaLargeShape,
+        border = BorderStroke(1.dp, MomentaGreen.copy(alpha = 0.12f))
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            SkeletonBlock(width = 36.dp, height = 22.dp)
-            Spacer(modifier = Modifier.height(8.dp))
-            SkeletonBlock(width = 58.dp, height = 12.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            SkeletonBlock(width = 42.dp, height = 27.dp)
+            Spacer(modifier = Modifier.height(3.dp))
+            SkeletonBlock(width = 64.dp, height = 13.dp)
         }
+    }
+}
+
+@Composable
+private fun ProfileUnavailable(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 72.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        MomentaLogoMark(size = 64)
+        Spacer(modifier = Modifier.height(14.dp))
+        Text(
+            text = message,
+            color = MomentaTextSecondary,
+            fontSize = 15.sp,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(18.dp))
+        MomentaPrimaryButton(text = "Повторить", onClick = onRetry)
     }
 }
 

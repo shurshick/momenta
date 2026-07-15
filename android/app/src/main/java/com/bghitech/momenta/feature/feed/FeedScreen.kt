@@ -27,17 +27,10 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -144,28 +137,43 @@ fun FeedScreen(
         MomentaScreenHeader(title = "Мир сейчас")
 
         LazyRow(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+            modifier = Modifier.height(78.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            items(state.suggestedUsers, key = { it.id.ifBlank { it.username } }) { user ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(58.dp)
-                ) {
-                    MomentaAvatar(
-                        avatarUrl = user.avatarUrl,
-                        avatarKey = user.avatarKey,
-                        username = user.username,
-                        size = 50.dp
-                    )
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Text(
-                        text = user.displayName ?: user.username,
-                        color = MomentaTextSecondary,
-                        fontSize = 11.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+            if (state.isLoading && state.suggestedUsers.isEmpty()) {
+                items(5) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            modifier = Modifier.size(50.dp).clip(CircleShape).background(MomentaSurfaceAlt)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier.width(44.dp).height(10.dp).clip(MomentaSmallShape).background(MomentaSurfaceAlt)
+                        )
+                    }
+                }
+            } else {
+                items(state.suggestedUsers, key = { it.id.ifBlank { it.username } }) { user ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(58.dp)
+                    ) {
+                        MomentaAvatar(
+                            avatarUrl = user.avatarUrl,
+                            avatarKey = user.avatarKey,
+                            username = user.username,
+                            size = 50.dp
+                        )
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = user.displayName ?: user.username,
+                            color = MomentaTextSecondary,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
@@ -250,7 +258,7 @@ fun FeedScreen(
                                     modifier = Modifier.fillMaxWidth().padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    FeedLoadingLogo(size = 30)
+                                    MomentaLoadingMark(size = 30)
                                 }
                             }
                         }
@@ -259,7 +267,7 @@ fun FeedScreen(
                 }
             }
             if (isRefreshing || pullRefreshState.progress > 0f) {
-                FeedLoadingLogo(
+                MomentaLoadingMark(
                     size = 38,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -273,30 +281,6 @@ fun FeedScreen(
 }
 
 @Composable
-private fun FeedLoadingLogo(
-    size: Int,
-    modifier: Modifier = Modifier,
-    rotating: Boolean = true
-) {
-    val transition = rememberInfiniteTransition(label = "feed-loading")
-    val rotation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1400, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "feed-loading-rotation"
-    )
-    MomentaLogoMark(
-        size = size,
-        modifier = modifier.graphicsLayer {
-            rotationZ = if (rotating) rotation else 0f
-        }
-    )
-}
-
-@Composable
 private fun FeedLoadingSkeleton() {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -305,16 +289,16 @@ private fun FeedLoadingSkeleton() {
     ) {
         items(3) {
             MomentaCard(contentPadding = PaddingValues(0.dp)) {
-                Column {
+                Column(modifier = Modifier.padding(14.dp)) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
+                            .padding(bottom = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(52.dp)
                                 .clip(CircleShape)
                                 .background(MomentaSurfaceAlt)
                         )
@@ -339,9 +323,23 @@ private fun FeedLoadingSkeleton() {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(1.05f)
+                            .aspectRatio(1.04f)
+                            .clip(RoundedCornerShape(18.dp))
                             .background(MomentaSurfaceAlt)
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Box(
+                        modifier = Modifier.width(170.dp).height(17.dp).clip(MomentaSmallShape).background(MomentaSurfaceAlt)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        repeat(4) {
+                            Box(
+                                modifier = Modifier.width(if (it < 2) 62.dp else 48.dp).height(42.dp)
+                                    .clip(RoundedCornerShape(16.dp)).background(MomentaSurfaceAlt)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -590,7 +588,7 @@ private fun CommentsDialog(
                     isLoading -> Box(
                         modifier = Modifier.fillMaxWidth().height(120.dp),
                         contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator(color = MomentaGreen) }
+                    ) { MomentaLoadingMark(size = 38) }
                     error != null -> Text(error, color = MomentaError)
                     comments.isEmpty() -> Text("Пока нет комментариев", color = MomentaTextSecondary)
                     else -> LazyColumn(
