@@ -26,8 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -152,13 +150,6 @@ fun SettingsScreen(
                 SettingsInfoRow("Сборка", BuildConfig.FLAVOR)
                 SettingsInfoRow("API", state.savedServerUrl)
                 SettingsInfoRow("Медиа", BuildConfig.MEDIA_BASE_URL)
-                Spacer(modifier = Modifier.height(8.dp))
-                SettingsSwitchRow(
-                    title = "Логирование",
-                    description = "Подробные сетевые логи для отладки",
-                    checked = state.loggingEnabled,
-                    onCheckedChange = viewModel::setLoggingEnabled
-                )
                 Spacer(modifier = Modifier.height(12.dp))
                 UpdateBlock(
                     updateInfo = updateInfo,
@@ -269,36 +260,6 @@ private fun SettingsInfoRow(label: String, value: String) {
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun SettingsSwitchRow(
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, color = MomentaText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text(description, color = MomentaTextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
-        }
-        Spacer(modifier = Modifier.width(10.dp))
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedTrackColor = MomentaGreen,
-                uncheckedTrackColor = MomentaSurfaceAlt
-            )
         )
     }
 }

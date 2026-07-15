@@ -7,7 +7,5 @@ interface SettingsRepository {
     fun getServerUrl(): Flow<String>
     suspend fun setServerUrl(url: String)
     suspend fun checkConnection(): AppResult<Unit>
-    fun getLoggingEnabled(): Flow<Boolean>
-    suspend fun setLoggingEnabled(enabled: Boolean)
     suspend fun clearAllData()
 }

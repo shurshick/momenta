@@ -63,6 +63,7 @@ class FeedViewModel @Inject constructor(
     fun refresh() {
         observeFeedStore()
         loadFeed(force = true)
+        loadUserSuggestions()
     }
 
     fun onScreenResumed() {
@@ -236,7 +237,6 @@ class FeedViewModel @Inject constructor(
             feedRepository.observeTodayFeed().collect { posts ->
                 _state.value = _state.value.copy(
                     items = posts,
-                    suggestedUsers = posts.suggestedUsers().ifEmpty { _state.value.suggestedUsers },
                     error = if (posts.isNotEmpty()) null else _state.value.error
                 )
             }
@@ -281,17 +281,6 @@ class FeedViewModel @Inject constructor(
             }
         }
     }
-
-    private fun List<Post>.suggestedUsers(): List<User> =
-        groupBy { it.user.username }
-            .values
-            .sortedWith(
-                compareByDescending<List<Post>> { it.size }
-                    .thenByDescending { posts -> posts.maxOfOrNull { it.createdAt }.orEmpty() }
-            )
-            .map { it.first().user }
-            .filter { it.username.isNotBlank() }
-            .take(20)
 
     private suspend fun adjustCachedProfileLikes(delta: Int) {
         val cachedProfile = profileRepository.getCachedProfile() ?: return

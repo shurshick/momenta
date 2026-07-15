@@ -30,7 +30,6 @@ class TokenStore @Inject constructor(
         val USERNAME = stringPreferencesKey("username")
         val SERVER_URL = stringPreferencesKey("server_url")
         val FIRST_LAUNCH_COMPLETED = booleanPreferencesKey("first_launch_completed")
-        val LOGGING_ENABLED = booleanPreferencesKey("logging_enabled")
 
         const val ACCESS_TOKEN_NAME = "access_token"
         const val REFRESH_TOKEN_NAME = "refresh_token"
@@ -130,14 +129,6 @@ class TokenStore @Inject constructor(
 
     suspend fun setServerUrl(url: String) {
         context.dataStore.edit { it[Keys.SERVER_URL] = url }
-    }
-
-    fun getLoggingEnabled(): Flow<Boolean> {
-        return context.dataStore.data.map { it[Keys.LOGGING_ENABLED] ?: true }
-    }
-
-    suspend fun setLoggingEnabled(enabled: Boolean) {
-        context.dataStore.edit { it[Keys.LOGGING_ENABLED] = enabled }
     }
 
     suspend fun isFirstLaunchCompleted(): Boolean {

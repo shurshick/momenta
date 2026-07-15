@@ -19,7 +19,6 @@ import javax.inject.Inject
 data class SettingsUiState(
     val savedServerUrl: String = BuildConfig.DEFAULT_SERVER_URL,
     val serverUrlInput: String = BuildConfig.DEFAULT_SERVER_URL,
-    val loggingEnabled: Boolean = BuildConfig.LOGGING_ENABLED,
     val isCheckingConnection: Boolean = false,
     val connectionMessage: String? = null
 )
@@ -44,21 +43,10 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            settingsRepository.getLoggingEnabled().collectLatest { enabled ->
-                _state.update { it.copy(loggingEnabled = enabled) }
-            }
-        }
     }
 
     fun onServerUrlChange(value: String) {
         _state.update { it.copy(serverUrlInput = value, connectionMessage = null) }
-    }
-
-    fun setLoggingEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.setLoggingEnabled(enabled)
-        }
     }
 
     suspend fun logout() {

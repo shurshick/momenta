@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.70**.
+Текущая стабильная версия сервера: **v0.2.71**.
 
 ## Что уже есть
 
@@ -64,12 +64,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.70
+image: ghcr.io/shurshick/momenta:v0.2.71
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.70** кеши разделены по аккаунтам, публикации переживают сбои сети, профиль загружает свои и избранные моменты страницами, а контейнер API применяет Alembic до запуска.
+В **v0.2.71** исправлен верхний ряд пользователей в ленте и удалена неработавшая настройка логирования. Серверных и Room-миграций нет.
 
 ## Обновления Android
 
@@ -83,9 +83,9 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.70](https://github.com/shurshick/momenta/releases/tag/v0.2.70)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.70`
-- Android APK: актуальная версия приложения `0.2.70`
+- Release: [v0.2.71](https://github.com/shurshick/momenta/releases/tag/v0.2.71)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.71`
+- Android APK: актуальная версия приложения `0.2.71`
 
 ## Документы
 

@@ -48,6 +48,18 @@ class FeedTodayRepositoryTest {
     }
 
     @Test
+    fun userSuggestionsNetworkErrorDoesNotBecomeTodayAuthors() = runTest {
+        val api = mockk<MomentaApi>()
+        coEvery { api.getUserSuggestions() } throws IOException("offline")
+        val repository = FeedRepositoryImpl(api, mockk<PostDao>(), mockk<TokenStore>())
+
+        val result = repository.getUserSuggestions()
+
+        assertTrue(result is AppResult.Error)
+        assertEquals(AppError.Network, (result as AppResult.Error).error)
+    }
+
+    @Test
     fun challengeCacheIsReadOnlyForCurrentAccount() = runTest {
         val api = mockk<MomentaApi>()
         val dao = mockk<ChallengeDao>()

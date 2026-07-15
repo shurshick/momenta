@@ -109,12 +109,8 @@ class FeedRepositoryImpl @Inject constructor(
         response.nextCursor
     }
 
-    override suspend fun getUserSuggestions(): AppResult<List<User>> {
-        return when (val result = safeApiCall { api.getUserSuggestions().items.map { it.toDomain() } }) {
-            is AppResult.Success -> result
-            is AppResult.Error -> AppResult.Success(getCachedFeed().activeUsers())
-        }
-    }
+    override suspend fun getUserSuggestions(): AppResult<List<User>> =
+        safeApiCall { api.getUserSuggestions().items.map { it.toDomain() } }
 
     private fun List<Post>.todayOnly(): List<Post> {
         val today = AppDateUtils.todayKey()
@@ -123,14 +119,4 @@ class FeedRepositoryImpl @Inject constructor(
 
     private fun accountId(): String? = tokenStore.getUserIdSync()?.takeIf { it.isNotBlank() }
 
-    private fun List<Post>.activeUsers(): List<User> =
-        groupBy { it.user.username }
-            .values
-            .sortedWith(
-                compareByDescending<List<Post>> { it.size }
-                    .thenByDescending { posts -> posts.maxOfOrNull { it.createdAt }.orEmpty() }
-            )
-            .map { it.first().user }
-            .filter { it.username.isNotBlank() }
-            .take(20)
 }

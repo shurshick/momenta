@@ -31,12 +31,6 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getLoggingEnabled(): Flow<Boolean> = tokenStore.getLoggingEnabled()
-
-    override suspend fun setLoggingEnabled(enabled: Boolean) {
-        tokenStore.setLoggingEnabled(enabled)
-    }
-
     override suspend fun clearAllData() {
         tokenStore.getUserIdSync()?.let(uploadManager::cancelUploads)
         tokenStore.clearTokens()

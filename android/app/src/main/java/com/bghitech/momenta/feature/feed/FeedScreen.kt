@@ -35,6 +35,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -137,7 +138,7 @@ fun FeedScreen(
         MomentaScreenHeader(title = "Мир сейчас")
 
         LazyRow(
-            modifier = Modifier.height(78.dp),
+            modifier = Modifier.height(90.dp),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -157,7 +158,7 @@ fun FeedScreen(
                 items(state.suggestedUsers, key = { it.id.ifBlank { it.username } }) { user ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.width(58.dp)
+                        modifier = Modifier.width(68.dp)
                     ) {
                         MomentaAvatar(
                             avatarUrl = user.avatarUrl,
@@ -170,8 +171,11 @@ fun FeedScreen(
                             text = user.displayName ?: user.username,
                             color = MomentaTextSecondary,
                             fontSize = 11.sp,
+                            lineHeight = 14.sp,
+                            textAlign = TextAlign.Center,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
