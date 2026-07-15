@@ -17,14 +17,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CloudDone
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.SettingsApplications
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,10 +38,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bghitech.momenta.BuildConfig
 import com.bghitech.momenta.core.design.MomentaCard
-import com.bghitech.momenta.core.design.MomentaDivider
 import com.bghitech.momenta.core.design.MomentaError
 import com.bghitech.momenta.core.design.MomentaGreen
 import com.bghitech.momenta.core.design.MomentaLargeShape
@@ -69,7 +63,6 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     updateViewModel: AppUpdateViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -111,44 +104,12 @@ fun SettingsScreen(
         ) {
             SettingsHeader(onBack = onBack)
 
-            SettingsSection(title = "Сервер") {
-                OutlinedTextField(
-                    value = state.serverUrlInput,
-                    onValueChange = viewModel::onServerUrlChange,
-                    label = { Text("API URL") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MomentaText,
-                        unfocusedTextColor = MomentaText,
-                        cursorColor = MomentaGreen,
-                        focusedBorderColor = MomentaGreen,
-                        unfocusedBorderColor = MomentaDivider,
-                        focusedLabelColor = MomentaGreen,
-                        unfocusedLabelColor = MomentaTextSecondary
-                    )
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                MomentaPrimaryButton(
-                    text = if (state.isCheckingConnection) "Проверяем..." else "Сохранить и проверить",
-                    onClick = viewModel::saveAndCheckServer,
-                    enabled = !state.isCheckingConnection,
-                    loading = state.isCheckingConnection
-                )
-                state.connectionMessage?.let { message ->
-                    Spacer(modifier = Modifier.height(10.dp))
-                    StatusLine(message = message, positive = message.contains("работает"))
-                }
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
             SettingsSection(title = "Приложение") {
                 AppInfoHeader()
                 Spacer(modifier = Modifier.height(14.dp))
                 SettingsInfoRow("Версия", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                 SettingsInfoRow("Сборка", BuildConfig.FLAVOR)
-                SettingsInfoRow("API", state.savedServerUrl)
+                SettingsInfoRow("API", BuildConfig.DEFAULT_SERVER_URL)
                 SettingsInfoRow("Медиа", BuildConfig.MEDIA_BASE_URL)
                 Spacer(modifier = Modifier.height(12.dp))
                 UpdateBlock(
@@ -194,7 +155,6 @@ fun SettingsScreen(
         }
     }
 }
-
 @Composable
 private fun SettingsHeader(onBack: () -> Unit) {
     Row(
@@ -309,25 +269,6 @@ private fun UpdateBlock(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun StatusLine(message: String, positive: Boolean) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = if (positive) Icons.Filled.CloudDone else Icons.Filled.Info,
-            contentDescription = null,
-            tint = if (positive) MomentaGreen else MomentaTextSecondary,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = message,
-            color = if (positive) MomentaGreen else MomentaTextSecondary,
-            fontSize = 12.sp,
-            lineHeight = 16.sp
-        )
     }
 }
 

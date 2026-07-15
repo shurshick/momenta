@@ -27,6 +27,9 @@ def main() -> None:
     require("stat -c%s" in workflow_text, "Android workflow must calculate APK size")
     require("versionName" in workflow_text, "Android workflow must read versionName")
     require("versionCode" in workflow_text, "Android workflow must read versionCode")
+    require("assembleProdRelease" in workflow_text, "Android workflow must build prod release")
+    require("verifyInstallableProdReleaseApk" in workflow_text, "Missing prod release verification")
+    require("app-prod-release.apk" in workflow_text, "Release APK must have the production name")
 
     for path in (
         ROOT / "deploy/truenas/docker-compose.truenas.yml",

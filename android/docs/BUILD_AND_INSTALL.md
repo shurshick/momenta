@@ -10,10 +10,10 @@
 
 ```bash
 # Clean build prod debug (основной вариант для установки)
-./gradlew clean assembleProdDebug
+./gradlew clean assembleProdRelease
 
 # Verify APK installability
-./gradlew verifyInstallableProdApk
+./gradlew verifyInstallableProdReleaseApk
 
 # Install on device/emulator
 ./gradlew installProdDebug
@@ -24,7 +24,7 @@
 | Variant | Command |
 |---------|---------|
 | Prod Debug | `./gradlew assembleProdDebug` |
-| Prod Debug installability check | `./gradlew verifyInstallableProdApk` |
+| Prod Release installability check | `./gradlew verifyInstallableProdReleaseApk` |
 | Staging Debug | `./gradlew assembleStagingDebug` |
 | Dev Debug | `./gradlew assembleDevDebug` |
 | Prod Release | `./gradlew assembleProdRelease` |
@@ -35,4 +35,4 @@
 
 Main installable APK:
 
-`app/build/outputs/apk/prod/debug/app-prod-debug.apk`
+`app/build/outputs/apk/prod/release/app-prod-release.apk`

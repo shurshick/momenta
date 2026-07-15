@@ -31,8 +31,8 @@ android {
         applicationId = "com.bghitech.momenta"
         minSdk = 24
         targetSdk = 34
-        versionCode = 72
-        versionName = "0.2.72"
+        versionCode = 73
+        versionName = "0.2.73"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -56,12 +56,6 @@ android {
                 "updateKeyPassword",
                 System.getenv("MOMENTA_UPDATE_KEY_PASSWORD") ?: "android"
             )
-        }
-        create("release") {
-            storeFile = file(keystoreProperties.getProperty("storeFile", "../keystore/momenta.jks"))
-            storePassword = keystoreProperties.getProperty("storePassword", "momenta123")
-            keyAlias = keystoreProperties.getProperty("keyAlias", "momenta")
-            keyPassword = keystoreProperties.getProperty("keyPassword", "momenta123")
         }
     }
 
@@ -98,7 +92,7 @@ android {
             buildConfigField("Boolean", "LOGGING_ENABLED", "true")
         }
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("update")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             buildConfigField("Boolean", "LOGGING_ENABLED", "false")
@@ -234,5 +228,36 @@ tasks.register("verifyInstallableProdApk") {
         println("OK: ${apk.name} (${apk.length()} bytes)")
         println("Package: com.bghitech.momenta")
         println("APK verification passed.")
+    }
+}
+
+tasks.register("verifyInstallableProdReleaseApk") {
+    description = "Verifies the signed, non-debuggable prod release APK"
+    group = "verification"
+    dependsOn("assembleProdRelease")
+
+    doLast {
+        val apkDir = layout.buildDirectory.dir("outputs/apk/prod/release").get().asFile
+        val apk = apkDir.listFiles()?.firstOrNull { it.extension == "apk" }
+        require(apk != null && apk.exists() && apk.length() > 0) {
+            "Prod release APK not found in ${apkDir.absolutePath}"
+        }
+
+        val manifest = file("build/intermediates/merged_manifests/prodRelease/AndroidManifest.xml")
+        require(manifest.exists()) { "Merged prod release manifest not found" }
+        val content = manifest.readText()
+        require(!content.contains("""android:testOnly="true""")) {
+            "FAIL: prod release manifest contains android:testOnly=true"
+        }
+        require(!content.contains("""android:debuggable="true""")) {
+            "FAIL: prod release manifest contains android:debuggable=true"
+        }
+        require(content.contains("com.bghitech.momenta")) {
+            "FAIL: merged manifest does not contain expected package"
+        }
+
+        println("OK: ${apk.name} (${apk.length()} bytes)")
+        println("Package: com.bghitech.momenta")
+        println("Prod release APK verification passed.")
     }
 }

@@ -4,7 +4,7 @@ import os
 import sys
 from androguard.misc import AnalyzeAPK
 
-apk_path = sys.argv[1] if len(sys.argv) > 1 else r'C:\Users\odmin4eg\Downloads\momenta-apk\app-prod-debug.apk'
+apk_path = sys.argv[1] if len(sys.argv) > 1 else r'C:\Users\odmin4eg\Downloads\momenta-apk\app-prod-release.apk'
 
 a, d, dx = AnalyzeAPK(apk_path)
 

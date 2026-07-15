@@ -31,3 +31,14 @@ def test_android_unit_tests_run_in_ci():
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert "testDevDebugUnitTest" in workflow
     assert "testProdDebugUnitTest" in workflow
+
+
+def test_android_publish_uses_non_debuggable_release_apk():
+    workflow = (ROOT / ".github/workflows/android-publish.yml").read_text(encoding="utf-8")
+    build = (ROOT / "android/app/build.gradle.kts").read_text(encoding="utf-8")
+
+    assert "assembleProdRelease" in workflow
+    assert "verifyInstallableProdReleaseApk" in workflow
+    assert "app-prod-release.apk" in workflow
+    assert "android:debuggable" in workflow
+    assert 'release {\n            signingConfig = signingConfigs.getByName("update")' in build

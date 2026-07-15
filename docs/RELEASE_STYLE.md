@@ -17,7 +17,7 @@ Docker: ghcr.io/shurshick/momenta:vX.Y.Z
 - Android-релиз публикуется только когда менялся APK. Workflow прикрепляет:
 
 ```text
-APK: app-prod-debug.apk
+APK: app-prod-release.apk
 Metadata: android-update.json
 Docker: ghcr.io/shurshick/momenta:vX.Y.Z
 ```

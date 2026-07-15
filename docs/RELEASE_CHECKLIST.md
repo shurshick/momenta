@@ -24,7 +24,7 @@ Use this checklist before publishing a release or redeploying production.
 ## Android
 
 - `./gradlew assembleDevDebug` passes.
-- `./gradlew assembleProdDebug verifyInstallableProdApk` passes.
+- `./gradlew assembleProdRelease verifyInstallableProdReleaseApk` passes.
 - APK installs on a real device.
 - App can register and log in.
 - App loads today's challenge.

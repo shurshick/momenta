@@ -28,7 +28,6 @@ class TokenStore @Inject constructor(
         val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
         val USER_ID = stringPreferencesKey("user_id")
         val USERNAME = stringPreferencesKey("username")
-        val SERVER_URL = stringPreferencesKey("server_url")
         val FIRST_LAUNCH_COMPLETED = booleanPreferencesKey("first_launch_completed")
 
         const val ACCESS_TOKEN_NAME = "access_token"
@@ -122,14 +121,6 @@ class TokenStore @Inject constructor(
     }
 
     fun observeToken(): Flow<String?> = tokenState
-
-    fun getServerUrl(): Flow<String> {
-        return context.dataStore.data.map { it[Keys.SERVER_URL] ?: "https://momenta.bghitech.ru" }
-    }
-
-    suspend fun setServerUrl(url: String) {
-        context.dataStore.edit { it[Keys.SERVER_URL] = url }
-    }
 
     suspend fun isFirstLaunchCompleted(): Boolean {
         return context.dataStore.data.map { it[Keys.FIRST_LAUNCH_COMPLETED] ?: false }.first()

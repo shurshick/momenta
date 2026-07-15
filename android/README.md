@@ -22,10 +22,10 @@ Android-приложение Momenta / Момент на Kotlin + Jetpack Compos
 
 ```bash
 # production debug, основной вариант для установки
-./gradlew assembleProdDebug
+./gradlew assembleProdRelease
 
 # проверка, что APK устанавливаемый и не testOnly
-./gradlew verifyInstallableProdApk
+./gradlew verifyInstallableProdReleaseApk
 
 # staging
 ./gradlew assembleStagingDebug
@@ -37,7 +37,7 @@ Android-приложение Momenta / Момент на Kotlin + Jetpack Compos
 APK будет здесь:
 
 ```text
-app/build/outputs/apk/prod/debug/app-prod-debug.apk
+app/build/outputs/apk/prod/release/app-prod-release.apk
 ```
 
 ## API URL

@@ -41,7 +41,7 @@ Example response:
   "version_code": 60,
   "min_supported_version_code": 1,
   "mandatory": false,
-  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.60/app-prod-debug.apk",
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.2.73/app-prod-release.apk",
   "apk_sha256": "26fc5a418f37d41f336e690b1711ce4d833a6a31e2713fc81486170888bfcb0d",
   "apk_size_bytes": 27253273,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.2.60",

@@ -1,5 +1,24 @@
 # Changelog
 
+## [v0.2.73] - 2026-07-15
+
+### Fixed
+
+- **Android**: временная сетевая ошибка или `5xx` при обновлении токена больше не удаляет локальную сессию.
+- **Android**: из настроек удалён API URL, который сохранялся, но не использовался Retrofit и authenticator.
+
+### Changed
+
+- **Android**: публичный APK теперь собирается как подписанный `prodRelease`, без `debuggable` и сетевого `BODY` logging.
+- **Release**: APK публикуется как `app-prod-release.apk` и подписывается тем же update-сертификатом, что предыдущие версии.
+- **CI**: release workflow проверяет manifest на `testOnly` и `debuggable`, использует Gradle cache и повторное разрешение зависимостей.
+- **Release**: серверных и Room-миграций нет; Alembic head `007`, Room schema `7`.
+
+### Tests
+
+- Добавлена проверка, что только подтверждённо недействительный refresh token очищает сессию.
+- Добавлена integrity-проверка production release workflow.
+
 ## [v0.2.72] - 2026-07-15
 
 ### Fixed

@@ -113,7 +113,9 @@ class TokenAuthenticator @Inject constructor(
 
             refreshClient.newCall(request).execute().use { refreshResponse ->
                 if (!refreshResponse.isSuccessful) {
-                    tokenStore.clearTokensSync()
+                    if (shouldClearSessionAfterRefresh(refreshResponse.code)) {
+                        tokenStore.clearTokensSync()
+                    }
                     return null
                 }
 
@@ -122,14 +124,12 @@ class TokenAuthenticator @Inject constructor(
                 val accessToken = json.optString("access_token")
                 val newRefreshToken = json.optString("refresh_token")
                 if (accessToken.isBlank() || newRefreshToken.isBlank()) {
-                    tokenStore.clearTokensSync()
                     return null
                 }
                 tokenStore.saveTokensSync(accessToken, newRefreshToken, "", "")
                 accessToken
             }
         } catch (_: Exception) {
-            tokenStore.clearTokensSync()
             null
         }
     }
@@ -148,3 +148,6 @@ class TokenAuthenticator @Inject constructor(
         val JsonMediaType = "application/json".toMediaType()
     }
 }
+
+internal fun shouldClearSessionAfterRefresh(statusCode: Int): Boolean =
+    statusCode == 400 || statusCode == 401 || statusCode == 403

@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.72**.
+Текущая стабильная версия сервера: **v0.2.73**.
 
 ## Что уже есть
 
@@ -29,8 +29,8 @@
 
 ```bash
 cd android
-./gradlew assembleProdDebug
-./gradlew verifyInstallableProdApk
+./gradlew assembleProdRelease
+./gradlew verifyInstallableProdReleaseApk
 ```
 
 Готовый APK лежит в релизах GitHub:
@@ -64,12 +64,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.72
+image: ghcr.io/shurshick/momenta:v0.2.73
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.72** верхний ряд ленты показывает только авторов активных постов текущего дня: сначала по числу публикаций, затем по времени последней публикации. Серверных и Room-миграций нет.
+В **v0.2.73** Android распространяется как подписанный `prodRelease`: без debuggable и сетевых BODY-логов. Временная ошибка refresh больше не удаляет сессию, фиктивная настройка API URL убрана.
 
 ## Обновления Android
 
@@ -83,9 +83,9 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.72](https://github.com/shurshick/momenta/releases/tag/v0.2.72)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.72`
-- Android APK: актуальная версия приложения `0.2.72`
+- Release: [v0.2.73](https://github.com/shurshick/momenta/releases/tag/v0.2.73)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.73`
+- Android APK: актуальная версия приложения `0.2.73`
 
 ## Документы
 

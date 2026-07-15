@@ -25,6 +25,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Restore update signing keystore
         env:
           MOMENTA_UPDATE_KEYSTORE_BASE64: ${{ secrets.MOMENTA_UPDATE_KEYSTORE_BASE64 }}
@@ -36,7 +39,7 @@ jobs:
           fi
           echo "$MOMENTA_UPDATE_KEYSTORE_BASE64" | base64 -d > android/keystore/momenta-update.jks
 
-      - name: Build Prod APK (debug)
+      - name: Build Prod APK (release)
         env:
           MOMENTA_UPDATE_STORE_FILE: ../keystore/momenta-update.jks
           MOMENTA_UPDATE_STORE_PASSWORD: android
@@ -48,7 +51,11 @@ jobs:
           RC=1
           for i in 1 2 3; do
             echo "=== Attempt $i ==="
-            ./gradlew clean assembleProdDebug verifyInstallableProdApk --stacktrace
+            if [ "$i" -eq 1 ]; then
+              ./gradlew clean assembleProdRelease verifyInstallableProdReleaseApk --stacktrace
+            else
+              ./gradlew clean assembleProdRelease verifyInstallableProdReleaseApk --refresh-dependencies --stacktrace
+            fi
             RC=$?
             if [ $RC -eq 0 ]; then
               echo "Build succeeded on attempt $i"
@@ -64,7 +71,7 @@ jobs:
       - name: Verify merged manifest (testOnly check)
         working-directory: android
         run: |
-          MANIFEST="app/build/intermediates/merged_manifests/prodDebug/AndroidManifest.xml"
+          MANIFEST="app/build/intermediates/merged_manifests/prodRelease/AndroidManifest.xml"
           if [ ! -f "$MANIFEST" ]; then
             echo "::error::Merged manifest not found at $MANIFEST"
             exit 1
@@ -72,6 +79,10 @@ jobs:
           if grep -q 'android:testOnly="true"' "$MANIFEST"; then
             echo "::error::FAIL: merged manifest contains android:testOnly=true"
             grep 'android:testOnly' "$MANIFEST"
+            exit 1
+          fi
+          if grep -q 'android:debuggable="true"' "$MANIFEST"; then
+            echo "::error::FAIL: merged manifest contains android:debuggable=true"
             exit 1
           fi
           echo "OK: no android:testOnly=true found in merged manifest"
@@ -84,9 +95,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          APK_DIR="android/app/build/outputs/apk/prod/debug"
+          APK_DIR="android/app/build/outputs/apk/prod/release"
           APK_PATH="$(find "$APK_DIR" -maxdepth 1 -name '*.apk' | head -n 1)"
-          FINAL_APK="$APK_DIR/app-prod-debug.apk"
+          FINAL_APK="$APK_DIR/app-prod-release.apk"
           if [ -z "$APK_PATH" ]; then
             echo "::error::APK not found in $APK_DIR"
             exit 1
@@ -105,7 +116,7 @@ jobs:
           APK_SHA256="$(sha256sum "$FINAL_APK" | awk '{print $1}')"
           APK_SIZE_BYTES="$(stat -c%s "$FINAL_APK")"
           RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
-          APK_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/app-prod-debug.apk"
+          APK_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/app-prod-release.apk"
           RELEASE_BODY="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body -q '.body // ""')"
           PUBLISHED_AT="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json publishedAt -q '.publishedAt // ""')"
 
@@ -148,7 +159,7 @@ jobs:
         with:
           name: android-update
           path: |
-            android/app/build/outputs/apk/prod/debug/app-prod-debug.apk
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
             android-update.json
           retention-days: 30
 
@@ -157,7 +168,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${{ inputs.release_tag }}" \
-            android/app/build/outputs/apk/prod/debug/app-prod-debug.apk \
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk \
             android-update.json \
             --repo "${{ github.repository }}" \
             --clobber

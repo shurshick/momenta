@@ -20,7 +20,7 @@ def sample_update(version_name: str = "0.2.60", version_code: int = 60) -> AppLa
         version_code=version_code,
         min_supported_version_code=1,
         mandatory=False,
-        apk_url=f"https://github.com/shurshick/momenta/releases/download/v{version_name}/app-prod-debug.apk",
+        apk_url=f"https://github.com/shurshick/momenta/releases/download/v{version_name}/app-prod-release.apk",
         apk_sha256="26fc5a418f37d41f336e690b1711ce4d833a6a31e2713fc81486170888bfcb0d",
         apk_size_bytes=27253273,
         release_url=f"https://github.com/shurshick/momenta/releases/tag/v{version_name}",
@@ -47,7 +47,7 @@ async def test_app_latest_is_public(client, monkeypatch):
     assert data["platform"] == "android"
     assert data["version_name"] == "0.2.60"
     assert data["version_code"] == 60
-    assert data["apk_url"].endswith("/app-prod-debug.apk")
+    assert data["apk_url"].endswith("/app-prod-release.apk")
     assert "jwt" not in data
     assert "secret" not in data
 
