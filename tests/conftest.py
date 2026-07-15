@@ -5,6 +5,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
 from app.db import get_db
 from app.main import app
@@ -22,7 +23,7 @@ async def engine(tmp_path_factory):
     if not database_url:
         db_path = tmp_path_factory.mktemp("db") / "test.db"
         database_url = f"sqlite+aiosqlite:///{db_path}"
-    engine = create_async_engine(database_url, echo=False)
+    engine = create_async_engine(database_url, echo=False, poolclass=NullPool)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield engine
