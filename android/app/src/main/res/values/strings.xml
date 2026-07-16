@@ -45,9 +45,6 @@
     <string name="report">Пожаловаться</string>
     <string name="share">Поделиться</string>
     <string name="edit_profile">Редактировать</string>
-    <string name="server_url">URL сервера</string>
-    <string name="debug_info">Информация для отладки</string>
-    <string name="check_connection">Проверить соединение</string>
     <string name="onboarding_title">Момента</string>
     <string name="onboarding_desc">Каждый день — новая тема. Сними фото или видео и посмотри, как живёт мир сейчас.</string>
     <string name="onboarding_get_started">Создать аккаунт</string>

@@ -108,9 +108,6 @@ fun SettingsScreen(
                 AppInfoHeader()
                 Spacer(modifier = Modifier.height(14.dp))
                 SettingsInfoRow("Версия", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-                SettingsInfoRow("Сборка", BuildConfig.FLAVOR)
-                SettingsInfoRow("API", BuildConfig.DEFAULT_SERVER_URL)
-                SettingsInfoRow("Медиа", BuildConfig.MEDIA_BASE_URL)
                 Spacer(modifier = Modifier.height(12.dp))
                 UpdateBlock(
                     updateInfo = updateInfo,
@@ -198,7 +195,7 @@ private fun AppInfoHeader() {
         Column(modifier = Modifier.weight(1f)) {
             Text("Момент", color = MomentaText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Text("Один момент. Все вместе.", color = MomentaTextSecondary, fontSize = 12.sp)
-            Text("© 2026 BGHitech / shurshick", color = MomentaTextSecondary, fontSize = 11.sp)
+            Text("© 2026 Александр Коваленко", color = MomentaTextSecondary, fontSize = 11.sp)
         }
     }
 }
