@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.2.77**.
+Текущая стабильная версия сервера: **v0.2.78**.
 
 ## Что уже есть
 
@@ -23,7 +23,7 @@
 - **Мир сейчас** — лента постов, лайки, комментарии, избранное, жалобы и удаление своих постов.
 - **Создать** — камера, галерея, эффекты, предпросмотр и публикация.
 - **Профиль** — аватар, статистика, свои и избранные моменты.
-- **Настройки** — информация о приложении, проверка и скачивание обновления.
+- **Настройки** — обновления, очередь публикаций, очистка кэша, аккаунт, диагностика и документы.
 
 Сборка APK:
 
@@ -64,12 +64,12 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.77
+image: ghcr.io/shurshick/momenta:v0.2.78
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 
-В **v0.2.77** экран настроек очищен от служебных адресов и технических полей, авторство приложения исправлено.
+В **v0.2.78** экран настроек стал полноценным: управление очередью публикаций, безопасная очистка кэша, редактирование профиля, диагностика и документы.
 
 ## Обновления Android
 
@@ -83,9 +83,9 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.77](https://github.com/shurshick/momenta/releases/tag/v0.2.77)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.77`
-- Android APK: актуальная версия приложения `0.2.77`
+- Release: [v0.2.78](https://github.com/shurshick/momenta/releases/tag/v0.2.78)
+- Docker image: `ghcr.io/shurshick/momenta:v0.2.78`
+- Android APK: актуальная версия приложения `0.2.78`
 
 ## Документы
 
@@ -93,6 +93,8 @@ GET /api/v1/app/latest
 - Android architecture: [android/docs/ANDROID_ARCHITECTURE.md](android/docs/ANDROID_ARCHITECTURE.md)
 - TrueNAS deploy: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 - API: [docs/API.md](docs/API.md)
+- Privacy policy: [docs/PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md)
+- Terms of use: [docs/TERMS.md](docs/TERMS.md)
 - Release style: [docs/RELEASE_STYLE.md](docs/RELEASE_STYLE.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
 

@@ -41,3 +41,30 @@ def test_android_publish_uses_non_debuggable_release_apk():
     assert "app-prod-release.apk" in workflow
     assert "android:debuggable" in workflow
     assert 'release {\n            signingConfig = signingConfigs.getByName("update")' in build
+
+
+def test_settings_expose_real_product_controls_without_server_details():
+    settings = (
+        ROOT
+        / "android/app/src/main/java/com/bghitech/momenta/feature/settings/SettingsScreen.kt"
+    ).read_text(encoding="utf-8")
+    view_model = (
+        ROOT
+        / "android/app/src/main/java/com/bghitech/momenta/feature/settings/SettingsViewModel.kt"
+    ).read_text(encoding="utf-8")
+
+    for label in (
+        "Публикации",
+        "Хранилище",
+        "Редактировать профиль",
+        "Скопировать диагностику",
+        "Конфиденциальность",
+        "Условия использования",
+    ):
+        assert label in settings
+    assert "DEFAULT_SERVER_URL" not in settings
+    assert "MEDIA_BASE_URL" not in settings
+    assert "observePendingForAccount" in view_model
+    assert "protectedPaths" in view_model
+    assert (ROOT / "docs/PRIVACY_POLICY.md").exists()
+    assert (ROOT / "docs/TERMS.md").exists()

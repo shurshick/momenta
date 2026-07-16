@@ -50,6 +50,10 @@ class UploadManager @Inject constructor(
         WorkManager.getInstance(context).cancelAllWorkByTag(accountTag(accountId))
     }
 
+    fun cancelUpload(accountId: String, localId: String) {
+        WorkManager.getInstance(context).cancelUniqueWork(workName(accountId, localId))
+    }
+
     private fun workName(accountId: String, localId: String) = "upload_${accountId}_$localId"
 
     private fun accountTag(accountId: String) = "uploads_$accountId"

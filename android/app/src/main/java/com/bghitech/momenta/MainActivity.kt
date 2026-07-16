@@ -169,9 +169,30 @@ fun MomentaNavGraph() {
             )
         }
 
+        composable(NavRoutes.MAIN_PROFILE_EDIT) {
+            MainScreen(
+                startRoute = NavRoutes.PROFILE,
+                openProfileEditor = true,
+                onNavigateToCamera = {
+                    navController.navigate(NavRoutes.CAMERA)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(NavRoutes.SETTINGS)
+                },
+                onLogout = {
+                    navController.resetToAuth()
+                }
+            )
+        }
+
         composable(NavRoutes.SETTINGS) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
+                onEditProfile = {
+                    navController.navigate(NavRoutes.MAIN_PROFILE_EDIT) {
+                        popUpTo(NavRoutes.SETTINGS) { inclusive = true }
+                    }
+                },
                 onLogout = {
                     navController.resetToAuth()
                 }

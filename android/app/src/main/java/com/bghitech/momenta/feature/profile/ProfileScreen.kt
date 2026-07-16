@@ -46,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,12 +94,13 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     onSettingsClick: () -> Unit,
     onLogout: () -> Unit,
+    openEditorOnStart: Boolean = false,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var showEditDialog by remember { mutableStateOf(false) }
+    var showEditDialog by rememberSaveable { mutableStateOf(openEditorOnStart) }
     var showAvatarDialog by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 

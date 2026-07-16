@@ -10,6 +10,7 @@ object NavRoutes {
     const val AUTH_REGISTER = "auth/register"
     const val MAIN = "main"
     const val MAIN_FEED = "main_feed"
+    const val MAIN_PROFILE_EDIT = "main_profile_edit"
     const val TODAY = "today"
     const val FEED = "feed"
     const val PROFILE = "profile"

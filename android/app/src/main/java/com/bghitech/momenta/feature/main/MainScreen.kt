@@ -53,6 +53,7 @@ fun MainScreen(
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit,
     startRoute: String = NavRoutes.TODAY,
+    openProfileEditor: Boolean = false,
     updateViewModel: AppUpdateViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
@@ -141,7 +142,8 @@ fun MainScreen(
                 composable(NavRoutes.PROFILE) {
                     ProfileScreen(
                         onSettingsClick = onNavigateToSettings,
-                        onLogout = onLogout
+                        onLogout = onLogout,
+                        openEditorOnStart = openProfileEditor
                     )
                 }
             }

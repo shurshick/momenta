@@ -2,6 +2,7 @@ package com.bghitech.momenta.data.local.dao
 
 import androidx.room.*
 import com.bghitech.momenta.data.local.entity.UploadQueueEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UploadQueueDao {
@@ -10,6 +11,9 @@ interface UploadQueueDao {
 
     @Query("SELECT * FROM upload_queue WHERE accountId = :accountId AND status IN ('pending', 'uploading', 'failed') ORDER BY createdAt ASC")
     suspend fun getPendingForAccount(accountId: String): List<UploadQueueEntity>
+
+    @Query("SELECT * FROM upload_queue WHERE accountId = :accountId AND status IN ('pending', 'uploading', 'failed') ORDER BY createdAt ASC")
+    fun observePendingForAccount(accountId: String): Flow<List<UploadQueueEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: UploadQueueEntity)

@@ -56,4 +56,7 @@ interface PostDao {
 
     @Query("DELETE FROM cached_posts")
     suspend fun clearAll()
+
+    @Query("DELETE FROM cached_posts WHERE accountId = :accountId AND syncState = 'remote' AND isBookmarked = 0")
+    suspend fun clearDisposableCache(accountId: String)
 }
