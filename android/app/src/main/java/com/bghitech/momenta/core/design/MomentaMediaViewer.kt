@@ -42,7 +42,9 @@ import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun MomentaMediaViewer(
-    imageUrl: String,
+    imageUrl: String = "",
+    mediaUrl: String = imageUrl,
+    mediaType: String = "image",
     title: String,
     caption: String?,
     isBookmarked: Boolean = false,
@@ -50,8 +52,9 @@ fun MomentaMediaViewer(
     onShareClick: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
-    var scale by remember(imageUrl) { mutableFloatStateOf(1f) }
-    var offset by remember(imageUrl) { mutableStateOf(Offset.Zero) }
+    val targetUrl = mediaUrl.ifBlank { imageUrl }
+    var scale by remember(targetUrl) { mutableFloatStateOf(1f) }
+    var offset by remember(targetUrl) { mutableStateOf(Offset.Zero) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -62,39 +65,46 @@ fun MomentaMediaViewer(
             color = MomentaBackground
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                Image(
-                    painter = rememberAsyncImagePainter(model = imageUrl),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center)
-                        .pointerInput(imageUrl) {
-                            detectTapGestures(
-                                onDoubleTap = {
-                                    if (scale > 1f) {
-                                        scale = 1f
-                                        offset = Offset.Zero
-                                    } else {
-                                        scale = 2.25f
+                if (mediaType == "video") {
+                    MomentaVideoPlayer(
+                        videoUrl = targetUrl,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = targetUrl),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center)
+                            .pointerInput(targetUrl) {
+                                detectTapGestures(
+                                    onDoubleTap = {
+                                        if (scale > 1f) {
+                                            scale = 1f
+                                            offset = Offset.Zero
+                                        } else {
+                                            scale = 2.25f
+                                        }
                                     }
-                                }
-                            )
-                        }
-                        .pointerInput(imageUrl) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                val nextScale = (scale * zoom).coerceIn(1f, 5f)
-                                scale = nextScale
-                                offset = if (nextScale == 1f) Offset.Zero else offset + pan
+                                )
                             }
-                        }
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                            translationX = offset.x
-                            translationY = offset.y
-                        },
-                    contentScale = ContentScale.Fit
-                )
+                            .pointerInput(targetUrl) {
+                                detectTransformGestures { _, pan, zoom, _ ->
+                                    val nextScale = (scale * zoom).coerceIn(1f, 5f)
+                                    scale = nextScale
+                                    offset = if (nextScale == 1f) Offset.Zero else offset + pan
+                                }
+                            }
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                                translationX = offset.x
+                                translationY = offset.y
+                            },
+                        contentScale = ContentScale.Fit
+                    )
+                }
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)

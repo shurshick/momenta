@@ -111,7 +111,8 @@ fun FeedScreen(
     fullscreenPost?.let { selected ->
         val post = state.items.firstOrNull { it.id == selected.id } ?: selected
         MomentaMediaViewer(
-            imageUrl = post.previewUrl.ifBlank { post.thumbUrl.orEmpty() },
+            mediaUrl = if (post.mediaType == "video") (post.originalUrl ?: post.previewUrl) else post.previewUrl.ifBlank { post.thumbUrl.orEmpty() },
+            mediaType = post.mediaType,
             title = post.user.displayName ?: post.user.username,
             caption = post.caption,
             isBookmarked = post.isBookmarked,
