@@ -54,6 +54,7 @@ import com.bghitech.momenta.core.design.MomentaScreen
 import com.bghitech.momenta.core.design.MomentaSurface
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
+import com.bghitech.momenta.core.design.MomentaVideoPlayer
 
 @Composable
 fun PublishScreen(
@@ -109,15 +110,28 @@ fun PublishScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = imagePath),
-                        contentDescription = "Preview",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(360.dp)
-                            .clip(RoundedCornerShape(24.dp)),
-                        contentScale = ContentScale.Crop
-                    )
+                    val isVideo = imagePath.lowercase().let {
+                        it.endsWith(".mp4") || it.endsWith(".mov") || it.endsWith(".webm") || it.endsWith(".m4v")
+                    }
+                    if (isVideo) {
+                        MomentaVideoPlayer(
+                            videoUrl = imagePath,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(360.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                        )
+                    } else {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = imagePath),
+                            contentDescription = "Preview",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(360.dp)
+                                .clip(RoundedCornerShape(24.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
                     if (state.error != null) {
                         Text(
