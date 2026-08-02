@@ -4,6 +4,7 @@ data class Post(
     val id: String,
     val user: User,
     val mediaType: String,
+    val originalUrl: String? = null,
     val previewUrl: String,
     val thumbUrl: String?,
     val caption: String?,

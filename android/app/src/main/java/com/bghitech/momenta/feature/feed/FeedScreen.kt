@@ -468,7 +468,7 @@ private fun FeedPostCard(
             ) {
                 if (post.mediaType == "video") {
                     MomentaVideoPlayer(
-                        videoUrl = post.originalUrl,
+                        videoUrl = post.originalUrl ?: post.previewUrl,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {

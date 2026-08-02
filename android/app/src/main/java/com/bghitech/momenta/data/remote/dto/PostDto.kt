@@ -15,6 +15,8 @@ data class PostDto(
     val user: UserDto? = null,
     @SerialName("media_type")
     val mediaType: String = "image",
+    @SerialName("original_url")
+    val originalUrl: String? = null,
     @SerialName("preview_url")
     val previewUrl: String? = null,
     @SerialName("thumb_url")

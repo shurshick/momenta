@@ -30,6 +30,7 @@ fun PostDto.toDomain(): Post = Post(
     id = id,
     user = user?.toDomain() ?: User(id = "", username = "", displayName = null, avatarUrl = null, avatarKey = null, email = null),
     mediaType = mediaType,
+    originalUrl = originalUrl,
     previewUrl = previewUrl ?: "",
     thumbUrl = thumbUrl,
     caption = caption,
