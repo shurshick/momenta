@@ -26,7 +26,8 @@ async def test_build_video_variants_generates_thumbnails():
     assert preview_size > 0
     assert thumb_size > 0
     assert preview_width == 720
-    assert thumb_width == 400
+    assert thumb_height == 400
+    assert thumb_width == 225
 
 @pytest.mark.asyncio
 async def test_worker_processes_video_post_successfully(
