@@ -46,9 +46,10 @@ class UploadPostWorker(
             val captionPart = entity.caption?.toRequestBody(textType)
             val countryPart = entity.country?.toRequestBody(textType)
             val cityPart = entity.city?.toRequestBody(textType)
+            val mimeType = resolveMimeType(file)
             val mediaPart = MultipartBody.Part.createFormData(
                 "media", file.name,
-                file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                file.asRequestBody(mimeType.toMediaTypeOrNull())
             )
 
             val response = api.uploadPost(challengeIdPart, captionPart, countryPart, cityPart, mediaPart)
@@ -78,6 +79,18 @@ class UploadPostWorker(
                 uploadQueueDao.markFailed(localId, "failed")
                 Result.failure()
             }
+        }
+    }
+
+    private fun resolveMimeType(file: File): String {
+        val name = file.name.lowercase()
+        return when {
+            name.endsWith(".mp4") -> "video/mp4"
+            name.endsWith(".mov") -> "video/quicktime"
+            name.endsWith(".webm") -> "video/webm"
+            name.endsWith(".png") -> "image/png"
+            name.endsWith(".webp") -> "image/webp"
+            else -> "image/jpeg"
         }
     }
 }

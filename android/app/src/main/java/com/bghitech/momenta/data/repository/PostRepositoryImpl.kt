@@ -36,16 +36,18 @@ class PostRepositoryImpl @Inject constructor(
             val captionPart = caption?.toRequestBody("text/plain".toMediaTypeOrNull())
             val countryPart = country?.toRequestBody("text/plain".toMediaTypeOrNull())
             val cityPart = city?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val mimeType = resolveMimeType(mediaFile)
             val mediaPart = MultipartBody.Part.createFormData(
                 "media",
                 mediaFile.name,
-                mediaFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                mediaFile.asRequestBody(mimeType.toMediaTypeOrNull())
             )
             val response = api.uploadPost(challengeIdPart, captionPart, countryPart, cityPart, mediaPart)
+            val isVideo = mimeType.startsWith("video/")
             Post(
                 id = response.id,
                 user = User("", "", null, null, null, null),
-                mediaType = "image",
+                mediaType = if (isVideo) "video" else "photo",
                 previewUrl = "",
                 thumbUrl = null,
                 caption = caption,
@@ -116,6 +118,18 @@ class PostRepositoryImpl @Inject constructor(
         return safeApiCall {
             api.deleteComment(postId, commentId)
             Unit
+        }
+    }
+
+    private fun resolveMimeType(file: File): String {
+        val name = file.name.lowercase()
+        return when {
+            name.endsWith(".mp4") -> "video/mp4"
+            name.endsWith(".mov") -> "video/quicktime"
+            name.endsWith(".webm") -> "video/webm"
+            name.endsWith(".png") -> "image/png"
+            name.endsWith(".webp") -> "image/webp"
+            else -> "image/jpeg"
         }
     }
 }

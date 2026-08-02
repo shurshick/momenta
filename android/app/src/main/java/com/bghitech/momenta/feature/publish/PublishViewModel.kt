@@ -150,10 +150,11 @@ class PublishViewModel @Inject constructor(
             is AppResult.Success -> result.data
             is AppResult.Error -> null
         }
+        val isVideo = file.name.lowercase().let { it.endsWith(".mp4") || it.endsWith(".mov") || it.endsWith(".webm") || it.endsWith(".m4v") }
         return Post(
             id = "local-${System.currentTimeMillis()}",
             user = profile.toUser(),
-            mediaType = "image",
+            mediaType = if (isVideo) "video" else "photo",
             previewUrl = "file://${file.absolutePath}",
             thumbUrl = null,
             caption = caption,

@@ -16,6 +16,10 @@ class ImageCompressor @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     suspend fun compressForUpload(input: File): File {
+        val name = input.name.lowercase()
+        if (name.endsWith(".mp4") || name.endsWith(".mov") || name.endsWith(".webm") || name.endsWith(".m4v")) {
+            return input
+        }
         val maxWidth = 1440
         val quality = 82
 
