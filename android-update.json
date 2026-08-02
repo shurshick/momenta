@@ -1,0 +1,18 @@
+{
+  "app_name": "Момент",
+  "package_name": "com.bghitech.momenta",
+  "platform": "android",
+  "channel": "stable",
+  "version_name": "0.3.0",
+  "version_code": 79,
+  "min_supported_version_code": 1,
+  "mandatory": false,
+  "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.3.0/app-prod-debug.apk",
+  "apk_sha256": "ce057aca003c9e89c3c2d65f604077cf8d0491af57b203c9d05570d1065c17c3",
+  "apk_size_bytes": 29891432,
+  "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.3.0",
+  "release_notes": [
+    "Поддержка видео-моментов и коротких клипов v0.3.0"
+  ],
+  "published_at": "2026-08-02T14:11:09Z"
+}

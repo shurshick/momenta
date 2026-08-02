@@ -27,7 +27,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import android.net.Uri
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -36,17 +41,34 @@ import androidx.media3.ui.PlayerView
 fun MomentaVideoPlayer(
     videoUrl: String,
     modifier: Modifier = Modifier,
+    previewUrl: String? = null,
     autoPlay: Boolean = true
 ) {
     val context = LocalContext.current
     var isMuted by remember { mutableStateOf(true) }
     var isPlaying by remember { mutableStateOf(autoPlay) }
+    var isPlayerReady by remember { mutableStateOf(false) }
+
+    val videoUri = remember(videoUrl) {
+        if (videoUrl.startsWith("http://") || videoUrl.startsWith("https://") || videoUrl.startsWith("content://") || videoUrl.startsWith("file://")) {
+            Uri.parse(videoUrl)
+        } else {
+            Uri.fromFile(java.io.File(videoUrl))
+        }
+    }
 
     val exoPlayer = remember(videoUrl) {
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUrl))
+            setMediaItem(MediaItem.fromUri(videoUri))
             repeatMode = Player.REPEAT_MODE_ONE
             volume = if (isMuted) 0f else 1f
+            addListener(object : Player.Listener {
+                override fun onPlaybackStateChanged(state: Int) {
+                    if (state == Player.STATE_READY) {
+                        isPlayerReady = true
+                    }
+                }
+            })
             prepare()
             playWhenReady = autoPlay
         }
@@ -66,6 +88,16 @@ fun MomentaVideoPlayer(
                 exoPlayer.playWhenReady = isPlaying
             }
     ) {
+        // Fallback preview image while video is loading or if background
+        if (!previewUrl.isNullOrBlank()) {
+            Image(
+                painter = rememberAsyncImagePainter(model = previewUrl),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+
         AndroidView(
             factory = { ctx ->
                 PlayerView(ctx).apply {
