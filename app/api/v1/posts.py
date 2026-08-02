@@ -172,6 +172,7 @@ async def get_post(
             "avatar_key": user.avatar_key if user else None,
         },
         "media_type": post.media_type,
+        "original_url": post.original_url,
         "preview_url": post.preview_url,
         "thumb_url": post.thumb_url,
         "caption": post.caption,

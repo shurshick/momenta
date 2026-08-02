@@ -276,6 +276,39 @@ async def test_feed_returns_today_posts(client, auth_headers):
 
 
 @pytest.mark.asyncio
+async def test_video_urls_survive_feed_reload(
+    client, auth_headers, test_user, test_challenge, db_session
+):
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="video",
+        original_url="https://media.test/original.mp4",
+        preview_url="https://media.test/preview.webp",
+        thumb_url="https://media.test/thumb.webp",
+        status="active",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    feed_response = await client.get("/api/v1/feed/today", headers=auth_headers)
+    post_response = await client.get(f"/api/v1/posts/{post.id}", headers=auth_headers)
+
+    assert feed_response.status_code == 200
+    feed_item = next(item for item in feed_response.json()["items"] if item["id"] == str(post.id))
+    assert feed_item["media_type"] == "video"
+    assert feed_item["original_url"] == post.original_url
+    assert feed_item["preview_url"] == post.preview_url
+
+    assert post_response.status_code == 200
+    assert post_response.json()["original_url"] == post.original_url
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("status", ["hidden", "processing", "failed", "deleted"])
 async def test_non_active_post_not_visible_by_id(
     client, auth_headers, test_user, test_challenge, db_session, status

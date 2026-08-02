@@ -7,6 +7,7 @@ class PostOut(BaseModel):
     id: str
     user: dict
     media_type: str
+    original_url: str | None = None
     preview_url: str | None = None
     thumb_url: str | None = None
     caption: str | None = None
@@ -30,6 +31,7 @@ class PostFeedItem(BaseModel):
     id: str
     user: dict
     media_type: str
+    original_url: str | None = None
     preview_url: str | None = None
     thumb_url: str | None = None
     caption: str | None = None
