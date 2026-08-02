@@ -466,12 +466,19 @@ private fun FeedPostCard(
                 color = MomentaSurfaceAlt,
                 shape = RoundedCornerShape(18.dp)
             ) {
-                Image(
-                    painter = rememberAsyncImagePainter(model = post.previewUrl),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                if (post.mediaType == "video") {
+                    MomentaVideoPlayer(
+                        videoUrl = post.originalUrl,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = post.previewUrl),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
 
             if (!post.caption.isNullOrBlank()) {

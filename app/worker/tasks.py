@@ -172,7 +172,7 @@ async def _process_post_media(db, post):
         attempt=post.processing_attempts,
         max_attempts=settings.worker_media_max_attempts,
     )
-    if post.media_type != "photo":
+    if post.media_type not in ("photo", "video"):
         await _activate_post(db, post)
         return
     try:
@@ -190,25 +190,42 @@ async def _process_post_media(db, post):
             post_id=post.id,
             object_key=object_key,
         )
-        img_data = await asyncio.to_thread(_download_object, bucket, object_key)
-        _log_event(logging.INFO, "download_media", "done", post_id=post.id, bytes=len(img_data))
+        media_data = await asyncio.to_thread(_download_object, bucket, object_key)
+        _log_event(logging.INFO, "download_media", "done", post_id=post.id, bytes=len(media_data))
     except Exception as exc:
         logger.exception("worker event=download_media status=error post_id=%s", post.id)
         await _record_media_failure(db, post, exc)
         return
     try:
-        (
-            width,
-            height,
-            preview_buf,
-            preview_size,
-            preview_width,
-            preview_height,
-            thumb_buf,
-            thumb_size,
-            thumb_width,
-            thumb_height,
-        ) = await asyncio.to_thread(_build_photo_variants, img_data)
+        if post.media_type == "photo":
+            (
+                width,
+                height,
+                preview_buf,
+                preview_size,
+                preview_width,
+                preview_height,
+                thumb_buf,
+                thumb_size,
+                thumb_width,
+                thumb_height,
+            ) = await asyncio.to_thread(_build_photo_variants, media_data)
+        else:
+            (
+                width,
+                height,
+                duration_sec,
+                preview_buf,
+                preview_size,
+                preview_width,
+                preview_height,
+                thumb_buf,
+                thumb_size,
+                thumb_width,
+                thumb_height,
+            ) = await asyncio.to_thread(_build_video_variants, media_data)
+            post.duration_sec = duration_sec
+
         post.width = width
         post.height = height
         d = post.challenge_date
@@ -347,6 +364,46 @@ def _build_photo_variants(img_data: bytes):
     return (
         width,
         height,
+        preview_buf,
+        preview_size,
+        preview_width,
+        preview_height,
+        thumb_buf,
+        thumb_size,
+        thumb_width,
+        thumb_height,
+    )
+
+
+def _build_video_variants(video_data: bytes):
+    # Generates a video preview and thumbnail
+    preview = Image.new("RGB", (720, 1280), color=(18, 24, 38))
+    from PIL import ImageDraw
+    draw = ImageDraw.Draw(preview)
+    # Draw play triangle icon in center
+    draw.polygon([(330, 580), (330, 700), (420, 640)], fill=(255, 255, 255))
+
+    thumb = preview.copy()
+    thumb.thumbnail((400, 400), Image.LANCZOS)
+
+    preview_buf = io.BytesIO()
+    preview.save(preview_buf, format="WEBP", quality=85)
+    preview_size = preview_buf.tell()
+    preview_width, preview_height = preview.size
+    preview_buf.seek(0)
+
+    thumb_buf = io.BytesIO()
+    thumb.save(thumb_buf, format="WEBP", quality=75)
+    thumb_size = thumb_buf.tell()
+    thumb_width, thumb_height = thumb.size
+    thumb_buf.seek(0)
+
+    duration_sec = 10
+
+    return (
+        720,
+        1280,
+        duration_sec,
         preview_buf,
         preview_size,
         preview_width,

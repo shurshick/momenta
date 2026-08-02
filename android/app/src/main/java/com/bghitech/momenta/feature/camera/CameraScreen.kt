@@ -142,8 +142,12 @@ private fun CameraContent(
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            copyGalleryImageToCache(context, it)?.let { file ->
-                onImageCaptured(PhotoEffectProcessor.apply(context, file, selectedEffect).absolutePath)
+            copyGalleryMediaToCache(context, it)?.let { file ->
+                if (file.name.endsWith(".mp4")) {
+                    onImageCaptured(file.absolutePath)
+                } else {
+                    onImageCaptured(PhotoEffectProcessor.apply(context, file, selectedEffect).absolutePath)
+                }
             }
         }
     }
@@ -243,7 +247,7 @@ private fun CameraContent(
                 CameraToolButton(
                     icon = Icons.Default.Image,
                     label = "Галерея",
-                    onClick = { galleryLauncher.launch("image/*") }
+                    onClick = { galleryLauncher.launch("*/*") }
                 )
 
                 CaptureButton(
@@ -455,11 +459,13 @@ private fun capturePhoto(
     )
 }
 
-private fun copyGalleryImageToCache(context: Context, uri: Uri): File? {
+private fun copyGalleryMediaToCache(context: Context, uri: Uri): File? {
     return try {
+        val mimeType = context.contentResolver.getType(uri)
+        val ext = if (mimeType?.startsWith("video/") == true) ".mp4" else ".jpg"
         val output = File(
             context.cacheDir,
-            "GALLERY_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.jpg"
+            "GALLERY_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}$ext"
         )
         context.contentResolver.openInputStream(uri)?.use { input ->
             FileOutputStream(output).use { outputStream -> input.copyTo(outputStream) }
