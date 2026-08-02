@@ -8,8 +8,8 @@
   "min_supported_version_code": 1,
   "mandatory": false,
   "apk_url": "https://github.com/shurshick/momenta/releases/download/v0.3.0/app-prod-debug.apk",
-  "apk_sha256": "ce057aca003c9e89c3c2d65f604077cf8d0491af57b203c9d05570d1065c17c3",
-  "apk_size_bytes": 29891432,
+  "apk_sha256": "610b864547bb60a4bfb872048c7d368d2426bcdd9a7f94646764b1ef48d6fb11",
+  "apk_size_bytes": 38842560,
   "release_url": "https://github.com/shurshick/momenta/releases/tag/v0.3.0",
   "release_notes": [
     "Поддержка видео-моментов и коротких клипов v0.3.0"

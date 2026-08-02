@@ -37,6 +37,11 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import okhttp3.OkHttpClient
+
 @Composable
 fun MomentaVideoPlayer(
     videoUrl: String,
@@ -49,29 +54,45 @@ fun MomentaVideoPlayer(
     var isPlaying by remember { mutableStateOf(autoPlay) }
     var isPlayerReady by remember { mutableStateOf(false) }
 
-    val videoUri = remember(videoUrl) {
-        if (videoUrl.startsWith("http://") || videoUrl.startsWith("https://") || videoUrl.startsWith("content://") || videoUrl.startsWith("file://")) {
-            Uri.parse(videoUrl)
-        } else {
-            Uri.fromFile(java.io.File(videoUrl))
-        }
+    val formattedVideoUrl = remember(videoUrl) {
+        normalizeMediaUrl(videoUrl)
+    }
+    val formattedPreviewUrl = remember(previewUrl) {
+        previewUrl?.let { normalizeMediaUrl(it) }
     }
 
-    val exoPlayer = remember(videoUrl) {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUri))
-            repeatMode = Player.REPEAT_MODE_ONE
-            volume = if (isMuted) 0f else 1f
-            addListener(object : Player.Listener {
-                override fun onPlaybackStateChanged(state: Int) {
-                    if (state == Player.STATE_READY) {
-                        isPlayerReady = true
-                    }
+    val exoPlayer = remember(formattedVideoUrl) {
+        val okHttpClient = OkHttpClient.Builder()
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .build()
+        val dataSourceFactory = DefaultDataSource.Factory(
+            context,
+            OkHttpDataSource.Factory(okHttpClient)
+        )
+        val mediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
+
+        ExoPlayer.Builder(context)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build().apply {
+                val videoUri = if (formattedVideoUrl.startsWith("http://") || formattedVideoUrl.startsWith("https://") || formattedVideoUrl.startsWith("content://") || formattedVideoUrl.startsWith("file://")) {
+                    Uri.parse(formattedVideoUrl)
+                } else {
+                    Uri.fromFile(java.io.File(formattedVideoUrl))
                 }
-            })
-            prepare()
-            playWhenReady = autoPlay
-        }
+                setMediaItem(MediaItem.fromUri(videoUri))
+                repeatMode = Player.REPEAT_MODE_ONE
+                volume = if (isMuted) 0f else 1f
+                addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(state: Int) {
+                        if (state == Player.STATE_READY) {
+                            isPlayerReady = true
+                        }
+                    }
+                })
+                prepare()
+                playWhenReady = autoPlay
+            }
     }
 
     DisposableEffect(videoUrl) {
@@ -89,9 +110,9 @@ fun MomentaVideoPlayer(
             }
     ) {
         // Fallback preview image while video is loading or if background
-        if (!previewUrl.isNullOrBlank()) {
+        if (!formattedPreviewUrl.isNullOrBlank()) {
             Image(
-                painter = rememberAsyncImagePainter(model = previewUrl),
+                painter = rememberAsyncImagePainter(model = formattedPreviewUrl),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
@@ -149,4 +170,14 @@ fun MomentaVideoPlayer(
             }
         }
     }
+}
+
+private fun normalizeMediaUrl(url: String): String {
+    if (url.isBlank()) return url
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file://") || url.startsWith("content://")) {
+        return url
+    }
+    val baseUrl = com.bghitech.momenta.BuildConfig.DEFAULT_SERVER_URL.trimEnd('/')
+    val path = if (url.startsWith("/")) url else "/$url"
+    return "$baseUrl$path"
 }
