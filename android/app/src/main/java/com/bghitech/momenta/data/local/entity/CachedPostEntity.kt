@@ -22,6 +22,7 @@ data class CachedPostEntity(
     val avatarKey: String?,
     val challengeDate: String,
     val mediaType: String,
+    val originalUrl: String? = null,
     val previewUrl: String,
     val thumbUrl: String?,
     val caption: String?,
