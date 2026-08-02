@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     media_max_image_mb: int = 15
     media_max_video_mb: int = 80
     media_allowed_image_types: str = "image/jpeg,image/png,image/webp"
-    media_allowed_video_types: str = "video/mp4,video/quicktime"
+    media_allowed_video_types: str = "video/mp4,video/quicktime,video/webm"
 
     admin_username: str = "admin"
     admin_email: str = "admin@example.com"

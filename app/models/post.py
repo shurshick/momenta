@@ -32,6 +32,9 @@ class Post(Base, TimestampMixin):
     reports_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="uploading", nullable=False, index=True)
     processing_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    media_pipeline_version: Mapped[int] = mapped_column(
+        Integer, default=1, server_default="1", nullable=False
+    )
     processing_owner: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     processing_started_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True

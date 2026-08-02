@@ -125,6 +125,7 @@ class PostRepositoryImpl @Inject constructor(
         val name = file.name.lowercase()
         return when {
             name.endsWith(".mp4") -> "video/mp4"
+            name.endsWith(".m4v") -> "video/mp4"
             name.endsWith(".mov") -> "video/quicktime"
             name.endsWith(".webm") -> "video/webm"
             name.endsWith(".png") -> "image/png"

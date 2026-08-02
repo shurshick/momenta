@@ -223,6 +223,7 @@ def _safe_extension(filename: str | None, content_type: str) -> str:
         "image/webp": "webp",
         "video/mp4": "mp4",
         "video/quicktime": "mov",
+        "video/webm": "webm",
     }
     if content_type in extension_by_type:
         return extension_by_type[content_type]

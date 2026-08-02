@@ -147,7 +147,7 @@ async def test_feed_indexes_exist(engine):
 
 def test_alembic_single_head():
     heads = ScriptDirectory.from_config(Config("alembic.ini")).get_heads()
-    assert heads == ["008"]
+    assert heads == ["009"]
 
 
 @pytest.mark.asyncio

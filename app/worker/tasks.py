@@ -2,14 +2,17 @@ import asyncio
 import io
 import json
 import logging
+import math
 import os
 import socket
+import subprocess
+import tempfile
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from PIL import Image
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 
 from app.config import settings
 from app.db import async_session_factory
@@ -18,10 +21,12 @@ from app.models.post import Post
 from app.services.counter_service import CounterService
 from app.services.redis_service import add_to_feed, get_redis
 from app.services.s3_service import make_object_key, upload_fileobj_async
+from app.version import RELEASE_VERSION
 
 logger = logging.getLogger(__name__)
 WORKER_HEARTBEAT_KEY = "worker:heartbeat"
 WORKER_HEARTBEAT_TTL_SECONDS = 45
+MEDIA_PIPELINE_VERSION = 2
 WORKER_ID = f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex[:8]}"
 
 
@@ -39,7 +44,7 @@ def run_worker():
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
         force=True,
     )
-    _log_event(logging.INFO, "start", "starting")
+    _log_event(logging.INFO, "start", "starting", version=RELEASE_VERSION, worker_id=WORKER_ID)
     asyncio.run(_run_worker())
 
 
@@ -129,9 +134,17 @@ async def _claim_broken_posts() -> list[uuid.UUID]:
             select(Post)
             .where(
                 Post.status == "active",
-                Post.media_type == "photo",
                 Post.processing_started_at.is_(None),
-                or_(Post.preview_url.is_(None), Post.preview_url == ""),
+                or_(
+                    and_(
+                        Post.media_type == "photo",
+                        or_(Post.preview_url.is_(None), Post.preview_url == ""),
+                    ),
+                    and_(
+                        Post.media_type == "video",
+                        Post.media_pipeline_version < MEDIA_PIPELINE_VERSION,
+                    ),
+                ),
             )
             .order_by(Post.created_at)
             .with_for_update(skip_locked=True)
@@ -272,6 +285,7 @@ async def _process_post_media(db, post):
 
 async def _activate_post(db, post):
     post.status = "active"
+    post.media_pipeline_version = MEDIA_PIPELINE_VERSION
     post.last_error = None
     post.processed_at = datetime.now(timezone.utc)
     post.processing_owner = None
@@ -376,15 +390,45 @@ def _build_photo_variants(img_data: bytes):
 
 
 def _build_video_variants(video_data: bytes):
-    # Generates a video preview and thumbnail
-    preview = Image.new("RGB", (720, 1280), color=(18, 24, 38))
-    from PIL import ImageDraw
-    draw = ImageDraw.Draw(preview)
-    # Draw play triangle icon in center
-    draw.polygon([(330, 580), (330, 700), (420, 640)], fill=(255, 255, 255))
+    with tempfile.TemporaryDirectory(prefix="momenta-video-") as temp_dir:
+        input_path = os.path.join(temp_dir, "input-video")
+        frame_path = os.path.join(temp_dir, "preview.png")
+        with open(input_path, "wb") as input_file:
+            input_file.write(video_data)
 
-    thumb = preview.copy()
-    thumb.thumbnail((400, 400), Image.LANCZOS)
+        probe = _run_media_command(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=duration,width,height:format=duration",
+                "-of",
+                "json",
+                input_path,
+            ]
+        )
+        probe_data = json.loads(probe.stdout)
+        stream = (probe_data.get("streams") or [{}])[0]
+        raw_duration = (probe_data.get("format") or {}).get("duration") or stream.get("duration")
+        duration = float(raw_duration or 0)
+        if not math.isfinite(duration) or duration <= 0:
+            raise ValueError("Video duration could not be determined")
+        width = int(stream.get("width") or 0)
+        height = int(stream.get("height") or 0)
+        if width <= 0 or height <= 0:
+            raise ValueError("Video dimensions could not be determined")
+
+        seek_seconds = min(max(duration * 0.1, 0.05), 1.0)
+        _extract_video_frame(input_path, frame_path, seek_seconds)
+
+        with Image.open(frame_path) as frame:
+            preview = frame.convert("RGB")
+            preview.thumbnail((1440, 1440), Image.LANCZOS)
+            thumb = preview.copy()
+            thumb.thumbnail((400, 400), Image.LANCZOS)
 
     preview_buf = io.BytesIO()
     preview.save(preview_buf, format="WEBP", quality=85)
@@ -398,11 +442,11 @@ def _build_video_variants(video_data: bytes):
     thumb_width, thumb_height = thumb.size
     thumb_buf.seek(0)
 
-    duration_sec = 10
+    duration_sec = max(1, math.ceil(duration))
 
     return (
-        720,
-        1280,
+        width,
+        height,
         duration_sec,
         preview_buf,
         preview_size,
@@ -413,6 +457,45 @@ def _build_video_variants(video_data: bytes):
         thumb_width,
         thumb_height,
     )
+
+
+def _extract_video_frame(input_path: str, frame_path: str, seek_seconds: float) -> None:
+    command = [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-y",
+        "-i",
+        input_path,
+        "-ss",
+        f"{seek_seconds:.3f}",
+        "-frames:v",
+        "1",
+        frame_path,
+    ]
+    try:
+        _run_media_command(command)
+    except RuntimeError:
+        command[command.index("-ss") + 1] = "0"
+        _run_media_command(command)
+
+
+def _run_media_command(command: list[str]) -> subprocess.CompletedProcess[str]:
+    try:
+        return subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"Media tool is not installed: {command[0]}") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"Media command timed out: {command[0]}") from exc
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or "unknown media error").strip()
+        raise RuntimeError(f"{command[0]} failed: {detail[:500]}") from exc
 
 
 async def flush_counters():
@@ -451,7 +534,13 @@ async def flush_counters():
 async def publish_worker_heartbeat() -> None:
     try:
         redis = await get_redis()
-        payload = json.dumps({"updated_at": datetime.now(timezone.utc).isoformat()})
+        payload = json.dumps(
+            {
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "version": RELEASE_VERSION,
+                "worker_id": WORKER_ID,
+            }
+        )
         await redis.setex(WORKER_HEARTBEAT_KEY, WORKER_HEARTBEAT_TTL_SECONDS, payload)
     except Exception:
         logger.warning("worker event=heartbeat status=error", exc_info=True)

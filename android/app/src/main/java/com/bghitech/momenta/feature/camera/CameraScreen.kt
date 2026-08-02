@@ -462,7 +462,11 @@ private fun capturePhoto(
 private fun copyGalleryMediaToCache(context: Context, uri: Uri): File? {
     return try {
         val mimeType = context.contentResolver.getType(uri)
-        val ext = if (mimeType?.startsWith("video/") == true) ".mp4" else ".jpg"
+        val ext = when (mimeType) {
+            "video/quicktime" -> ".mov"
+            "video/webm" -> ".webm"
+            else -> if (mimeType?.startsWith("video/") == true) ".mp4" else ".jpg"
+        }
         val output = File(
             context.cacheDir,
             "GALLERY_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}$ext"

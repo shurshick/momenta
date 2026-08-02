@@ -4,7 +4,7 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.3.1**.
+Текущая стабильная версия сервера: **v0.3.2**.
 
 ## Что уже есть
 
@@ -64,12 +64,10 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:v0.2.78
+image: ghcr.io/shurshick/momenta:0.3.2
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
-
-В **v0.2.78** экран настроек стал полноценным: управление очередью публикаций, безопасная очистка кэша, редактирование профиля, диагностика и документы.
 
 ## Обновления Android
 
@@ -83,9 +81,9 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.2.78](https://github.com/shurshick/momenta/releases/tag/v0.2.78)
-- Docker image: `ghcr.io/shurshick/momenta:v0.2.78`
-- Android APK: актуальная версия приложения `0.2.78`
+- Release: [v0.3.2](https://github.com/shurshick/momenta/releases/tag/v0.3.2)
+- Docker image: `ghcr.io/shurshick/momenta:0.3.2`
+- Android APK: актуальная версия приложения `0.3.2`
 
 ## Документы
 

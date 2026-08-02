@@ -124,10 +124,12 @@ jobs:
             -e JWT_SECRET=ci_only_jwt_secret_32_characters_minimum \
             momenta:ci
           trap 'docker logs momenta-ci-api || true; docker rm -f momenta-ci-api >/dev/null 2>&1 || true' EXIT
-          for i in {1..45}; do
-            if curl -fsS http://127.0.0.1:8000/ready | grep -q '"status":"ok"'; then
-              curl -fsS http://127.0.0.1:8000/api/v1/meta
-              exit 0
+           for i in {1..45}; do
+             if curl -fsS http://127.0.0.1:8000/ready | grep -q '"status":"ok"'; then
+               docker exec momenta-ci-api ffmpeg -version
+               docker exec momenta-ci-api ffprobe -version
+               curl -fsS http://127.0.0.1:8000/api/v1/meta
+               exit 0
             fi
             sleep 2
           done

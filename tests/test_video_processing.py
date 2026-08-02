@@ -1,11 +1,43 @@
+import shutil
+import subprocess
+import tempfile
 import uuid
+
 import pytest
+from PIL import Image
+
 from app.services.challenge_service import current_app_date
-from app.worker.tasks import _process_post_media, _build_video_variants
+from app.worker.tasks import _build_video_variants, _process_post_media
+
+
+def _sample_video_bytes() -> bytes:
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        pytest.skip("ffmpeg and ffprobe are required")
+    with tempfile.TemporaryDirectory(prefix="momenta-test-video-") as temp_dir:
+        path = f"{temp_dir}/sample.mp4"
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-v",
+                "error",
+                "-y",
+                "-f",
+                "lavfi",
+                "-i",
+                "color=c=red:s=320x240:d=2",
+                "-c:v",
+                "mpeg4",
+                path,
+            ],
+            check=True,
+            timeout=20,
+        )
+        with open(path, "rb") as video_file:
+            return video_file.read()
 
 @pytest.mark.asyncio
 async def test_build_video_variants_generates_thumbnails():
-    video_bytes = b"fake_mp4_video_data"
+    video_bytes = _sample_video_bytes()
     (
         width,
         height,
@@ -20,14 +52,18 @@ async def test_build_video_variants_generates_thumbnails():
         thumb_height,
     ) = _build_video_variants(video_bytes)
 
-    assert width == 720
-    assert height == 1280
-    assert duration_sec == 10
+    assert width == 320
+    assert height == 240
+    assert duration_sec == 2
     assert preview_size > 0
     assert thumb_size > 0
-    assert preview_width == 720
-    assert thumb_height == 400
-    assert thumb_width == 225
+    assert preview_width == 320
+    assert preview_height == 240
+    assert thumb_width == 320
+    assert thumb_height == 240
+    with Image.open(preview_buf) as preview:
+        red, _, blue = preview.resize((1, 1)).getpixel((0, 0))
+        assert red > blue
 
 @pytest.mark.asyncio
 async def test_worker_processes_video_post_successfully(
@@ -38,9 +74,11 @@ async def test_worker_processes_video_post_successfully(
 ):
     from app.models.post import Post
 
+    video_bytes = _sample_video_bytes()
+
     class DummyS3:
         def get_object(self, **kwargs):
-            return {"Body": type("Stream", (), {"read": lambda self: b"fake_video_data"})()}
+            return {"Body": type("Stream", (), {"read": lambda self: video_bytes})()}
 
     async def mock_upload_async(buf, key, mime):
         return f"https://media.test/{key}"
@@ -70,6 +108,7 @@ async def test_worker_processes_video_post_successfully(
 
     assert post.status == "active"
     assert post.media_type == "video"
-    assert post.duration_sec == 10
+    assert post.duration_sec == 2
+    assert post.media_pipeline_version == 2
     assert post.preview_url is not None
     assert post.thumb_url is not None
