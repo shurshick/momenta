@@ -56,7 +56,8 @@ fun MomentaVideoPlayer(
     videoUrl: String,
     modifier: Modifier = Modifier,
     previewUrl: String? = null,
-    autoPlay: Boolean = true
+    autoPlay: Boolean = true,
+    onClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     var isMuted by remember { mutableStateOf(true) }
@@ -140,14 +141,18 @@ fun MomentaVideoPlayer(
         modifier = modifier
             .fillMaxSize()
             .clickable {
-                if (playbackFailed) {
-                    playbackFailed = false
-                    isPlaying = true
-                    exoPlayer.prepare()
-                    exoPlayer.playWhenReady = true
+                if (onClick != null) {
+                    onClick()
                 } else {
-                    isPlaying = !isPlaying
-                    exoPlayer.playWhenReady = isPlaying
+                    if (playbackFailed) {
+                        playbackFailed = false
+                        isPlaying = true
+                        exoPlayer.prepare()
+                        exoPlayer.playWhenReady = true
+                    } else {
+                        isPlaying = !isPlaying
+                        exoPlayer.playWhenReady = isPlaying
+                    }
                 }
             }
     ) {
@@ -234,6 +239,10 @@ private fun normalizeMediaUrl(url: String): String {
     if (url.isBlank()) return url
     if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file://") || url.startsWith("content://")) {
         return url
+    }
+    val localFile = java.io.File(url)
+    if (localFile.isAbsolute && localFile.exists()) {
+        return Uri.fromFile(localFile).toString()
     }
     val baseUrl = com.bghitech.momenta.BuildConfig.DEFAULT_SERVER_URL.trimEnd('/')
     val path = if (url.startsWith("/")) url else "/$url"

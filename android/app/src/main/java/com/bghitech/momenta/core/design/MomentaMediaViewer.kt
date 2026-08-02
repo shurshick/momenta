@@ -68,6 +68,7 @@ fun MomentaMediaViewer(
                 if (mediaType == "video") {
                     MomentaVideoPlayer(
                         videoUrl = targetUrl,
+                        previewUrl = imageUrl.takeIf { it.isNotBlank() },
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
