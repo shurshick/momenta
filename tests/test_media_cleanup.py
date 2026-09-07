@@ -37,7 +37,9 @@ async def test_cleanup_media_dry_run_and_delete(
         created_at=old_date,
         updated_at=old_date,
     )
-    db_session.add_all([post, asset])
+    db_session.add(post)
+    await db_session.flush()
+    db_session.add(asset)
     await db_session.commit()
 
     deleted_keys = []
