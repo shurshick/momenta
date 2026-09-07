@@ -1,6 +1,5 @@
 package com.bghitech.momenta.feature.publish
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bghitech.momenta.core.common.AppError
@@ -19,7 +18,6 @@ import com.bghitech.momenta.domain.repository.FeedRepository
 import com.bghitech.momenta.domain.repository.ProfileRepository
 import com.bghitech.momenta.domain.usecase.PublishMomentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -40,7 +38,6 @@ data class PublishUiState(
 
 @HiltViewModel
 class PublishViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val imageCompressor: ImageCompressor,
     private val publishMomentUseCase: PublishMomentUseCase,
     private val feedRepository: FeedRepository,

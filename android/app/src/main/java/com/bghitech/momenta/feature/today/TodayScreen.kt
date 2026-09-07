@@ -37,10 +37,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +60,7 @@ import com.bghitech.momenta.core.design.MomentaOfflineBanner
 import com.bghitech.momenta.core.design.MomentaPrimaryButton
 import com.bghitech.momenta.core.design.MomentaScreen
 import com.bghitech.momenta.core.design.MomentaSecondaryButton
+import com.bghitech.momenta.core.design.MomentaSurface
 import com.bghitech.momenta.core.design.MomentaSurfaceAlt
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
@@ -195,21 +194,10 @@ private fun ChallengeCard(
             .fillMaxWidth()
             .clip(MomentaLargeShape),
         shape = MomentaLargeShape,
-        color = Color.Transparent,
+        color = MomentaSurface,
         border = BorderStroke(1.dp, MomentaGreen.copy(alpha = 0.55f))
     ) {
-        Box(
-            modifier = Modifier.background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        MomentaGreen.copy(alpha = 0.16f),
-                        MomentaSurfaceAlt.copy(alpha = 0.96f),
-                        MomentaSurfaceAlt
-                    ),
-                    radius = 760f
-                )
-            )
-        ) {
+        Box {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -227,36 +215,27 @@ private fun ChallengeCard(
                     ParticipantsBadge(count = challenge.participantsCount)
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Column(modifier = Modifier.weight(1.1f)) {
-                        Text(
-                            text = challenge.title.ifBlank { stringResource(R.string.default_challenge_title) },
-                            color = MomentaText,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 27.sp
-                        )
+                Text(
+                    text = challenge.title.ifBlank {
+                        stringResource(R.string.default_challenge_title)
+                    },
+                    color = MomentaText,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 28.sp
+                )
 
-                        Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
-                        Text(
-                            text = challenge.prompt ?: challenge.description ?: stringResource(R.string.default_challenge_description),
-                            color = MomentaTextSecondary,
-                            fontSize = 13.sp,
-                            lineHeight = 17.sp
-                        )
-                    }
-
-                    ChallengeIllustration(
-                        modifier = Modifier.weight(0.92f)
-                    )
-                }
+                Text(
+                    text = challenge.prompt ?: challenge.description
+                        ?: stringResource(R.string.default_challenge_description),
+                    color = MomentaTextSecondary,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp
+                )
 
                 if (challenge.endsAt != null) {
                     val timeLeft = rememberCountdownTime(challenge.endsAt)
@@ -270,20 +249,20 @@ private fun ChallengeCard(
                             TimeLeftPanel(
                                 timeLeft = timeLeft,
                                 modifier = Modifier
-                                    .weight(1.1f)
-                                    .height(82.dp)
+                                    .weight(1f)
+                                    .height(72.dp)
                             )
                             if (userPostedToday) {
                                 PostedStatePanel(
                                     modifier = Modifier
-                                        .weight(0.92f)
-                                        .height(82.dp)
+                                        .weight(1f)
+                                        .height(72.dp)
                                 )
                             } else {
                                 CaptureIconButton(
                                     modifier = Modifier
-                                        .weight(0.92f)
-                                        .height(82.dp),
+                                        .weight(1f)
+                                        .height(72.dp),
                                     onClick = onCaptureClick
                                 )
                             }
@@ -436,18 +415,6 @@ private fun CaptureIconButton(
             )
         }
     }
-}
-
-@Composable
-private fun ChallengeIllustration(modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(id = R.drawable.challenge_camera_art),
-        contentDescription = null,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(108.dp),
-        contentScale = ContentScale.Fit
-    )
 }
 
 @Composable

@@ -28,7 +28,10 @@ async def get_current_user_id(token: str = Depends(get_token)) -> str:
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token payload")
-    return user_id
+    try:
+        return str(uuid.UUID(user_id))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Invalid token payload")
 
 
 async def get_optional_current_user_id(authorization: str = Header(default="")) -> str | None:
@@ -38,7 +41,12 @@ async def get_optional_current_user_id(authorization: str = Header(default="")) 
     if not payload or payload.get("type") != "access":
         return None
     user_id = payload.get("sub")
-    return user_id if user_id else None
+    if not user_id:
+        return None
+    try:
+        return str(uuid.UUID(user_id))
+    except (TypeError, ValueError):
+        return None
 
 
 @router.post("/register", response_model=AuthResponse)

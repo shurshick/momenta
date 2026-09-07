@@ -514,6 +514,87 @@ async def test_today_feed_accepts_z_cursor(
 
 
 @pytest.mark.asyncio
+async def test_today_feed_cursor_keeps_posts_with_same_timestamp(
+    client, auth_headers, test_user, test_challenge, db_session
+):
+    from app.models.post import Post
+
+    created_at = datetime(2026, 7, 10, 12, 0, tzinfo=timezone.utc)
+    posts = [
+        Post(
+            id=uuid.uuid4(),
+            user_id=test_user.id,
+            challenge_id=test_challenge.id,
+            challenge_date=current_app_date(),
+            media_type="photo",
+            original_url=f"https://example.com/{index}.jpg",
+            preview_url=f"https://example.com/{index}.webp",
+            status="active",
+            created_at=created_at,
+        )
+        for index in range(3)
+    ]
+    db_session.add_all(posts)
+    await db_session.commit()
+
+    first = await client.get("/api/v1/feed/today?limit=2", headers=auth_headers)
+    second = await client.get(
+        "/api/v1/feed/today",
+        headers=auth_headers,
+        params={"limit": 2, "cursor": first.json()["next_cursor"]},
+    )
+
+    returned_ids = [item["id"] for item in first.json()["items"] + second.json()["items"]]
+    assert len(returned_ids) == 3
+    assert set(returned_ids) == {str(post.id) for post in posts}
+
+
+@pytest.mark.asyncio
+async def test_malformed_post_id_returns_validation_error(client, auth_headers):
+    response = await client.get("/api/v1/posts/not-a-uuid", headers=auth_headers)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_malformed_feed_cursor_does_not_crash(client, auth_headers):
+    response = await client.get(
+        "/api/v1/feed/today",
+        headers=auth_headers,
+        params={"cursor": "not-a-cursor|not-a-uuid"},
+    )
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_like_and_report_reject_inactive_post(
+    client, auth_headers, test_user, test_challenge, db_session
+):
+    from app.models.post import Post
+
+    post = Post(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=current_app_date(),
+        media_type="photo",
+        original_url="https://example.com/inactive.jpg",
+        status="deleted",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    like = await client.post(f"/api/v1/posts/{post.id}/like", headers=auth_headers)
+    report = await client.post(
+        f"/api/v1/posts/{post.id}/report",
+        headers=auth_headers,
+        json={"reason": "spam"},
+    )
+
+    assert like.status_code == 404
+    assert report.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_like_recalculates_drifted_counter(
     client,
     auth_headers,

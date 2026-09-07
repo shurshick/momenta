@@ -2,9 +2,12 @@
 """Verify APK for installability."""
 import os
 import sys
+
 from androguard.misc import AnalyzeAPK
 
-apk_path = sys.argv[1] if len(sys.argv) > 1 else r'C:\Users\odmin4eg\Downloads\momenta-apk\app-prod-release.apk'
+if len(sys.argv) != 2:
+    raise SystemExit("Usage: python verify_apk.py <apk-path>")
+apk_path = sys.argv[1]
 
 a, d, dx = AnalyzeAPK(apk_path)
 
@@ -33,7 +36,10 @@ print("=== Manifest Attributes ===")
 attrs = [
     ("android:debuggable", a.get_attribute_value("application", "android:debuggable")),
     ("android:testOnly", a.get_attribute_value("application", "android:testOnly")),
-    ("android:extractNativeLibs", a.get_attribute_value("application", "android:extractNativeLibs")),
+    (
+        "android:extractNativeLibs",
+        a.get_attribute_value("application", "android:extractNativeLibs"),
+    ),
 ]
 for name, val in attrs:
     print(f"{name}: {val}")

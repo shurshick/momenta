@@ -1,12 +1,13 @@
-from datetime import date, datetime
+from datetime import date as Date
+from datetime import datetime
 
 from pydantic import BaseModel
 
 
 class ChallengeOut(BaseModel):
     id: str
-    date: date
-    challenge_date: date | None = None
+    date: Date
+    challenge_date: Date | None = None
     title: str
     description: str | None = None
     prompt: str | None = None
@@ -20,7 +21,7 @@ class ChallengeOut(BaseModel):
 
 class ChallengeAdminOut(BaseModel):
     id: str
-    challenge_date: date
+    challenge_date: Date
     title_ru: str
     description_ru: str | None = None
     prompt_ru: str | None = None
@@ -38,7 +39,7 @@ class ChallengeAdminOut(BaseModel):
 
 
 class CreateChallengeRequest(BaseModel):
-    challenge_date: date
+    challenge_date: Date
     title_ru: str
     description_ru: str | None = None
     prompt_ru: str | None = None

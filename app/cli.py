@@ -75,18 +75,18 @@ async def _main_async(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "repair-counters":
-        result = await repair_counters(dry_run=args.dry_run)
-        for key, value in asdict(result).items():
+        repair_result = await repair_counters(dry_run=args.dry_run)
+        for key, value in asdict(repair_result).items():
             print(f"{key}={value}")
         return 0
     if args.command == "cleanup-media":
-        result = await cleanup_media(
+        cleanup_result = await cleanup_media(
             dry_run=args.dry_run,
             older_than_days=args.older_than_days,
         )
-        for key, value in asdict(result).items():
+        for key, value in asdict(cleanup_result).items():
             print(f"{key}={value}")
-        return 0 if result.delete_failures == 0 else 2
+        return 0 if cleanup_result.delete_failures == 0 else 2
     return 1
 
 

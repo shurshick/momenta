@@ -4,7 +4,7 @@ import uuid
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
-from sqlalchemy import desc, func, select, text
+from sqlalchemy import and_, desc, func, or_, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +17,7 @@ from app.services.redis_service import (  # noqa: F401
     mark_user_posted,
 )
 from app.services.setting_service import get_setting
-from app.utils.dates import parse_cursor_datetime
+from app.utils.dates import parse_post_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ async def assert_can_create_post(
         await _lock_daily_post_slot(db, user_id, challenge_date)
     limit_str = await get_setting(db, "daily_post_limit", "1")
     try:
-        daily_limit = int(limit_str)
+        daily_limit = int(limit_str or "1")
     except (ValueError, TypeError):
         daily_limit = 1
 
@@ -135,7 +135,7 @@ async def get_delete_window_minutes(db: AsyncSession) -> int:
         str(DEFAULT_DELETE_WINDOW_MINUTES),
     )
     try:
-        value = int(raw_value)
+        value = int(raw_value or str(DEFAULT_DELETE_WINDOW_MINUTES))
     except (TypeError, ValueError):
         return DEFAULT_DELETE_WINDOW_MINUTES
     return max(value, 0)
@@ -186,9 +186,7 @@ async def get_feed_posts(
     query = select(Post).where(Post.challenge_date == challenge_date, Post.status == "active")
     if country:
         query = query.where(Post.country == country)
-    cursor_dt = parse_cursor_datetime(cursor)
-    if cursor_dt:
-        query = query.where(Post.created_at < cursor_dt)
+    query = _apply_post_cursor(query, cursor)
     return await _run_post_page(db, query, limit)
 
 
@@ -201,16 +199,25 @@ async def get_recent_feed_posts(
     query = select(Post).where(Post.status == "active")
     if country:
         query = query.where(Post.country == country)
-    cursor_dt = parse_cursor_datetime(cursor)
-    if cursor_dt:
-        query = query.where(Post.created_at < cursor_dt)
+    query = _apply_post_cursor(query, cursor)
     return await _run_post_page(db, query, limit)
 
 
-async def like_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+async def get_user_feed_posts(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    cursor: Optional[str] = None,
+    limit: int = 20,
+) -> tuple[list[Post], Optional[str]]:
+    query = select(Post).where(Post.user_id == user_id, Post.status == "active")
+    query = _apply_post_cursor(query, cursor)
+    return await _run_post_page(db, query, limit)
+
+
+async def like_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) -> dict | None:
     post = await get_post_by_id(db, post_id)
     if not post or post.status != "active":
-        return {"liked": False, "likes_count": 0}
+        return None
 
     existing = await db.execute(
         select(Reaction).where(
@@ -238,10 +245,10 @@ async def like_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) ->
     return {"liked": True, "likes_count": likes_count}
 
 
-async def unlike_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+async def unlike_post(db: AsyncSession, post_id: uuid.UUID, user_id: uuid.UUID) -> dict | None:
     post = await get_post_by_id(db, post_id)
     if not post or post.status != "active":
-        return {"liked": False, "likes_count": 0}
+        return None
 
     existing = await db.execute(
         select(Reaction).where(
@@ -279,14 +286,30 @@ async def _safe_cache_call(awaitable, operation: str) -> None:
 
 
 async def _run_post_page(db: AsyncSession, query, limit: int) -> tuple[list[Post], Optional[str]]:
-    query = query.order_by(desc(Post.created_at)).limit(limit + 1)
+    query = query.order_by(desc(Post.created_at), desc(Post.id)).limit(limit + 1)
     result = await db.execute(query)
     posts = list(result.scalars().all())
     next_cursor = None
     if len(posts) > limit:
         posts = posts[:limit]
-        next_cursor = posts[-1].created_at.isoformat() if posts[-1].created_at else None
+        if posts[-1].created_at:
+            next_cursor = f"{posts[-1].created_at.isoformat()}|{posts[-1].id}"
     return posts, next_cursor
+
+
+def _apply_post_cursor(query, cursor: str | None):
+    cursor_value = parse_post_cursor(cursor)
+    if not cursor_value:
+        return query
+    cursor_dt, cursor_id = cursor_value
+    if cursor_id is None:
+        return query.where(Post.created_at < cursor_dt)
+    return query.where(
+        or_(
+            Post.created_at < cursor_dt,
+            and_(Post.created_at == cursor_dt, Post.id < cursor_id),
+        )
+    )
 
 
 def _as_utc(value: datetime) -> datetime:

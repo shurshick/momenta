@@ -6,10 +6,13 @@ __pycache__/
 dist/
 build/
 .pytest_cache/
+.coverage
 .mypy_cache/
 .ruff_cache/
 /data/
 test.db
+/android-update.json
+/uv.lock
 
 # Android
 android/.gradle/

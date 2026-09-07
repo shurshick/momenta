@@ -140,10 +140,11 @@ private fun CameraContent(
     var selectedEffect by remember { mutableStateOf(PhotoEffect.Natural) }
     var showEffects by remember { mutableStateOf(false) }
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
+            val isVideo = context.contentResolver.getType(it)?.startsWith("video/") == true
             copyGalleryMediaToCache(context, it)?.let { file ->
-                if (file.name.endsWith(".mp4")) {
+                if (isVideo) {
                     onImageCaptured(file.absolutePath)
                 } else {
                     onImageCaptured(PhotoEffectProcessor.apply(context, file, selectedEffect).absolutePath)
@@ -247,7 +248,7 @@ private fun CameraContent(
                 CameraToolButton(
                     icon = Icons.Default.Image,
                     label = "Галерея",
-                    onClick = { galleryLauncher.launch("*/*") }
+                    onClick = { galleryLauncher.launch(arrayOf("image/*", "video/*")) }
                 )
 
                 CaptureButton(
@@ -279,18 +280,6 @@ private fun CameraContent(
                 )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                listOf("Фото", "Видео").forEach { mode ->
-                    Text(
-                        text = mode,
-                        color = if (mode == "Фото") MomentaGreen else MomentaTextSecondary,
-                        fontSize = 13.sp,
-                        fontWeight = if (mode == "Фото") FontWeight.Bold else FontWeight.Normal
-                    )
-                }
-            }
         }
     }
 

@@ -64,10 +64,11 @@ fun ProfileDto.toDomain(): Profile = Profile(
 fun RecentPostDto.toDomain(): Post = Post(
     id = id,
     user = User(id = "", username = "", displayName = null, avatarUrl = null, avatarKey = null, email = null),
-    mediaType = "image",
+    mediaType = mediaType,
+    originalUrl = originalUrl,
     previewUrl = previewUrl ?: "",
     thumbUrl = thumbUrl,
-    caption = null,
+    caption = caption,
     country = null,
     city = null,
     likesCount = 0,

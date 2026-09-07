@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "momenta-server"
-version = "0.3.3"
+version = "0.4.0"
 description = "Momenta - social daily challenge backend"
 requires-python = ">=3.12"
 dependencies = [
@@ -54,3 +54,6 @@ select = ["E", "F", "I", "W"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.mypy]
+ignore_missing_imports = true

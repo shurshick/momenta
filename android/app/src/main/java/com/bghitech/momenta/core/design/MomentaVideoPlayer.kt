@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.VolumeMute
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeMute
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -40,6 +40,7 @@ import coil.compose.rememberAsyncImagePainter
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.bghitech.momenta.R
@@ -51,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun MomentaVideoPlayer(
     videoUrl: String,
@@ -158,7 +160,12 @@ fun MomentaVideoPlayer(
     ) {
         AndroidView(
             factory = { ctx ->
-                (LayoutInflater.from(ctx).inflate(R.layout.momenta_video_player, null) as PlayerView).apply {
+                val parent = FrameLayout(ctx)
+                (LayoutInflater.from(ctx).inflate(
+                    R.layout.momenta_video_player,
+                    parent,
+                    false
+                ) as PlayerView).apply {
                     player = exoPlayer
                     setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
                     setKeepContentOnPlayerReset(true)
@@ -209,7 +216,11 @@ fun MomentaVideoPlayer(
                 .size(36.dp)
         ) {
             Icon(
-                imageVector = if (isMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
+                imageVector = if (isMuted) {
+                    Icons.AutoMirrored.Filled.VolumeMute
+                } else {
+                    Icons.AutoMirrored.Filled.VolumeUp
+                },
                 contentDescription = if (isMuted) "Unmute" else "Mute",
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)

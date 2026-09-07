@@ -100,8 +100,11 @@ class ProfileRepositoryImpl @Inject constructor(
         recentPosts = recentPosts.map { post ->
             RecentPostDto(
                 id = post.id,
+                mediaType = post.mediaType,
+                originalUrl = post.originalUrl,
                 previewUrl = post.previewUrl,
                 thumbUrl = post.thumbUrl,
+                caption = post.caption,
                 createdAt = post.createdAt
             )
         }

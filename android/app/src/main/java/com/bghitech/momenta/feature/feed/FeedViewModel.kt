@@ -114,7 +114,7 @@ class FeedViewModel @Inject constructor(
             if (oldPost.syncState == "pending") return@launch
             val optimisticPost = oldPost.copy(
                 isBookmarked = !currentlyBookmarked,
-                bookmarkedAt = if (currentlyBookmarked) null else java.time.Instant.now().toString()
+                bookmarkedAt = if (currentlyBookmarked) null else AppDateUtils.nowIsoUtc()
             )
             feedRepository.updateCachedPost(optimisticPost)
             val result = if (currentlyBookmarked) {

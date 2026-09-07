@@ -147,7 +147,35 @@ async def test_feed_indexes_exist(engine):
 
 def test_alembic_single_head():
     heads = ScriptDirectory.from_config(Config("alembic.ini")).get_heads()
-    assert heads == ["009"]
+    assert heads == ["010"]
+
+
+def test_core_foreign_keys_are_declared():
+    expected = {
+        ("audit_logs", "actor_user_id", "users"),
+        ("bookmarks", "user_id", "users"),
+        ("bookmarks", "post_id", "posts"),
+        ("challenges", "created_by", "users"),
+        ("comments", "post_id", "posts"),
+        ("comments", "user_id", "users"),
+        ("media_assets", "owner_user_id", "users"),
+        ("media_assets", "post_id", "posts"),
+        ("posts", "user_id", "users"),
+        ("posts", "challenge_id", "challenges"),
+        ("reactions", "post_id", "posts"),
+        ("reactions", "user_id", "users"),
+        ("reports", "post_id", "posts"),
+        ("reports", "user_id", "users"),
+        ("reports", "reviewed_by", "users"),
+        ("user_streaks", "user_id", "users"),
+    }
+    actual = {
+        (table.name, element.parent.name, element.column.table.name)
+        for table in Post.metadata.tables.values()
+        for constraint in table.foreign_key_constraints
+        for element in constraint.elements
+    }
+    assert expected <= actual
 
 
 @pytest.mark.asyncio

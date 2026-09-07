@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -55,6 +56,7 @@ fun OnboardingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .safeDrawingPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 22.dp, vertical = 22.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -78,7 +80,7 @@ fun OnboardingScreen(
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "\u041a\u0430\u0436\u0434\u044b\u0439 \u0434\u0435\u043d\u044c - \u043d\u043e\u0432\u0430\u044f \u0442\u0435\u043c\u0430.\n\u0421\u043d\u0438\u043c\u0438 \u0444\u043e\u0442\u043e \u0438\u043b\u0438 \u0432\u0438\u0434\u0435\u043e\n\u0438 \u043f\u043e\u0441\u043c\u043e\u0442\u0440\u0438, \u043a\u0430\u043a \u0436\u0438\u0432\u0435\u0442 \u043c\u0438\u0440 \u0441\u0435\u0439\u0447\u0430\u0441.",
+            text = "\u0422\u0435\u043c\u0430 \u0434\u043d\u044f, \u0442\u0432\u043e\u0439 \u0444\u043e\u0442\u043e \u0438\u043b\u0438 \u0432\u0438\u0434\u0435\u043e\n\u0438 \u0436\u0438\u0432\u044b\u0435 \u043c\u043e\u043c\u0435\u043d\u0442\u044b \u043b\u044e\u0434\u0435\u0439 \u0432\u043e\u043a\u0440\u0443\u0433.",
                 color = MomentaTextSecondary,
                 fontSize = 18.sp,
                 lineHeight = 26.sp,

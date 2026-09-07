@@ -34,10 +34,15 @@ data class ProfileDto(
 @Serializable
 data class RecentPostDto(
     val id: String,
+    @SerialName("media_type")
+    val mediaType: String = "photo",
+    @SerialName("original_url")
+    val originalUrl: String? = null,
     @SerialName("preview_url")
     val previewUrl: String? = null,
     @SerialName("thumb_url")
     val thumbUrl: String? = null,
+    val caption: String? = null,
     @SerialName("created_at")
     val createdAt: String? = null
 )

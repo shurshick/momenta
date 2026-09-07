@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Language
@@ -55,28 +55,34 @@ fun MomentaBottomBar(
         color = MomentaBackground.copy(alpha = 0.96f),
         tonalElevation = 0.dp
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-                .navigationBarsPadding(),
-            color = MomentaSurface.copy(alpha = 0.92f),
-            shape = RoundedCornerShape(30.dp),
-            border = BorderStroke(1.dp, MomentaTextSecondary.copy(alpha = 0.14f))
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .widthIn(max = 720.dp)
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                    .navigationBarsPadding(),
+                color = MomentaSurface.copy(alpha = 0.92f),
+                shape = MomentaLargeShape,
+                border = BorderStroke(1.dp, MomentaTextSecondary.copy(alpha = 0.14f))
             ) {
-                BottomNavItem.entries.forEach { item ->
-                    BottomBarItem(
-                        item = item,
-                        selected = currentRoute == item.route,
-                        onClick = { onNavigate(item.route) }
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BottomNavItem.entries.forEach { item ->
+                        BottomBarItem(
+                            item = item,
+                            selected = currentRoute == item.route,
+                            onClick = { onNavigate(item.route) }
+                        )
+                    }
                 }
             }
         }

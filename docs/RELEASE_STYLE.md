@@ -11,7 +11,7 @@
 - Server-only релиз не должен прикреплять APK. В описании достаточно Docker:
 
 ```text
-Docker: ghcr.io/shurshick/momenta:vX.Y.Z
+Docker: ghcr.io/shurshick/momenta:X.Y.Z
 ```
 
 - Android-релиз публикуется только когда менялся APK. Workflow прикрепляет:
@@ -19,7 +19,7 @@ Docker: ghcr.io/shurshick/momenta:vX.Y.Z
 ```text
 APK: app-prod-release.apk
 Metadata: android-update.json
-Docker: ghcr.io/shurshick/momenta:vX.Y.Z
+Docker: ghcr.io/shurshick/momenta:X.Y.Z
 ```
 
 - Docker image публикуется workflow `Docker Publish`.

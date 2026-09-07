@@ -56,7 +56,11 @@ async def refresh_token(db: AsyncSession, token: str) -> dict:
     user_id = payload.get("sub")
     if not user_id:
         raise ValueError("Неверный формат токена")
-    result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except (TypeError, ValueError):
+        raise ValueError("Неверный формат токена")
+    result = await db.execute(select(User).where(User.id == user_uuid))
     user = result.scalar_one_or_none()
     if not user or user.status != "active":
         raise ValueError("Пользователь не найден или заблокирован")

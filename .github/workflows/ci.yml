@@ -78,6 +78,15 @@ jobs:
       - name: Check brand assets
         run: uv run --python 3.12 --extra dev python scripts/check_brand_assets.py
 
+      - name: Check release versions
+        run: uv run --python 3.12 --extra dev python scripts/check_version_consistency.py
+
+      - name: Run Ruff
+        run: uv run --python 3.12 --extra dev ruff check .
+
+      - name: Run mypy
+        run: uv run --python 3.12 --extra dev mypy app
+
       - name: Check Alembic heads
         run: >
           uv run --python 3.12 --extra dev python -c
@@ -158,6 +167,10 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew testDevDebugUnitTest testProdDebugUnitTest
+
+      - name: Run Android lint
+        working-directory: android
+        run: ./gradlew lintProdDebug
 
       - name: Build dev debug APK
         working-directory: android

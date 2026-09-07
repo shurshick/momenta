@@ -1,5 +1,6 @@
 package com.bghitech.momenta.feature.settings
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import androidx.lifecycle.ViewModel
@@ -33,6 +34,7 @@ data class SettingsUiState(
 )
 
 @HiltViewModel
+@SuppressLint("StaticFieldLeak")
 class SettingsViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val tokenStore: TokenStore,

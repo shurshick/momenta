@@ -11,8 +11,7 @@ from app.models.post import Post
 from app.schemas.post import BestMomentResponse, FeedResponse
 from app.services.challenge_service import current_app_date
 from app.services.feed_item_service import build_feed_items
-from app.services.post_service import get_feed_posts
-from app.utils.dates import parse_cursor_datetime
+from app.services.post_service import get_feed_posts, get_user_feed_posts
 
 router = APIRouter(prefix="/api/v1/feed", tags=["feed"])
 
@@ -68,27 +67,14 @@ async def country_feed(
 
 @router.get("/user/{target_user_id}", response_model=FeedResponse)
 async def user_feed(
-    target_user_id: str,
+    target_user_id: uuid.UUID,
     cursor: str = Query(None),
     limit: int = Query(default=20, le=50),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    target_uuid = uuid.UUID(target_user_id)
-    query = (
-        select(Post)
-        .where(Post.user_id == target_uuid, Post.status == "active")
-        .order_by(Post.created_at.desc())
+    posts, next_cursor = await get_user_feed_posts(
+        db, target_user_id, cursor=cursor, limit=limit
     )
-    cursor_dt = parse_cursor_datetime(cursor)
-    if cursor_dt:
-        query = query.where(Post.created_at < cursor_dt)
-    query = query.limit(limit + 1)
-    result = await db.execute(query)
-    posts = result.scalars().all()
-    next_cursor = None
-    if len(posts) > limit:
-        posts = posts[:limit]
-        next_cursor = posts[-1].created_at.isoformat() if posts[-1].created_at else None
-    items = await build_feed_items(db, list(posts), user_id)
+    items = await build_feed_items(db, posts, user_id)
     return {"items": items, "next_cursor": next_cursor}

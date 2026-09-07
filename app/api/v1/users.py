@@ -10,6 +10,7 @@ from app.models.post import Post
 from app.models.user import User
 from app.schemas.user import (
     AvatarListResponse,
+    RecentPostOut,
     UpdateAvatarRequest,
     UpdateProfileRequest,
     UserProfile,
@@ -31,7 +32,15 @@ async def _build_profile(db: AsyncSession, user: User) -> UserProfile:
     )
 
     recent_result = await db.execute(
-        select(Post.id, Post.preview_url, Post.thumb_url, Post.created_at)
+        select(
+            Post.id,
+            Post.media_type,
+            Post.original_url,
+            Post.preview_url,
+            Post.thumb_url,
+            Post.caption,
+            Post.created_at,
+        )
         .where(Post.user_id == user.id, Post.status == "active")
         .order_by(Post.created_at.desc())
         .limit(9)
@@ -51,7 +60,15 @@ async def _build_profile(db: AsyncSession, user: User) -> UserProfile:
         streak_count=counters.streak_count,
         likes_count=counters.likes_count,
         recent_posts=[
-            {"id": str(row[0]), "preview_url": row[1], "thumb_url": row[2], "created_at": row[3]}
+            RecentPostOut(
+                id=str(row.id),
+                media_type=row.media_type,
+                original_url=row.original_url,
+                preview_url=row.preview_url,
+                thumb_url=row.thumb_url,
+                caption=row.caption,
+                created_at=row.created_at,
+            )
             for row in recent_result.all()
         ],
         created_at=user.created_at,
@@ -104,8 +121,8 @@ async def list_user_suggestions(
 
 
 @router.get("/users/{user_id}", response_model=UserProfile)
-async def get_user_profile(user_id: str, db: AsyncSession = Depends(get_db)):
-    user = await get_user_by_id(db, uuid.UUID(user_id))
+async def get_user_profile(user_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    user = await get_user_by_id(db, user_id)
     if not user or user.status == "deleted":
         raise HTTPException(status_code=404)
     return await _build_profile(db, user)

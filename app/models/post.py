@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Date, DateTime, Index, Integer, String, Text
+from sqlalchemy import Date, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,8 +13,15 @@ class Post(Base, TimestampMixin):
     __tablename__ = "posts"
 
     id: Mapped[uuid.UUID] = pk_uuid()
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    challenge_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    challenge_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("challenges.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
     challenge_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     media_type: Mapped[str] = mapped_column(String(10), nullable=False)
     original_url: Mapped[str] = mapped_column(String(500), nullable=False)

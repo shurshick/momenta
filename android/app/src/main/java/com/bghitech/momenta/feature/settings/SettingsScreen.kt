@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -40,6 +41,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -70,6 +75,8 @@ import com.bghitech.momenta.core.design.MomentaScreen
 import com.bghitech.momenta.core.design.MomentaSurface
 import com.bghitech.momenta.core.design.MomentaText
 import com.bghitech.momenta.core.design.MomentaTextSecondary
+import com.bghitech.momenta.core.design.MomentaThemeMode
+import com.bghitech.momenta.core.design.ThemePreferences
 import com.bghitech.momenta.data.local.entity.UploadQueueEntity
 import com.bghitech.momenta.feature.updates.AppUpdateInfo
 import com.bghitech.momenta.feature.updates.AppUpdateViewModel
@@ -82,6 +89,7 @@ private const val SUPPORT_URL = "https://github.com/shurshick/momenta/issues/new
 private const val PRIVACY_URL = "https://github.com/shurshick/momenta/blob/master/docs/PRIVACY_POLICY.md"
 private const val TERMS_URL = "https://github.com/shurshick/momenta/blob/master/docs/TERMS.md"
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
@@ -98,6 +106,7 @@ fun SettingsScreen(
     var updateInfo by remember { mutableStateOf<AppUpdateInfo?>(null) }
     var isCheckingUpdate by remember { mutableStateOf(false) }
     var isDownloadingApk by remember { mutableStateOf(false) }
+    val themeMode by ThemePreferences.mode.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.message) {
         state.message?.let {
@@ -139,6 +148,7 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
@@ -185,6 +195,14 @@ fun SettingsScreen(
                             )
                         }
                     }
+                )
+            }
+
+            SettingsGap()
+            SettingsSection("Внешний вид") {
+                ThemeModeSelector(
+                    selected = themeMode,
+                    onSelect = ThemePreferences::setMode
                 )
             }
 
@@ -280,6 +298,34 @@ fun SettingsScreen(
             }
 
             Spacer(Modifier.height(28.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeModeSelector(
+    selected: MomentaThemeMode,
+    onSelect: (MomentaThemeMode) -> Unit
+) {
+    val items = listOf(
+        MomentaThemeMode.SYSTEM to "Система",
+        MomentaThemeMode.LIGHT to "Светлая",
+        MomentaThemeMode.DARK to "Тёмная"
+    )
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+    ) {
+        items.forEachIndexed { index, (mode, label) ->
+            SegmentedButton(
+                selected = selected == mode,
+                onClick = { onSelect(mode) },
+                shape = SegmentedButtonDefaults.itemShape(index, items.size)
+            ) {
+                Text(label, maxLines = 1, fontSize = 12.sp)
+            }
         }
     }
 }
@@ -441,6 +487,7 @@ private fun uploadStatusText(upload: UploadQueueEntity): String = when (upload.s
     else -> "Ожидает подключения"
 }
 
+@Composable
 private fun uploadStatusColor(status: String): Color = when (status) {
     "failed" -> MomentaError
     "uploading" -> MomentaGreen

@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
@@ -49,7 +48,7 @@ fun MomentaAvatar(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(Brush.radialGradient(listOf(MomentaGreen.copy(alpha = 0.9f), MomentaSurfaceAlt))),
+            .background(MomentaGreenAlpha),
         contentAlignment = Alignment.Center
     ) {
     }

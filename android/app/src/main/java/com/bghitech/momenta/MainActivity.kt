@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -21,6 +22,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.navArgument
 import com.bghitech.momenta.core.design.MomentaBackground
 import com.bghitech.momenta.core.design.MomentaTheme
+import com.bghitech.momenta.core.design.MomentaThemeMode
+import com.bghitech.momenta.core.design.ThemePreferences
 import com.bghitech.momenta.core.navigation.NavRoutes
 import com.bghitech.momenta.feature.auth.AuthScreen
 import com.bghitech.momenta.feature.auth.AppAuthStateViewModel
@@ -39,8 +42,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        ThemePreferences.initialize(applicationContext)
         setContent {
-            MomentaTheme {
+            val themeMode by ThemePreferences.mode.collectAsState()
+            val darkTheme = when (themeMode) {
+                MomentaThemeMode.SYSTEM -> isSystemInDarkTheme()
+                MomentaThemeMode.LIGHT -> false
+                MomentaThemeMode.DARK -> true
+            }
+            MomentaTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MomentaBackground

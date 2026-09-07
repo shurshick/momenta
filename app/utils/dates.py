@@ -1,3 +1,4 @@
+import uuid
 from datetime import date, datetime, time, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -35,4 +36,26 @@ def parse_cursor_datetime(cursor: str | None) -> datetime | None:
         return None
     if value.endswith("Z"):
         value = value[:-1] + "+00:00"
-    return datetime.fromisoformat(value)
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def parse_post_cursor(cursor: str | None) -> tuple[datetime, uuid.UUID | None] | None:
+    if not cursor:
+        return None
+    value = cursor.strip()
+    if not value:
+        return None
+    if "|" not in value:
+        parsed_at = parse_cursor_datetime(value)
+        return (parsed_at, None) if parsed_at else None
+    created_at_text, post_id = value.rsplit("|", 1)
+    parsed_at = parse_cursor_datetime(created_at_text)
+    if not parsed_at:
+        return None
+    try:
+        return parsed_at, uuid.UUID(post_id)
+    except ValueError:
+        return None

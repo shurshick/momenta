@@ -14,7 +14,9 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS processing_attempts INTEGER NOT NULL DEFAULT 0")
+    op.execute(
+        "ALTER TABLE posts ADD COLUMN IF NOT EXISTS processing_attempts INTEGER NOT NULL DEFAULT 0"
+    )
     op.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS last_error TEXT")
     op.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP WITH TIME ZONE")
     op.execute("UPDATE posts SET processing_attempts = 0 WHERE processing_attempts IS NULL")

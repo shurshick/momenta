@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -41,7 +41,11 @@ async def get_admin_user(request: Request, db: AsyncSession = Depends(get_db)) -
     user_id = payload.get("sub")
     if not user_id:
         return None
-    user = await get_user_by_id(db, uuid.UUID(user_id))
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        return None
+    user = await get_user_by_id(db, user_uuid)
     if not user or user.role not in ("admin", "moderator") or user.status != "active":
         return None
     return user
@@ -103,7 +107,8 @@ async def admin_login(
             request, "login.html", {"error": "Account is disabled"}, status_code=403
         )
     token = create_access_token(
-        {"sub": str(user.id), "role": user.role, "type": "admin"}, expires_delta=None
+        {"sub": str(user.id), "role": user.role, "type": "admin"},
+        expires_delta=timedelta(hours=8),
     )
     await log_audit(
         db,
@@ -115,14 +120,22 @@ async def admin_login(
         request.headers.get("user-agent"),
     )
     response = RedirectResponse(url="/admin", status_code=303)
-    response.set_cookie(key="admin_token", value=token, httponly=True, max_age=86400, secure=False)
+    response.set_cookie(
+        key="admin_token",
+        value=token,
+        httponly=True,
+        max_age=8 * 60 * 60,
+        secure=settings.app_env.lower() == "production",
+        samesite="lax",
+        path="/admin",
+    )
     return response
 
 
 @router.get("/logout")
 async def admin_logout():
     response = RedirectResponse(url="/admin/login", status_code=303)
-    response.delete_cookie("admin_token")
+    response.delete_cookie("admin_token", path="/admin")
     return response
 
 
@@ -189,12 +202,12 @@ async def admin_users(
 
 @router.post("/users/{user_id}/toggle-status")
 async def admin_toggle_user_status(
-    user_id: str,
+    user_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    user = await get_user_by_id(db, uuid.UUID(user_id))
+    user = await get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404)
     user.status = "disabled" if user.status == "active" else "active"
@@ -214,15 +227,15 @@ async def admin_toggle_user_status(
 
 @router.post("/users/{user_id}/set-role")
 async def admin_set_user_role(
-    user_id: str,
+    user_id: uuid.UUID,
+    request: Request,
     role: str = Form(...),
-    request: Request = None,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
     if role not in ("user", "moderator", "admin"):
         raise HTTPException(status_code=400)
-    user = await get_user_by_id(db, uuid.UUID(user_id))
+    user = await get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404)
     user.role = role
@@ -326,12 +339,12 @@ async def admin_posts(
 
 @router.post("/posts/{post_id}/hide")
 async def admin_hide_post(
-    post_id: str,
+    post_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    result = await db.execute(select(Post).where(Post.id == uuid.UUID(post_id)))
+    result = await db.execute(select(Post).where(Post.id == post_id))
     post = result.scalar_one_or_none()
     if not post:
         raise HTTPException(status_code=404)
@@ -351,12 +364,12 @@ async def admin_hide_post(
 
 @router.post("/posts/{post_id}/restore")
 async def admin_restore_post(
-    post_id: str,
+    post_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    result = await db.execute(select(Post).where(Post.id == uuid.UUID(post_id)))
+    result = await db.execute(select(Post).where(Post.id == post_id))
     post = result.scalar_one_or_none()
     if not post:
         raise HTTPException(status_code=404)
@@ -376,12 +389,12 @@ async def admin_restore_post(
 
 @router.post("/posts/{post_id}/retry-media")
 async def admin_retry_media(
-    post_id: str,
+    post_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    result = await db.execute(select(Post).where(Post.id == uuid.UUID(post_id)))
+    result = await db.execute(select(Post).where(Post.id == post_id))
     post = result.scalar_one_or_none()
     if not post:
         raise HTTPException(status_code=404)
@@ -416,13 +429,15 @@ async def admin_reports(
 
 @router.post("/reports/{report_id}/resolve")
 async def admin_resolve_report(
-    report_id: str,
+    report_id: uuid.UUID,
+    request: Request,
     action: str = Form(...),
-    request: Request = None,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    result = await db.execute(select(Report).where(Report.id == uuid.UUID(report_id)))
+    if action not in {"resolved", "dismissed", "hide_post", "disable_user"}:
+        raise HTTPException(status_code=400, detail="Unknown moderation action")
+    result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
     if not report:
         raise HTTPException(status_code=404)
@@ -527,8 +542,8 @@ async def admin_save_settings(
     request: Request, db: AsyncSession = Depends(get_db), admin: User = Depends(require_admin)
 ):
     form = await request.form()
-    daily_post_limit = form.get("daily_post_limit", "1")
-    delete_window_minutes = form.get("post_delete_window_minutes", "60")
+    daily_post_limit = str(form.get("daily_post_limit", "1"))
+    delete_window_minutes = str(form.get("post_delete_window_minutes", "60"))
     try:
         val = int(daily_post_limit)
         if val < 0:

@@ -226,6 +226,35 @@ async def test_my_profile_counts_likes_from_reactions_on_active_posts(
 
 
 @pytest.mark.asyncio
+async def test_profile_recent_video_keeps_media_fields(
+    client, auth_headers, db_session, test_user, test_challenge
+):
+    post = Post(
+        user_id=test_user.id,
+        challenge_id=test_challenge.id,
+        challenge_date=test_challenge.challenge_date,
+        media_type="video",
+        original_url="https://media.test/original.mp4",
+        preview_url="https://media.test/preview.webp",
+        thumb_url="https://media.test/thumb.webp",
+        caption="Видео дня",
+        status="active",
+    )
+    db_session.add(post)
+    await db_session.commit()
+
+    response = await client.get("/api/v1/me/profile", headers=auth_headers)
+
+    assert response.status_code == 200
+    recent = response.json()["recent_posts"][0]
+    assert recent["media_type"] == "video"
+    assert recent["original_url"] == post.original_url
+    assert recent["preview_url"] == post.preview_url
+    assert recent["thumb_url"] == post.thumb_url
+    assert recent["caption"] == post.caption
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("day_offsets", "expected"),
     [

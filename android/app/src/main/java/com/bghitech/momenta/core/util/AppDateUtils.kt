@@ -13,4 +13,10 @@ object AppDateUtils {
             timeZone = TimeZone.getTimeZone(APP_TIMEZONE)
         }.format(Date())
     }
+
+    fun nowIsoUtc(): String {
+        return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.format(Date())
+    }
 }

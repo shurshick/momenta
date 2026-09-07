@@ -28,6 +28,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -205,15 +206,10 @@ fun FeedScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = state.error!!,
-                                color = MomentaError,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            MomentaPrimaryButton(text = "Повторить", onClick = { viewModel.loadFeed() })
-                        }
+                        MomentaErrorState(
+                            message = state.error!!,
+                            onRetry = { viewModel.loadFeed() }
+                        )
                     }
                 }
                 state.items.isEmpty() -> {
@@ -221,22 +217,9 @@ fun FeedScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        MomentaCard(
-                            modifier = Modifier.padding(24.dp),
-                            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 20.dp)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                MomentaLogoMark(size = 64)
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(
-                                    text = "Пока никто не поделился моментом. Стань первым.",
-                                    color = MomentaText,
-                                    fontSize = 14.sp,
-                                    lineHeight = 19.sp,
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                )
-                            }
-                        }
+                        MomentaEmptyState(
+                            title = "Пока никто не поделился моментом. Стань первым."
+                        )
                     }
                 }
                 else -> {
@@ -365,6 +348,10 @@ private fun FeedPostCard(
     var showReportDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val likeColor by animateColorAsState(
+        targetValue = if (post.isLiked) MomentaError else MomentaTextSecondary,
+        label = "like-color"
+    )
 
     if (showReportDialog) {
         AlertDialog(
@@ -404,11 +391,10 @@ private fun FeedPostCard(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MomentaSurface.copy(alpha = 0.92f),
-        shape = MomentaLargeShape,
-        border = BorderStroke(1.dp, MomentaGreen.copy(alpha = 0.16f))
+        color = MomentaBackground,
+        shape = MomentaSmallShape
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -463,10 +449,10 @@ private fun FeedPostCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1.04f)
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(MomentaSmallShape)
                     .clickable(onClick = onOpenContent),
                 color = MomentaSurfaceAlt,
-                shape = RoundedCornerShape(18.dp)
+                shape = MomentaSmallShape
             ) {
                 if (post.mediaType == "video") {
                     MomentaVideoPlayer(
@@ -502,11 +488,11 @@ private fun FeedPostCard(
                     .padding(top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FeedActionPill(onClick = onLikeClick) {
+                MomentaMomentAction(onClick = onLikeClick) {
                     Icon(
                         imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Лайк",
-                        tint = if (post.isLiked) MomentaError else MomentaTextSecondary,
+                        tint = likeColor,
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -515,7 +501,7 @@ private fun FeedPostCard(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-                FeedActionPill(onClick = onCommentsClick) {
+                MomentaMomentAction(onClick = onCommentsClick) {
                     Icon(
                         Icons.Default.ChatBubbleOutline,
                         contentDescription = "Комментарии",
@@ -528,7 +514,7 @@ private fun FeedPostCard(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                FeedActionPill(onClick = onBookmarkClick) {
+                MomentaMomentAction(onClick = onBookmarkClick) {
                     Icon(
                         imageVector = if (post.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                         contentDescription = if (post.isBookmarked) "Удалить из избранного" else "В избранное",
@@ -539,7 +525,7 @@ private fun FeedPostCard(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-                FeedActionPill(onClick = {
+                MomentaMomentAction(onClick = {
                     sharePost(context, post)
                 }) {
                     Icon(Icons.Default.Share, contentDescription = "Поделиться", tint = MomentaTextSecondary, modifier = Modifier.size(22.dp))
@@ -554,32 +540,11 @@ private fun sharePost(context: android.content.Context, post: Post) {
         type = "text/plain"
         putExtra(
             Intent.EXTRA_TEXT,
-            "Момент от ${post.user.displayName ?: post.user.username} в Момента: ${post.previewUrl}"
+            "Момент от ${post.user.displayName ?: post.user.username} в Момента: " +
+                (post.originalUrl ?: post.previewUrl)
         )
     }
     context.startActivity(Intent.createChooser(intent, "Поделиться моментом"))
-}
-
-@Composable
-private fun FeedActionPill(
-    onClick: () -> Unit,
-    content: @Composable RowScope.() -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .height(42.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick),
-        color = MomentaBackground.copy(alpha = 0.24f),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, MomentaTextSecondary.copy(alpha = 0.16f))
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
-    }
 }
 
 @Composable

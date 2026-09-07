@@ -12,7 +12,7 @@ val MomentaTypography = Typography(
         fontWeight = FontWeight.Bold,
         fontSize = 36.sp,
         lineHeight = 44.sp,
-        letterSpacing = (-0.5).sp
+        letterSpacing = 0.sp
     ),
     displayMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,

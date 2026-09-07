@@ -360,9 +360,9 @@ def _build_photo_variants(img_data: bytes):
     with Image.open(io.BytesIO(img_data)) as img:
         width, height = img.size
         preview = img.copy()
-        preview.thumbnail((1440, 1440), Image.LANCZOS)
+        preview.thumbnail((1440, 1440), Image.Resampling.LANCZOS)
         thumb = img.copy()
-        thumb.thumbnail((400, 400), Image.LANCZOS)
+        thumb.thumbnail((400, 400), Image.Resampling.LANCZOS)
 
         preview_buf = io.BytesIO()
         preview.save(preview_buf, format="WEBP", quality=85)
@@ -426,9 +426,9 @@ def _build_video_variants(video_data: bytes):
 
         with Image.open(frame_path) as frame:
             preview = frame.convert("RGB")
-            preview.thumbnail((1440, 1440), Image.LANCZOS)
+            preview.thumbnail((1440, 1440), Image.Resampling.LANCZOS)
             thumb = preview.copy()
-            thumb.thumbnail((400, 400), Image.LANCZOS)
+            thumb.thumbnail((400, 400), Image.Resampling.LANCZOS)
 
     preview_buf = io.BytesIO()
     preview.save(preview_buf, format="WEBP", quality=85)

@@ -11,6 +11,7 @@ from app.api.v1.auth import get_current_user_id
 from app.config import settings
 from app.db import get_db
 from app.models.bookmark import Bookmark
+from app.models.challenge import Challenge
 from app.models.media_asset import MediaAsset
 from app.models.reaction import Reaction
 from app.models.user import User
@@ -70,10 +71,15 @@ async def upload_post(
     if media_size > max_size:
         raise HTTPException(status_code=400, detail="File too large")
     await media.seek(0)
+    challenge: Challenge | None
     if challenge_id == "today":
         challenge = await get_or_create_today_challenge(db, current_app_date())
     else:
-        challenge = await get_challenge_by_id(db, uuid.UUID(challenge_id))
+        try:
+            challenge_uuid = uuid.UUID(challenge_id)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Invalid challenge id")
+        challenge = await get_challenge_by_id(db, challenge_uuid)
     if not challenge:
         raise HTTPException(status_code=404, detail="Challenge not found")
     current_user_uuid = uuid.UUID(user_id)
@@ -137,9 +143,11 @@ async def _delete_failed_upload(object_key: str) -> None:
 
 @router.get("/{post_id}")
 async def get_post(
-    post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)
+    post_id: uuid.UUID,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
 ):
-    post = await get_post_by_id(db, uuid.UUID(post_id))
+    post = await get_post_by_id(db, post_id)
     if not post or post.status != "active":
         raise HTTPException(status_code=404)
     await increment_views(db, post.id)
@@ -196,9 +204,11 @@ async def get_post(
 
 @router.delete("/{post_id}")
 async def delete_post(
-    post_id: str, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)
+    post_id: uuid.UUID,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
 ):
-    post = await get_post_by_id(db, uuid.UUID(post_id))
+    post = await get_post_by_id(db, post_id)
     current_user_id = uuid.UUID(user_id)
     if not post or post.status == "deleted":
         raise HTTPException(status_code=404, detail="Post not found")
@@ -210,7 +220,7 @@ async def delete_post(
             status_code=403,
             detail=f"Post can be deleted only within {delete_window_minutes} minutes",
         )
-    success = await soft_delete_post(db, uuid.UUID(post_id), current_user_id)
+    success = await soft_delete_post(db, post_id, current_user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Post not found")
     return {"status": "deleted"}

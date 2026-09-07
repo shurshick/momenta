@@ -46,6 +46,7 @@ fun AuthScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .safeDrawingPadding()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -56,7 +57,9 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(28.dp))
 
             MomentaCard(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 480.dp),
                 contentPadding = PaddingValues(20.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

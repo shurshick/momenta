@@ -37,12 +37,12 @@ def _build_comment_out(
 
 @router.get("/{post_id}/comments", response_model=CommentListResponse)
 async def list_comments(
-    post_id: str,
+    post_id: uuid.UUID,
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
     current_user_id = uuid.UUID(user_id)
-    post_uuid = uuid.UUID(post_id)
+    post_uuid = post_id
     post_result = await db.execute(
         select(Post).where(Post.id == post_uuid, Post.status == "active")
     )
@@ -66,13 +66,13 @@ async def list_comments(
 
 @router.post("/{post_id}/comments", response_model=CommentOut)
 async def create_comment(
-    post_id: str,
+    post_id: uuid.UUID,
     req: CreateCommentRequest,
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
     current_user_id = uuid.UUID(user_id)
-    post_uuid = uuid.UUID(post_id)
+    post_uuid = post_id
     post_result = await db.execute(
         select(Post).where(Post.id == post_uuid, Post.status == "active")
     )
@@ -94,14 +94,14 @@ async def create_comment(
 
 @router.delete("/{post_id}/comments/{comment_id}")
 async def delete_comment(
-    post_id: str,
-    comment_id: str,
+    post_id: uuid.UUID,
+    comment_id: uuid.UUID,
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
     current_user_id = uuid.UUID(user_id)
-    post_uuid = uuid.UUID(post_id)
-    comment_uuid = uuid.UUID(comment_id)
+    post_uuid = post_id
+    comment_uuid = comment_id
     result = await db.execute(
         select(Comment).where(
             Comment.id == comment_uuid,

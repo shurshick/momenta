@@ -31,8 +31,8 @@ android {
         applicationId = "com.bghitech.momenta"
         minSdk = 24
         targetSdk = 34
-        versionCode = 82
-        versionName = "0.3.3"
+        versionCode = 83
+        versionName = "0.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -66,8 +66,8 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
             resValue("string", "app_name", "Момент Dev")
-            buildConfigField("String", "DEFAULT_SERVER_URL", "\"https://momenta.bghitech.ru\"")
-            buildConfigField("String", "MEDIA_BASE_URL", "\"https://momenta-media.bghitech.ru\"")
+            buildConfigField("String", "DEFAULT_SERVER_URL", "\"http://10.0.2.2:8000\"")
+            buildConfigField("String", "MEDIA_BASE_URL", "\"http://10.0.2.2:9000\"")
         }
         create("staging") {
             dimension = "environment"

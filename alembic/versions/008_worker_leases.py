@@ -16,8 +16,7 @@ depends_on = None
 def upgrade() -> None:
     op.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS processing_owner VARCHAR(100)")
     op.execute(
-        "ALTER TABLE posts ADD COLUMN IF NOT EXISTS processing_started_at "
-        "TIMESTAMP WITH TIME ZONE"
+        "ALTER TABLE posts ADD COLUMN IF NOT EXISTS processing_started_at TIMESTAMP WITH TIME ZONE"
     )
     op.execute(
         "CREATE INDEX IF NOT EXISTS ix_posts_processing_claim "

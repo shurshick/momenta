@@ -51,7 +51,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -242,6 +241,12 @@ private fun ProfileContent(
     previewPost?.let { post ->
         MomentaMediaViewer(
             imageUrl = post.previewUrl.ifBlank { post.thumbUrl.orEmpty() },
+            mediaUrl = if (post.mediaType == "video") {
+                post.originalUrl ?: post.previewUrl
+            } else {
+                post.previewUrl.ifBlank { post.thumbUrl.orEmpty() }
+            },
+            mediaType = post.mediaType,
             title = state.displayName,
             caption = post.caption,
             isBookmarked = post.isBookmarked,
@@ -261,22 +266,21 @@ private fun ProfileContent(
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         item(key = "profile-summary") {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.Top
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ProfileIdentityBlock(
                     state = state,
                     onEditClick = onEditClick,
                     onAvatarClick = onAvatarClick,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 )
                 ProfileStatsColumn(
                     streakCount = state.streakCount,
                     momentsCount = state.momentsCount,
                     likesCount = state.likesCount,
-                    modifier = Modifier.width(152.dp)
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -470,7 +474,8 @@ private fun shareProfilePost(context: android.content.Context, post: Post) {
         type = "text/plain"
         putExtra(
             Intent.EXTRA_TEXT,
-            "Момент от ${post.user.displayName ?: post.user.username} в Момента: ${post.previewUrl}"
+            "Момент от ${post.user.displayName ?: post.user.username} в Момента: " +
+                (post.originalUrl ?: post.previewUrl)
         )
     }
     context.startActivity(Intent.createChooser(intent, "Поделиться моментом"))
@@ -502,15 +507,7 @@ private fun ProfileIdentityBlock(
             ) {
                 Box(
                     modifier = Modifier
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    MomentaGreen.copy(alpha = 0.22f),
-                                    MomentaWarm.copy(alpha = 0.10f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
+                        .background(MomentaSurfaceAlt)
                         .padding(5.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -578,24 +575,27 @@ private fun ProfileStatsColumn(
     likesCount: Int,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Row(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         ProfileStatTile(
             value = streakCount,
             label = "${dayWord(streakCount)}\nподряд",
-            accent = MomentaGreen
+            accent = MomentaGreen,
+            modifier = Modifier.weight(1f)
         )
         ProfileStatTile(
             value = momentsCount,
             label = momentWord(momentsCount).lowercase(),
-            accent = MomentaGreen
+            accent = MomentaGreen,
+            modifier = Modifier.weight(1f)
         )
         ProfileStatTile(
             value = likesCount,
             label = likeWord(likesCount).lowercase(),
-            accent = MomentaWarm
+            accent = MomentaWarm,
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -604,13 +604,12 @@ private fun ProfileStatsColumn(
 private fun ProfileStatTile(
     value: Int,
     label: String,
-    accent: Color
+    accent: Color,
+    modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(72.dp),
-        color = MomentaSurface.copy(alpha = 0.9f),
+        modifier = modifier.height(68.dp),
+        color = MomentaSurfaceAlt.copy(alpha = 0.72f),
         shape = MomentaLargeShape,
         border = BorderStroke(1.dp, accent.copy(alpha = 0.22f))
     ) {

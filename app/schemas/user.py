@@ -3,6 +3,16 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+class RecentPostOut(BaseModel):
+    id: str
+    media_type: str
+    original_url: str | None = None
+    preview_url: str | None = None
+    thumb_url: str | None = None
+    caption: str | None = None
+    created_at: datetime | None = None
+
+
 class UserProfile(BaseModel):
     id: str
     username: str
@@ -16,7 +26,7 @@ class UserProfile(BaseModel):
     moments_count: int = 0
     streak_count: int = 0
     likes_count: int = 0
-    recent_posts: list[dict] = Field(default_factory=list)
+    recent_posts: list[RecentPostOut] = Field(default_factory=list)
     created_at: datetime | None = None
     last_seen_at: datetime | None = None
 

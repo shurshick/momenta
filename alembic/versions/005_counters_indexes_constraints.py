@@ -27,20 +27,15 @@ def upgrade() -> None:
         "ON posts (status, likes_count DESC, created_at DESC)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_posts_status_created_desc "
-        "ON posts (status, created_at DESC)"
+        "CREATE INDEX IF NOT EXISTS ix_posts_status_created_desc ON posts (status, created_at DESC)"
     )
     op.execute(
         "CREATE INDEX IF NOT EXISTS ix_comments_post_status_created "
         "ON comments (post_id, status, created_at)"
     )
+    op.execute("CREATE INDEX IF NOT EXISTS ix_reports_post_status ON reports (post_id, status)")
     op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_reports_post_status "
-        "ON reports (post_id, status)"
-    )
-    op.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS uq_report_post_user "
-        "ON reports (post_id, user_id)"
+        "CREATE UNIQUE INDEX IF NOT EXISTS uq_report_post_user ON reports (post_id, user_id)"
     )
     op.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS uq_reaction_post_user_type "

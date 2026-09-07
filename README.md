@@ -4,7 +4,17 @@
 
 > Один момент. Все вместе.
 
-Текущая стабильная версия сервера: **v0.3.3**.
+Текущая стабильная версия: **v0.4.0**.
+
+## Приложение
+
+| Момент дня | Мир сейчас |
+|---|---|
+| ![Момент дня](docs/screenshots/today.png) | ![Мир сейчас](docs/screenshots/feed.png) |
+
+| Профиль | Настройки |
+|---|---|
+| ![Профиль](docs/screenshots/profile.png) | ![Настройки](docs/screenshots/settings.png) |
 
 ## Что уже есть
 
@@ -64,7 +74,7 @@ python -m pytest -q
 Production image:
 
 ```yaml
-image: ghcr.io/shurshick/momenta:0.3.3
+image: ghcr.io/shurshick/momenta:0.4.0
 ```
 
 Документация по обновлению TrueNAS: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
@@ -81,14 +91,15 @@ GET /api/v1/app/latest
 
 ## Релизы
 
-- Release: [v0.3.3](https://github.com/shurshick/momenta/releases/tag/v0.3.3)
-- Docker image: `ghcr.io/shurshick/momenta:0.3.3`
-- Android APK: актуальная версия приложения `0.3.3`
+- Release: [v0.4.0](https://github.com/shurshick/momenta/releases/tag/v0.4.0)
+- Docker image: `ghcr.io/shurshick/momenta:0.4.0`
+- Android APK: актуальная версия приложения `0.4.0`
 
 ## Документы
 
 - Android: [android/README.md](android/README.md)
 - Android architecture: [android/docs/ANDROID_ARCHITECTURE.md](android/docs/ANDROID_ARCHITECTURE.md)
+- Android UI: [docs/ANDROID_UI.md](docs/ANDROID_UI.md)
 - TrueNAS deploy: [docs/DEPLOY_TRUENAS.md](docs/DEPLOY_TRUENAS.md)
 - API: [docs/API.md](docs/API.md)
 - Privacy policy: [docs/PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md)

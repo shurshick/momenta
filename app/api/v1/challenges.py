@@ -45,8 +45,8 @@ async def get_challenge_by_date_endpoint(challenge_date: str, db: AsyncSession =
 
 
 @router.get("/{challenge_id}")
-async def get_challenge(challenge_id: str, db: AsyncSession = Depends(get_db)):
-    challenge = await get_challenge_by_id(db, uuid.UUID(challenge_id))
+async def get_challenge(challenge_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    challenge = await get_challenge_by_id(db, challenge_id)
     if not challenge:
         raise HTTPException(status_code=404)
     return {

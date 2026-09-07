@@ -103,4 +103,7 @@ def _to_uuid(value: str | uuid.UUID | None) -> uuid.UUID | None:
         return None
     if isinstance(value, uuid.UUID):
         return value
-    return uuid.UUID(value)
+    try:
+        return uuid.UUID(value)
+    except ValueError:
+        return None

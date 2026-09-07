@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from typing import Optional
+from typing import Optional, cast
 
 import redis.asyncio as aioredis
 
@@ -61,7 +61,7 @@ async def get_feed(
     else:
         key = f"feed:today:global:{d.isoformat()}"
     results = await r.zrevrange(key, start, stop)
-    return list(results)
+    return cast(list[str], list(results))
 
 
 async def mark_user_posted(user_id: str, d: date, ttl_seconds: int | None = None):
