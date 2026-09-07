@@ -194,7 +194,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // Accompanist
-    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+    implementation("com.google.accompanist:accompanist-permissions:0.37.3")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
